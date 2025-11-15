@@ -107,10 +107,10 @@ if game.PlaceId == mainMenuPlaceID then
 	--// Misc Tab \\--
 	local MiscTab = Window:CreateTab({Name = "Misc"})
 	local MiscSection = MiscTab:CreateSection({Name = "Misc"})
-	local HopServer = MiscTab:CreateSection({Name = "Hop", Side = "Left"})
+	local Ect = MiscTab:CreateSection({Name = "Ect", Side = "Left"})
 	local Breathings = MiscTab:CreateSection({Name = "Breathings", Side = "Left"})
 	local SpeedAndJump = MiscTab:CreateSection({Name = "Speed&Jump", Side = "Right"})
-	local Ect = MiscTab:CreateSection({Name = "Ect", Side = "Left"})
+
 
 
     -- Toggle Auto Spin
@@ -174,7 +174,7 @@ if game.PlaceId == mainMenuPlaceID then
 	})
 
 
-HopServer:AddToggle({
+Ect:AddToggle({
     Name = "HopServer",
     Flag = "HopServerToggle",
     Callback = function(state)
@@ -219,7 +219,85 @@ HopServer:AddToggle({
     end
 })
 
-	
+--// Services \\--
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+--// Biến điều khiển ESP \\--
+getgenv().ESPenabled = false
+local ESPDistance = true -- hiển thị khoảng cách
+local ESPTextSize = 18
+
+--// Hàm tạo ESP cho một người chơi \\--
+local function createESP(player)
+    if player == LocalPlayer then return end
+    if player.Character and not player.Character:FindFirstChild("HumanoidRootPart") then return end
+
+    -- Nếu đã có ESP, xóa trước
+    if player.Character:FindFirstChild("ESP") then
+        player.Character:FindFirstChild("ESP"):Destroy()
+    end
+
+    -- Tạo BillboardGui
+    local billboard = Instance.new("BillboardGui")
+    billboard.Name = "ESP"
+    billboard.Adornee = player.Character:WaitForChild("HumanoidRootPart")
+    billboard.Size = UDim2.new(0, 200, 0, 50)
+    billboard.StudsOffset = Vector3.new(0, 3, 0)
+    billboard.AlwaysOnTop = true
+    billboard.Parent = player.Character
+
+    -- TextLabel hiển thị tên + khoảng cách
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Size = UDim2.new(1, 0, 1, 0)
+    textLabel.BackgroundTransparency = 1
+    textLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+    textLabel.TextStrokeTransparency = 0
+    textLabel.Font = Enum.Font.SourceSansBold
+    textLabel.TextScaled = false   -- tắt tự co giãn để dùng TextSize
+    textLabel.TextSize = ESPTextSize -- áp dụng cỡ chữ
+    textLabel.Parent = billboard
+
+    -- Cập nhật thông tin mỗi 2 giây
+    task.spawn(function()
+        while getgenv().ESPenabled and player.Character and player.Character:FindFirstChild("HumanoidRootPart") do
+            local distance = (player.Character.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+            if ESPDistance then
+                textLabel.Text = player.Name .. " | " .. math.floor(distance) .. " studs"
+            else
+                textLabel.Text = player.Name
+            end
+            task.wait(2) -- delay 2 giây
+        end
+        if billboard then billboard:Destroy() end
+    end)
+end
+
+--// Tạo ESP cho tất cả người chơi hiện tại và người chơi mới \\--
+local function enableESP()
+    for _, player in pairs(Players:GetPlayers()) do
+        createESP(player)
+    end
+
+    Players.PlayerAdded:Connect(function(player)
+        createESP(player)
+    end)
+end
+
+--// Toggle ESP \\--
+Ect:AddToggle({
+    Name = "ESP",
+    Flag = "ESP_Toggle",
+    Callback = function(state)
+        getgenv().ESPenabled = state
+        if state then
+            enableESP()
+        end
+    end
+})
+
+
 end	
 
 --// References \\--
