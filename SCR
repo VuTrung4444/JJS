@@ -297,20 +297,76 @@ Ect:AddToggle({
     end
 })
 
+SpeedAndJump:AddSlider({
+		Name = "WalkSpeed",
+		Value = 280,
+		Min = 16,
+		Max = 300,
+		Flag = "WalkSpeed",
+		Textbox = true,
+		Callback = function(State)
+			WalkSpeed = State
+			if game.Players.LocalPlayer.Character then
+				local humanoid = game.Players.LocalPlayer.Character:FindFirstChild("Humanoid")
+				if humanoid then
+					humanoid.WalkSpeed = WalkSpeed
+				end
+			end
+		end
+	})
+
+	SpeedAndJump:AddSlider({
+		Name = "JumpPower",
+		Value = 150,
+		Min = 50,
+		Max = 1000,
+		Flag = "JumpPower",
+		Textbox = true,
+		Callback = function(State)
+			JumpPower = State
+			if game.Players.LocalPlayer.Character then
+				local humanoid = game.Players.LocalPlayer.Character:FindFirstChild("Humanoid")
+				if humanoid then
+					humanoid.JumpPower = JumpPower
+				end
+			end
+		end
+	})
+
+MiscSection:AddButton({
+	Name = "No Fog",
+	Flag = "NF",
+	Keybind = false,
+	Callback = function()
+		local Lighting = game:GetService("Lighting")
+			for _, light in ipairs(Lighting:GetChildren()) do
+				if light:IsA("Atmosphere") or string.find(light.Name, "Blur") or string.find(light.Name, "Bloom") then
+					light:Destroy()
+				end
+			Lighting.FogEnd = 1000000
+		end
+	end
+})
+
+
+
 
 end	
 
 --// References \\--
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local workspace = game:GetService("Workspace")
+local Workspace = game:GetService("Workspace")
 local plr = Players.LocalPlayer
-local MAX_DISTANCE = 100
-local ATTACK_COUNT = 10
-local WAIT_AFTER_ATTACK = 2
 
+--// Cấu hình \\--
+local MAX_DISTANCE = 100           -- Phạm vi tấn công tối đa
+local ATTACK_COUNT = 10            -- Số lần tấn công liên tiếp
+local WAIT_AFTER_ATTACK = 2      -- Thời gian chờ sau khi tấn công đủ số lần
+
+--// Hàm lấy mob gần nhất trong phạm vi MAX_DISTANCE \\--
 local function getClosestMob()
-    local mobsFolder = workspace:WaitForChild("Objects"):WaitForChild("Mobs")
+    local mobsFolder = Workspace:WaitForChild("Objects"):WaitForChild("Mobs")
     local closestMob = nil
     local closestDistance = math.huge
 
@@ -331,6 +387,7 @@ local function getClosestMob()
     return closestMob
 end
 
+--// Hàm gửi lệnh tấn công đến server \\--
 local function attack(target)
     if not target then return end
     local humanoid = target:FindFirstChild("Humanoid")
@@ -352,23 +409,43 @@ local function attack(target)
         :FireServer(unpack(args))
 end
 
-
+--// Kill Aura vòng lặp chính \\--
 task.spawn(function()
-    while task.wait(0.3) do
+    local attackCounter = 0
+    local currentTarget = nil
+
+    while task.wait(0.2) do
         if getgenv().KillAura and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-            local target = getClosestMob()
-            if target then
 
-                for i = 1, ATTACK_COUNT do
-                    attack(target)
-                    task.wait(0.3) 
-                end
 
-                task.wait(WAIT_AFTER_ATTACK)
+            if not currentTarget 
+                or not currentTarget:FindFirstChild("Humanoid") 
+                or currentTarget.Humanoid.Health <= 0
+                or not currentTarget:FindFirstChild("HumanoidRootPart")
+                or (currentTarget.HumanoidRootPart.Position - plr.Character.HumanoidRootPart.Position).Magnitude > MAX_DISTANCE 
+            then
+                currentTarget = getClosestMob()
             end
+
+            if currentTarget then
+
+                attack(currentTarget)
+                attackCounter = attackCounter + 1
+
+                if attackCounter >= ATTACK_COUNT then
+                    attackCounter = 0
+                    task.wait(WAIT_AFTER_ATTACK)
+                else
+                    task.wait(0.1) -- delay giữa các lần tấn công
+                end
+            end
+        else
+            attackCounter = 0
+            currentTarget = nil
         end
     end
 end)
+
 
 
 
@@ -592,6 +669,25 @@ end)
 	end
 
 
+	local VirtualUser = game:GetService("VirtualUser")
+	local Players = game:GetService("Players")
+
+	-- Hàm tạo thời gian random kiểu tự nhiên, có lúc nhanh lúc chậm
+	local function naturalWaitTime()
+		local baseTime = 600 -- 10 phút
+		local offset = math.random(-120, 180) -- lệch ngẫu nhiên từ -2 phút đến +3 phút
+		return math.max(300, baseTime + offset) -- đảm bảo tối thiểu 5 phút
+	end
+
+	spawn(function()
+		while true do
+			wait(naturalWaitTime()) 
+			if Players.LocalPlayer and Players.LocalPlayer.Character then
+				VirtualUser:CaptureController()
+				VirtualUser:ClickButton2(Vector2.new(math.random(100, 1820), math.random(100, 980))) 
+			end
+		end
+	end)
 
 
 	local SelectedMap = nil 
