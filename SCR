@@ -5,6 +5,7 @@ local Subs = Library.subs
 local IsOpen = Subs.Wait
 
 local mainMenuPlaceID = 10450270085
+local BossPlaceID = 16379688837
 local placeId = game.PlaceId
 
 -- Biến kiểm soát
@@ -82,7 +83,7 @@ local function autoSpinInnate()
 end
 
 -- GUI setup
-if game.PlaceId == mainMenuPlaceID then
+if game.PlaceId == mainMenuPlaceID or game.PlaceId == BossPlaceID then
     local Window = Library:CreateWindow({
         Name = "HackerLor",
         Themeable = {
@@ -361,7 +362,7 @@ local plr = Players.LocalPlayer
 
 --// Cấu hình \\--
 local MAX_DISTANCE = 100           -- Phạm vi tấn công tối đa
-local ATTACK_COUNT = 10            -- Số lần tấn công liên tiếp
+local ATTACK_COUNT = 10           -- Số lần tấn công liên tiếp
 local WAIT_AFTER_ATTACK = 2      -- Thời gian chờ sau khi tấn công đủ số lần
 
 --// Hàm lấy mob gần nhất trong phạm vi MAX_DISTANCE \\--
@@ -689,30 +690,5 @@ end)
 		end
 	end)
 
-
-	local SelectedMap = nil 
-	local LocationsDropdown, BossesDropdown -- Lưu Dropdown để cập nhật danh sách
-	local Map1List, Map2List, BossesMap1List, BossesMap2List = {}, {}, {}, {}
-	local LocationsToUse, BossesToUse = {}, {}
-	local ActiveBossLocations = {}
-
-	for name, _ in pairs(Map1) do
-		table.insert(Map1List, name)
-	end
-	for name, _ in pairs(Map2) do
-		table.insert(Map2List, name)
-	end
-	for name, _ in pairs(BossLocationsMap1) do
-		table.insert(BossesMap1List, name)
-	end
-	for name, _ in pairs(BossLocationsMap2) do
-		table.insert(BossesMap2List, name)
-	end
-
-
-
-
-	local Bosses = {}
-	local mobs = {}
 
 
