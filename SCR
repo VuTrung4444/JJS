@@ -83,7 +83,6 @@ local function autoSpinInnate()
 end
 
 -- GUI setup
-if game.PlaceId == mainMenuPlaceID or game.PlaceId == BossPlaceID then
     local Window = Library:CreateWindow({
         Name = "HackerLor",
         Themeable = {
@@ -372,10 +371,6 @@ MiscSection:AddButton({
 	end
 })
 
-
-
-
-end	
 
 --// References \\--
 local Players = game:GetService("Players")
