@@ -185,7 +185,7 @@ KA:AddToggle({
             task.spawn(function()
                 while ToggleBF do
                     -- chạy blackflash
-                    local args = {1.1249999999999958}
+                    local args = {1.123}
                     local rs = game:GetService("ReplicatedStorage").Remotes.Server.Combat
                     
                     rs.ApplyBlackFlashToNextHitbox:FireServer(unpack(args))
