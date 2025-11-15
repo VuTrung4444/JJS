@@ -162,16 +162,6 @@ local KA = MainTab:CreateSection({Name = "Kill Aura", Side = "Left"})
         end
     })
 
-
-
-	--// Kill Aura Toggle \\--
-	KA:AddToggle({
-		Name = "Kill Aura",
-		Flag = "KillAuraToggle",
-		Callback = function(v)
-			getgenv().KillAura = v
-		end
-	})
 local ToggleBF = false
 local RunService = game:GetService("RunService")
 
@@ -190,12 +180,22 @@ KA:AddToggle({
                     rs.ApplyBlackFlashToNextHitbox:FireServer(unpack(args))
                     rs.M2:FireServer()
 
-                    task.wait(0.5) -- lặp mỗi 1 giây
+                    task.wait(0.5)
                 end
             end)
         end
     end
 })
+
+	--// Kill Aura Toggle \\--
+	KA:AddToggle({
+		Name = "Kill Aura",
+		Flag = "KillAuraToggle",
+		Callback = function(v)
+			getgenv().KillAura = v
+		end
+	})
+
 
 Ect:AddToggle({
     Name = "HopServer",
