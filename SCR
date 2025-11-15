@@ -97,8 +97,8 @@ end
 	local MainTab = Window:CreateTab({Name = "Main"})
 	local MainSection = MainTab:CreateSection({Name = "Farming"})
 	local Settings = MainTab:CreateSection({Name = "Settings"})
+local KA = MainTab:CreateSection({Name = "Kill Aura", Side = "Left"})
 	local DailySection = MainTab:CreateSection({Name = "Spin", Side = "Left"})
-	local KA = MainTab:CreateSection({Name = "Kill Aura", Side = "Left"})
 	local Teleports = MainTab:CreateSection({Name = "Teleports", Side = "Right"})
 	local Info = MainTab:CreateSection({Name = "Info", Side = "Right"})
 	local AuraTab = MainTab:CreateSection({Name = "AuraSkills", Side = "Left"})
@@ -190,7 +190,7 @@ KA:AddToggle({
                     rs.ApplyBlackFlashToNextHitbox:FireServer(unpack(args))
                     rs.M2:FireServer()
 
-                    task.wait(1) -- lặp mỗi 1 giây
+                    task.wait(0.5) -- lặp mỗi 1 giây
                 end
             end)
         end
