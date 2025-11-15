@@ -173,7 +173,30 @@ if game.PlaceId == mainMenuPlaceID or game.PlaceId == BossPlaceID then
 			getgenv().KillAura = v
 		end
 	})
+local ToggleBF = false
+local RunService = game:GetService("RunService")
 
+KA:AddToggle({
+    Name = "BlackFlash Loop",
+    Default = false,
+    Callback = function(v)
+        ToggleBF = v
+        if v then
+            task.spawn(function()
+                while ToggleBF do
+                    -- chạy blackflash
+                    local args = {1.1249999999999958}
+                    local rs = game:GetService("ReplicatedStorage").Remotes.Server.Combat
+                    
+                    rs.ApplyBlackFlashToNextHitbox:FireServer(unpack(args))
+                    rs.M2:FireServer()
+
+                    task.wait(1) -- lặp mỗi 1 giây
+                end
+            end)
+        end
+    end
+})
 
 Ect:AddToggle({
     Name = "HopServer",
@@ -362,7 +385,7 @@ local plr = Players.LocalPlayer
 
 --// Cấu hình \\--
 local MAX_DISTANCE = 100           -- Phạm vi tấn công tối đa
-local ATTACK_COUNT = 10           -- Số lần tấn công liên tiếp
+local ATTACK_COUNT = 5           -- Số lần tấn công liên tiếp
 local WAIT_AFTER_ATTACK = 2      -- Thời gian chờ sau khi tấn công đủ số lần
 
 --// Hàm lấy mob gần nhất trong phạm vi MAX_DISTANCE \\--
@@ -401,7 +424,7 @@ local function attack(target)
     local distance = (rootPart.Position - playerRoot.Position).Magnitude
     if distance > MAX_DISTANCE then return end
 
-    local args = {5, {humanoid}}
+    local args = {1, {humanoid}}
     ReplicatedStorage
         :WaitForChild("Remotes")
         :WaitForChild("Server")
