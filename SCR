@@ -1,227 +1,154 @@
-	repeat task.wait() until game:IsLoaded()
+repeat task.wait() until game:IsLoaded()
 
-	local Library = loadstring(game:GetObjects("rbxassetid://7657867786")[1].Source)()
-	local Subs = Library.subs
-	local IsOpen = Subs.Wait
+local Library = loadstring(game:GetObjects("rbxassetid://7657867786")[1].Source)()
+local Subs = Library.subs
+local IsOpen = Subs.Wait
 
-	local mainMenuPlaceID = 5956785391
-	local placeId = game.PlaceId
-	local mapName
-	local DailySpinEnabled = false
-	local ClanSpinEnabled = false
+local mainMenuPlaceID = 10450270085
+local placeId = game.PlaceId
 
+-- Biến kiểm soát
+local InnateSpinEnabled = false
+local slot1Enabled = false
+local slot2Enabled = false
+local huntLegendary = false  
+local huntSg = false
 
-	local legendaryClans = {"Shinazugawa", "Kocho", "Sabito", "Tamayo", "Kuwajima", "Makamo"}
-	local mythicClans = {"Tomioka", "Tokito", "Hashibira", "Soyama"}
-	local supremeClans = {"Kamado", "Agatsuma", "Rengoku", "Uzui"}
+-- Danh sách Innate
+local legendaryInnate = {"Volcano", "Hydrokinesis", "Judgeman", "Puppet", "Projection", "Plan Manipulation"}
+local sgInnate = {"Infinity", "Demon Vessel", "Curse Queen", "Soul Manipulation", "Gamble Fever", "Star Rage", "Ancient Construction", "Thunder God"}
 
-	local huntLegendary = false  
-	local huntMythic = false  
-	local huntSupreme = false
+-- Lấy danh sách Innate cần hunt
+local function getFilteredInnate()
+    local targetInnate = {}
+    if huntLegendary then
+        for _, innate in ipairs(legendaryInnate) do
+            table.insert(targetInnate, innate)
+        end
+    end
+    if huntSg then
+        for _, innate in ipairs(sgInnate) do
+            table.insert(targetInnate, innate)
+        end
+    end
+    return targetInnate
+end
 
-	local function getFilteredClans()
-		local targetClans = {}
-		if huntLegendary then
-			for _, clan in ipairs(legendaryClans) do
-				table.insert(targetClans, clan)
-			end
-		end
-		if huntMythic then
-			for _, clan in ipairs(mythicClans) do
-				table.insert(targetClans, clan)
-			end
-		end
-		if huntSupreme then
-			for _, clan in ipairs(supremeClans) do
-				table.insert(targetClans, clan)
-			end
-		end
-		return targetClans
-	end
+-- Hàm auto spin Innate
+local function autoSpinInnate()
+    task.spawn(function()
+        local Players = game:GetService("Players")
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        local localPlayer = Players.LocalPlayer
 
-	local function autoSpinClan()
-		task.spawn(function()
-			local players = game:GetService("Players")
-			local replicatedStorage = game:GetService("ReplicatedStorage")
+        -- Remote spin
+        local spinRemote = ReplicatedStorage:WaitForChild("Remotes")
+            :WaitForChild("Server")
+            :WaitForChild("Data")
+            :WaitForChild("InnateSpin")
 
-			local localPlayer = players.LocalPlayer
-			local playerData = replicatedStorage:WaitForChild("Player_Data")
-			local localData = playerData:WaitForChild(localPlayer.Name)
-			local clan = localData:FindFirstChild("Clan")
+        -- Innates
+        local innates = localPlayer:WaitForChild("ReplicatedData"):WaitForChild("innates")
 
-			local remotes = replicatedStorage:WaitForChild("Remotes")
-			local sendServer = remotes:WaitForChild("To_Server")
-			local handleSpin = sendServer:WaitForChild("Handle_Initiate_S_")
+        while InnateSpinEnabled do
+            local targetInnates = getFilteredInnate()
 
-			handleSpin:InvokeServer("check_can_spin")
-			task.wait(1)
+            -- Spin slot 1
+            if slot1Enabled then
+                spinRemote:InvokeServer(1)
+                local val1 = innates["1"] and innates["1"].Value or ""
+                print("Slot 1 Innate:", val1)
+                if table.find(targetInnates, val1) then
+                    InnateSpinEnabled = false
+                    break
+                end
+            end
 
-			while ClanSpinEnabled do
-				local targetClans = getFilteredClans()
+            -- Spin slot 2
+            if slot2Enabled then
+                if slot1Enabled then task.wait(0.5) end -- Slot 2 quay chậm hơn nếu slot 1 cũng spin
+                spinRemote:InvokeServer(2)
+                local val2 = innates["2"] and innates["2"].Value or ""
+                print("Slot 2 Innate:", val2)
+                if table.find(targetInnates, val2) then
+                    InnateSpinEnabled = false
+                    break
+                end
+            end
 
-				if clan and table.find(targetClans, clan.Value) then
-					ClanSpinEnabled = false
-					break
-				else
-					handleSpin:InvokeServer("check_can_spin")
-				end
-			end
-		end)
-	end
+            task.wait(0.3)
+        end
+    end)
+end
 
-	local function autoSpinAndClaim()
-		task.spawn(function()
-			while DailySpinEnabled do
-				local player = game.Players.LocalPlayer
-				local spinsFolder = player:FindFirstChild("daily_spins_folder")
-				local remote = game.ReplicatedStorage:FindFirstChild("spins_thing_remote")
+-- GUI setup
+if game.PlaceId == mainMenuPlaceID then
+    local MainWindow = Library:CreateWindow({
+        Name = "HackerLor",
+        Themeable = {
+            Info = "VTrungHackerLor",
+            Credit = false,
+            Background = "",
+            Visible = true
+        }
+    })
 
-				if spinsFolder and remote then
-					local dailySpins = spinsFolder:FindFirstChild("SpinsToday")
-					if dailySpins and dailySpins.Value > 0 then
-						remote:InvokeServer()
-					else
-						DailySpinEnabled = false
-					end
-				end
-			end
-		end)
-	end
+    local DailyTab = MainWindow:CreateTab("Main")
+    local DailySection = DailyTab:CreateSection({Name = "Spin", Side = "Left"})
 
+    -- Toggle Auto Spin
+    DailySection:AddToggle({
+        Name = "Auto Spin Innate",
+        Flag = "AutoSpinInnate",
+        Callback = function(state)
+            InnateSpinEnabled = state
+            if state then autoSpinInnate() end
+        end
+    })
 
-	if game.PlaceId == mainMenuPlaceID then
-		local MainWindow = Library:CreateWindow({
-			Name = "HackerLor | TksMyWife",
-			Themeable = {
-				Info = "VTrungHackerLor",
-				Credit = false,
-				Background = "",
-				Visible = true
-			}
-		})
+    -- Toggle slot 1
+    DailySection:AddToggle({
+        Name = "Spin Thanh Lưu 1",
+        Flag = "Slot1",
+        State = false,
+        Callback = function(state)
+            slot1Enabled = state
+        end
+    })
 
-		local DailyTab = MainWindow:CreateTab("Main")
+    -- Toggle slot 2
+    DailySection:AddToggle({
+        Name = "Spin Thanh Lưu 2",
+        Flag = "Slot2",
+        State = false,
+        Callback = function(state)
+            slot2Enabled = state
+        end
+    })
 
-		-- Section Daily Spin
-		local DailySection = DailyTab:CreateSection({Name = "Spin", Side = "Left"})
-		DailySection:AddToggle({
-			Name = "Auto Daily Spin",
-			Flag = "AutoDailySpin",
-			Callback = function(state)
-				DailySpinEnabled = state
-				if state then
-					autoSpinAndClaim()
-				end
-			end
-		})
+    -- Hunt Legendary / SG Innate
+    local ClanChooseSection = DailyTab:CreateSection({Name = "TròChơiNhânPhẩm", Side = "Right"})
 
-		DailySection:AddToggle({ 
-			Name = "Auto Spin Clan",
-			Flag = "AutoSpinClan",
-			Callback = function(state)
-				-- Kiểm tra nếu ít nhất một trong ba toggle săn clan được bật
-				if state and (huntLegendary or huntMythic or huntSupreme) then
-					ClanSpinEnabled = true
-					autoSpinClan()
-				else
-					ClanSpinEnabled = false
-				end
-			end
-		})
+    ClanChooseSection:AddToggle({
+        Name = "Săn Legendary Innate",
+        Flag = "HuntLegendary",
+        Callback = function(state)
+            huntLegendary = state
+        end
+    })
 
-		DailySection:AddToggle({
-		Name = "Fake Name/DisplayName",
-		Default = false,
-		Callback = function(state)
-			if state then
-				-- Khi toggle được bật, chạy đoạn thay đổi tên hiển thị
-				getgenv().Config = {
-					FakeDisplayName = "SKTxT1xLoc",
-					FakeName = "SKTxT1xLoc",
-					FakeId = 1, -- ID giả để thay UserId
-				}
-
-				local players = game:GetService('Players')
-				local lp = players.LocalPlayer
-
-				local oldUserId = tostring(lp.UserId)
-				local oldName = lp.Name
-				local oldDisplayName = lp.DisplayName
-
-				local function processtext(text)
-					if string.gsub(text, oldName, Config.FakeName) ~= text then
-						return string.gsub(text, oldName, Config.FakeName)
-					end	
-					if string.gsub(text, oldUserId, Config.FakeId) ~= text then
-						return string.gsub(text, oldUserId, Config.FakeId)
-					end
-					if string.gsub(text, oldDisplayName, Config.FakeDisplayName) ~= text then
-						return string.gsub(text, oldDisplayName, Config.FakeDisplayName)
-					end
-					return text or ''
-				end
-
-				for _, v in next, game:GetDescendants() do
-					if v:IsA("TextBox") or v:IsA("TextLabel") or v:IsA("TextButton") then
-						v.Text = processtext(v.Text)
-						v.Name = processtext(v.Name)
-						v.Changed:Connect(function(property)
-							if property == "Text" or property == "Name" then
-								v.Text = processtext(v.Text)
-								v.Name = processtext(v.Name)
-							end
-						end)
-					end
-				end
-
-				game.DescendantAdded:Connect(function(descendant)
-					if descendant:IsA("TextBox") or descendant:IsA("TextLabel") or descendant:IsA("TextButton") then
-						descendant.Text = processtext(descendant.Text)
-						descendant.Name = processtext(descendant.Name)
-						descendant.Changed:Connect(function(property)
-							if property == "Text" or property == "Name" then
-								descendant.Text = processtext(descendant.Text)
-								descendant.Name = processtext(descendant.Name)
-							end
-						end)
-					end
-				end)
-
-				lp.DisplayName = Config.FakeDisplayName
-			end
-		end
-	})
+    ClanChooseSection:AddToggle({
+        Name = "Săn Sg Innate",
+        Flag = "HuntSg",
+        Callback = function(state)
+            huntSg = state
+        end
+    })
+end
 
 
-	local ClanChooseSection = DailyTab:CreateSection({Name = "TròChơiNhânPhẩm", Side = "Right"})
 
-	ClanChooseSection:AddToggle({
-		Name = "Săn Legendary Clan",
-		Flag = "HuntLegendary",
-		Callback = function(state)
-			huntLegendary = state
-		end,
-		State = false  
-	})
 
-	ClanChooseSection:AddToggle({
-		Name = "Săn Mythic Clan",
-		Flag = "HuntMythic",
-		Callback = function(state)
-			huntMythic = state
-		end,
-		State = false  
-	})
-
-	ClanChooseSection:AddToggle({
-		Name = "Săn Supreme Clan",
-		Flag = "HuntSupreme",
-		Callback = function(state)
-			huntSupreme = state
-		end,
-		State = false
-	})
-	end
 	--// Variables \\--
 	local plr = game:GetService("Players").LocalPlayer
 
