@@ -779,7 +779,7 @@ task.wait(10)
                             if existingLoot then
                                 existingLoot:Destroy()
                             end
-                            task.wait(0.5)
+                            task.wait(1)
                             local starterLoot = StarterGui:FindFirstChild("Loot")
                             if starterLoot then
                                 local newLoot = starterLoot:Clone()
@@ -840,7 +840,7 @@ local function HoverOnMob()
 	if humanoid and humanoid.Health <= 0 then
 		task.wait(5)
 		AutoChest()
-task.wait(13)
+task.wait(2)
 		RunReplay()
 	end
 end
