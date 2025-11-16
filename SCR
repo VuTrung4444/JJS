@@ -802,8 +802,8 @@ local function HoverOnMob()
 
 	DisableHover(hrp)
 
-local readyReplay = replicatedStorage:FindFirstChild("ReadyReplay")
-							if readyReplay and readyReplay.Value == 0 and #dropsFolder:GetChildren() == 0 then
+local dropsFolder = workspace:WaitForChild("Objects"):WaitForChild("Drops")
+if humanoid.Health < 1 and #dropsFolder:GetChildren() == 0 then
 		task.wait(10)
 		RunReplay()
 	end
