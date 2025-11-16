@@ -8,18 +8,18 @@ local mainMenuPlaceID = 10450270085
 local BossPlaceID = 16379688837
 local placeId = game.PlaceId
 
--- Biến kiểm soát
+
 local InnateSpinEnabled = false
 local slot1Enabled = false
 local slot2Enabled = false
 local huntLegendary = false  
 local huntSg = false
 
--- Danh sách Innate
+
 local legendaryInnate = {"Volcano", "Hydrokinesis", "Judgeman", "Puppet", "Projection", "Plan Manipulation"}
 local sgInnate = {"Infinity", "Demon Vessel", "Curse Queen", "Soul Manipulation", "Gamble Fever", "Star Rage", "Ancient Construction", "Thunder God"}
 
--- Lấy danh sách Innate cần hunt
+
 local function getFilteredInnate()
     local targetInnate = {}
     if huntLegendary then
@@ -35,26 +35,26 @@ local function getFilteredInnate()
     return targetInnate
 end
 
--- Hàm auto spin Innate
+
 local function autoSpinInnate()
     task.spawn(function()
         local Players = game:GetService("Players")
         local ReplicatedStorage = game:GetService("ReplicatedStorage")
         local localPlayer = Players.LocalPlayer
 
-        -- Remote spin
+
         local spinRemote = ReplicatedStorage:WaitForChild("Remotes")
             :WaitForChild("Server")
             :WaitForChild("Data")
             :WaitForChild("InnateSpin")
 
-        -- Innates
+
         local innates = localPlayer:WaitForChild("ReplicatedData"):WaitForChild("innates")
 
         while InnateSpinEnabled do
             local targetInnates = getFilteredInnate()
 
-            -- Spin slot 1
+
             if slot1Enabled then
                 spinRemote:InvokeServer(1)
                 local val1 = innates["1"] and innates["1"].Value or ""
@@ -65,7 +65,7 @@ local function autoSpinInnate()
                 end
             end
 
-            -- Spin slot 2
+
             if slot2Enabled then
                 if slot1Enabled then task.wait(0.5) end -- Slot 2 quay chậm hơn nếu slot 1 cũng spin
                 spinRemote:InvokeServer(2)
@@ -82,7 +82,7 @@ local function autoSpinInnate()
     end)
 end
 
--- GUI setup
+
     local Window = Library:CreateWindow({
         Name = "HackerLor",
         Themeable = {
@@ -97,10 +97,10 @@ end
 	local MainTab = Window:CreateTab({Name = "Main"})
 	local MainSection = MainTab:CreateSection({Name = "Farming"})
 	local Settings = MainTab:CreateSection({Name = "Settings"})
-local KA = MainTab:CreateSection({Name = "Kill Aura", Side = "Left"})
+	local KA = MainTab:CreateSection({Name = "Kill Aura", Side = "Left"})
+	local AutoMission = MainTab:CreateSection({Name = "Auto", Side = "Right"})
 	local DailySection = MainTab:CreateSection({Name = "Spin", Side = "Left"})
 	local Teleports = MainTab:CreateSection({Name = "Teleports", Side = "Right"})
-	local Info = MainTab:CreateSection({Name = "Info", Side = "Right"})
 	local AuraTab = MainTab:CreateSection({Name = "AuraSkills", Side = "Left"})
 
 
@@ -356,6 +356,54 @@ SpeedAndJump:AddSlider({
 		end
 	})
 
+MiscSection:AddToggle({
+    Name = "AutoChestCollect",
+    Default = false,
+    Callback = function(state)
+        getgenv().AutoChestCollect = state
+
+        local Players = game:GetService("Players")
+        local player = Players.LocalPlayer
+        local StarterGui = game:GetService("StarterGui")
+
+        task.spawn(function()
+            while task.wait(0.5) do
+                if not getgenv().AutoChestCollect then continue end
+                local dropsFolder = workspace:FindFirstChild("Objects") and workspace.Objects:FindFirstChild("Drops")
+                if not dropsFolder then continue end
+
+                for _, drop in pairs(dropsFolder:GetChildren()) do
+                    local chest = drop:FindFirstChild("Chest")
+                    if chest then
+                        local prompt = chest:FindFirstChild("Collect")
+                        if prompt then
+                            fireproximityprompt(prompt)
+
+                            task.wait(10)
+
+                            local existingLoot = player:FindFirstChild("PlayerGui") and player.PlayerGui:FindFirstChild("Loot")
+                            if existingLoot then
+                                existingLoot:Destroy()
+                            end
+                            
+                            task.wait(1)
+
+                            local starterLoot = StarterGui:FindFirstChild("Loot")
+                            if starterLoot then
+                                local newLoot = starterLoot:Clone()
+                                newLoot.Parent = player.PlayerGui
+                            end
+
+                            break
+                        end
+                    end
+                end
+            end
+        end)
+    end
+})
+
+
 MiscSection:AddButton({
 	Name = "No Fog",
 	Flag = "NF",
@@ -371,17 +419,193 @@ MiscSection:AddButton({
 	end
 })
 
+AutoMission:AddToggle({
+    Name = "AutoMission",
+    Default = false,
+    Callback = function(state)
+        getgenv().AutoMissionEnabled = state
 
---// References \\--
+        local Players = game:GetService("Players")
+        local player = Players.LocalPlayer
+        local StarterGui = game:GetService("StarterGui")
+        local workspaceDrops = workspace:WaitForChild("Objects"):WaitForChild("Drops")
+
+
+        getgenv().AutoKillMobs = false
+        getgenv().AutoCollect = false
+        getgenv().AutoCivilian = false
+
+        local lastTaskText = nil
+
+        task.spawn(function()
+            while task.wait(1) do
+                if not getgenv().AutoMissionEnabled then
+                    getgenv().AutoKillMobs = false
+                    getgenv().AutoCollect = false
+                    getgenv().AutoCivilian = false
+                    continue
+                end
+
+                local storylineGui = player:WaitForChild("PlayerGui"):WaitForChild("StorylineDialogue")
+                local frame = storylineGui:WaitForChild("Frame")
+                local questFrame = frame:WaitForChild("QuestFrame")
+                local questInfo = questFrame:WaitForChild("QuestInfo")
+                local taskDesc = questInfo:WaitForChild("Task"):WaitForChild("Description")
+                local currentTask = taskDesc.Text
+
+
+                if currentTask ~= lastTaskText then
+                    getgenv().AutoKillMobs = false
+                    getgenv().AutoCollect = false
+                    getgenv().AutoCivilian = false
+                    lastTaskText = currentTask
+                end
+
+
+                if game.PlaceId == 16379684339 then
+                    getgenv().AutoKillMobs = true
+                end
+
+
+                if getgenv().AutoKillMobs then
+                    for _, mob in ipairs(workspace:WaitForChild("Objects"):WaitForChild("Mobs"):GetChildren()) do
+                        local humanoid = mob:FindFirstChild("Humanoid")
+                        if humanoid and humanoid.Health > 0 then
+                            humanoid.Health = 0
+							task.wait(0.1)
+                        end
+                    end
+                end
+
+
+                if currentTask == "Collect all objects" then
+                    if not getgenv().AutoCollect then
+                        getgenv().AutoCollect = true
+                        task.spawn(function()
+                            while getgenv().AutoCollect and task.wait() do
+                                local items = workspace:WaitForChild("Objects"):WaitForChild("MissionItems"):GetChildren()
+                                if #items == 0 then
+                                    getgenv().AutoCollect = false
+                                    break
+                                end
+                                for _, item in ipairs(items) do
+                                    if not getgenv().AutoCollect then break end
+                                    if not item:IsDescendantOf(workspace) then continue end
+                                    local char = player.Character
+                                    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+                                    if not hrp then continue end
+                                    local pivot = item:GetPivot()
+                                    hrp.CFrame = CFrame.new(pivot.Position)
+                                    task.wait(0.5)
+                                    local prompt = item:FindFirstChild("Collect")
+                                    if prompt then
+                                        fireproximityprompt(prompt)
+                                    end
+                                    task.wait(0.5)
+                                end
+                            end
+                        end)
+                    end
+                end
+
+
+                if currentTask == "Rescue civilians to the gate" then
+                    if not getgenv().AutoCivilian then
+                        getgenv().AutoCivilian = true
+                        task.spawn(function()
+                            while getgenv().AutoCivilian and task.wait() do
+                                local civilians = {}
+                                for _, obj in ipairs(workspace:WaitForChild("Objects"):WaitForChild("MissionItems"):GetChildren()) do
+                                    if obj.Name == "Civilian" then
+                                        table.insert(civilians, obj)
+                                    end
+                                end
+
+                                if #civilians == 0 then
+                                    print("No more Civilian.")
+                                    getgenv().AutoCivilian = false
+                                    break
+                                end
+
+                                for _, civ in ipairs(civilians) do
+                                    if not getgenv().AutoCivilian then break end
+                                    if not civ:IsDescendantOf(workspace) then continue end
+                                    local char = player.Character
+                                    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+                                    if not hrp then continue end
+                                    local pivot = civ:GetPivot()
+                                    hrp.CFrame = CFrame.new(pivot.Position)
+                                    task.wait(0.4)
+                                    local pickup = civ:FindFirstChild("PickUp")
+                                    if pickup then
+                                        fireproximityprompt(pickup)
+                                    end
+                                    repeat task.wait() until not civ:FindFirstChild("PickUp")
+                                    local spawn = workspace:WaitForChild("Map"):WaitForChild("Parts"):FindFirstChild("SpawnLocation")
+                                    if spawn then
+                                        hrp.CFrame = CFrame.new(spawn.Position)
+                                    end
+                                    task.wait(0.5)
+                                end
+                            end
+                        end)
+                    end
+                end
+
+
+				if currentTask ~= "Collect all objects" and currentTask ~= "Rescue civilians to the gate" then
+				local dropsFolder = workspace:WaitForChild("Objects"):WaitForChild("Drops")
+				local mobsFolder = workspace:WaitForChild("Objects"):WaitForChild("Mobs")
+				local replicatedStorage = game:GetService("ReplicatedStorage")
+				local playerGui = player:WaitForChild("PlayerGui")
+
+				task.spawn(function()
+					if #mobsFolder:GetChildren() == 0 then
+						while task.wait(4) do
+							local readyReplay = replicatedStorage:FindFirstChild("ReadyReplay")
+							if readyReplay and readyReplay.Value == 0 and #dropsFolder:GetChildren() == 0 then
+								task.wait(2)
+								local invResults = playerGui:FindFirstChild("InvestigationResults")
+								if invResults then
+									invResults:Destroy()
+								end
+
+								local remote = replicatedStorage:WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Misc"):WaitForChild("ReadyReplay")
+								remote:FireServer()
+							end
+						end
+					end
+				end)
+
+
+					local mobs = workspace:WaitForChild("Objects"):WaitForChild("Mobs"):GetChildren()
+					for _, mob in ipairs(mobs) do
+						local char = player.Character
+						local hrp = char and char:FindFirstChild("HumanoidRootPart")
+						if hrp and mob:IsDescendantOf(workspace) then
+							local pivot = mob:GetPivot()
+							local offsetY = 50
+							hrp.CFrame = CFrame.new(pivot.Position + Vector3.new(0, offsetY, 0))
+							task.wait(4)
+						end
+					end
+				end
+            end
+        end)
+    end
+})
+
+
+
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 local plr = Players.LocalPlayer
 
 --// Cấu hình \\--
-local MAX_DISTANCE = 100           -- Phạm vi tấn công tối đa
-local ATTACK_COUNT = 5           -- Số lần tấn công liên tiếp
-local WAIT_AFTER_ATTACK = 2      -- Thời gian chờ sau khi tấn công đủ số lần
+local MAX_DISTANCE = 100
+local ATTACK_COUNT = 5
+local WAIT_AFTER_ATTACK = 2
 
 --// Hàm lấy mob gần nhất trong phạm vi MAX_DISTANCE \\--
 local function getClosestMob()
