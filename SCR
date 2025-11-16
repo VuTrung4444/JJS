@@ -165,23 +165,50 @@ end
 
 local ToggleBF = false
 local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+local function GetNearestMobInRange(range)
+    local mobsFolder = workspace:WaitForChild("Objects"):WaitForChild("Mobs")
+    local char = player.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return nil end
+
+    for _, mob in ipairs(mobsFolder:GetChildren()) do
+        local hum = mob:FindFirstChild("Humanoid")
+        local root = mob.PrimaryPart or mob:FindFirstChild("HumanoidRootPart")
+
+        if hum and hum.Health > 0 and root then
+            if (hrp.Position - root.Position).Magnitude <= range then
+                return mob
+            end
+        end
+    end
+
+    return nil
+end
 
 KA:AddToggle({
     Name = "BlackFlash Loop",
     Default = false,
     Callback = function(v)
         ToggleBF = v
+        
         if v then
             task.spawn(function()
                 while ToggleBF do
-                    -- chạy blackflash
-                    local args = {1.123}
-                    local rs = game:GetService("ReplicatedStorage").Remotes.Server.Combat
-                    
-                    rs.ApplyBlackFlashToNextHitbox:FireServer(unpack(args))
-                    rs.M2:FireServer()
+                    local mob = GetNearestMobInRange(100)
 
-                    task.wait(0.5)
+                    if mob then
+                        -- chạy blackflash
+                        local args = {1.123}
+                        local rs = game:GetService("ReplicatedStorage").Remotes.Server.Combat
+
+                        rs.ApplyBlackFlashToNextHitbox:FireServer(unpack(args))
+                        rs.M2:FireServer()
+                    end
+
+                    task.wait(0.3)
                 end
             end)
         end
