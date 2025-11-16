@@ -530,7 +530,7 @@ AutoMission:AddToggle({
                         local humanoid = mob:FindFirstChild("Humanoid")
                         if humanoid and humanoid.Health > 0 then
                             humanoid.Health = 0
-							task.wait(0.1)
+							task.wait(0.5)
                         end
                     end
                 end
