@@ -682,6 +682,7 @@ AutoMission:AddToggle({
 })
 
 
+
 getgenv().AutoBoss = false
 
 local Players = game:GetService("Players")
@@ -737,7 +738,6 @@ local function DisableHover(hrp)
 	if bg then bg:Destroy() end
 end
 
-
 ---------------------------------------------------------------------
 -- Move to BossSpawn
 ---------------------------------------------------------------------
@@ -757,14 +757,36 @@ local function MoveToBoss()
 end
 
 ---------------------------------------------------------------------
--- HoverOnMob FIXED: không return, không break vòng AutoBoss
+-- Auto Chest
+---------------------------------------------------------------------
+local function AutoChest()
+	local objects = workspace:FindFirstChild("Objects")
+	if not objects then return end
+
+	local dropsFolder = objects:FindFirstChild("Drops")
+	if not dropsFolder then return end
+
+	for _, drop in pairs(dropsFolder:GetChildren()) do
+		local chest = drop:FindFirstChild("Chest")
+		if chest then
+			local prompt = chest:FindFirstChild("Collect")
+			if prompt then
+				pcall(function()
+					fireproximityprompt(prompt)
+				end)
+			end
+		end
+	end
+end
+
+---------------------------------------------------------------------
+-- Hover On Mob + Detect Death → AutoChest + Replay
 ---------------------------------------------------------------------
 local function HoverOnMob()
 	if not hrp then return end
 
 	local mobsFolder = workspace:WaitForChild("Objects"):WaitForChild("Mobs")
 
-	-- Tìm mob sống
 	local target, humanoid = nil, nil
 	for _, mob in ipairs(mobsFolder:GetChildren()) do
 		local h = mob:FindFirstChild("Humanoid")
@@ -775,13 +797,11 @@ local function HoverOnMob()
 		end
 	end
 
-	-- Không có mob → thoát nhẹ, không return cắt vòng AutoBoss
 	if not target then
 		DisableHover(hrp)
 		return
 	end
 
-	-- Hover theo mob
 	EnableHover(hrp)
 	local bp = hrp:FindFirstChild("BodyPosition")
 	local bg = hrp:FindFirstChild("BodyGyro")
@@ -803,12 +823,20 @@ local function HoverOnMob()
 	end
 
 	DisableHover(hrp)
+
+	-- Khi mob chết → chờ 1 giây → AutoChest → Replay
+	if humanoid and humanoid.Health <= 0 then
+		task.wait(3)
+		AutoChest()
+task.wait(10)
+		RunReplay()
+	end
 end
 
 ---------------------------------------------------------------------
 -- Replay
 ---------------------------------------------------------------------
-local function RunReplay()
+function RunReplay()
 	local readyReplay = ReplicatedStorage:FindFirstChild("ReadyReplay")
 	if readyReplay and readyReplay.Value == 0 then
 
@@ -824,7 +852,9 @@ local function RunReplay()
 	end
 end
 
-
+---------------------------------------------------------------------
+-- Auto Boss Toggle
+---------------------------------------------------------------------
 AutoMission:AddToggle({
 	Name = "Auto Boss",
 	Default = false,
@@ -838,12 +868,13 @@ AutoMission:AddToggle({
 					HoverOnMob()
 				end
 
-				task.wait(10)
-				RunReplay()
+				task.wait(2)
 			end
 		end)
 	end
 })
+
+
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
