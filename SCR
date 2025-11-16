@@ -580,9 +580,9 @@ AutoMission:AddToggle({
                                     local hrp = char and char:FindFirstChild("HumanoidRootPart")
                                     if not hrp then continue end
                                     local pivot = item:GetPivot()
-                                    local offsetY = 20
+                                    local offsetY = 50
 							hrp.CFrame = CFrame.new(pivot.Position + Vector3.new(0, offsetY, 0))
-                                    task.wait(1.5)
+                                    task.wait(2)
                                     local prompt = item:FindFirstChild("Collect")
                                     if prompt then
                                         fireproximityprompt(prompt)
