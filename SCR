@@ -838,7 +838,7 @@ local function HoverOnMob()
 
 	-- Khi mob chết → chờ 1 giây → AutoChest → Replay
 	if humanoid and humanoid.Health <= 0 then
-		task.wait(3)
+		task.wait(5)
 		AutoChest()
 task.wait(13)
 		RunReplay()
