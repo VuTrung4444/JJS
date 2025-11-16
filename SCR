@@ -178,7 +178,7 @@ local function GetNearestMobInRange(range)
         local hum = mob:FindFirstChild("Humanoid")
         local root = mob.PrimaryPart or mob:FindFirstChild("HumanoidRootPart")
 
-        if hum and hum.Health > 0 and root then
+        if hum and hum.Health >= 0 and root then
             if (hrp.Position - root.Position).Magnitude <= range then
                 return mob
             end
