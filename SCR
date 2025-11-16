@@ -682,11 +682,11 @@ AutoMission:AddToggle({
 })
 
 
-
 getgenv().AutoBoss = false
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local workspace = game:GetService("Workspace")
 local player = Players.LocalPlayer
 
 local HoverHeight = 5
@@ -756,14 +756,14 @@ local function MoveToBoss()
 	end
 end
 
-
 ---------------------------------------------------------------------
--- Hover On Mob + Detect Death → AutoChest + Replay
+-- Hover On Mob + Auto Replay (logic y hệt Auto Invest)
 ---------------------------------------------------------------------
 local function HoverOnMob()
 	if not hrp then return end
 
 	local mobsFolder = workspace:WaitForChild("Objects"):WaitForChild("Mobs")
+	local dropsFolder = workspace:WaitForChild("Objects"):WaitForChild("Drops")
 
 	local target, humanoid = nil, nil
 	for _, mob in ipairs(mobsFolder:GetChildren()) do
@@ -802,30 +802,27 @@ local function HoverOnMob()
 
 	DisableHover(hrp)
 
-local dropsFolder = workspace:WaitForChild("Objects"):WaitForChild("Drops")
-if humanoid.Health < 1 and #dropsFolder:GetChildren() == 0 then
-		task.wait(10)
-		RunReplay()
-	end
-end
+	-- Task riêng kiểm tra replay giống Auto Invest
+	task.spawn(function()
+		while true do
+			task.wait(4)
+			if humanoid.Health <= 0 and #dropsFolder:GetChildren() == 0 then
+				local readyReplay = ReplicatedStorage:FindFirstChild("ReadyReplay")
+				if readyReplay and readyReplay.Value == 0 then
+					local playerGui = player:WaitForChild("PlayerGui")
+					local invResults = playerGui:FindFirstChild("InvestigationResults")
+					if invResults then
+						invResults:Destroy()
+					end
 
----------------------------------------------------------------------
--- Replay
----------------------------------------------------------------------
-function RunReplay()
-	local readyReplay = ReplicatedStorage:FindFirstChild("ReadyReplay")
-	if readyReplay and readyReplay.Value == 0 then
-
-		local playerGui = player:WaitForChild("PlayerGui")
-		local invResults = playerGui:FindFirstChild("InvestigationResults")
-		if invResults then
-			invResults:Destroy()
+					local remote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Server")
+						:WaitForChild("Misc"):WaitForChild("ReadyReplay")
+					remote:FireServer()
+				end
+				break
+			end
 		end
-
-		local remote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Server")
-			:WaitForChild("Misc"):WaitForChild("ReadyReplay")
-		remote:FireServer()
-	end
+	end)
 end
 
 ---------------------------------------------------------------------
@@ -843,13 +840,11 @@ AutoMission:AddToggle({
 					MoveToBoss()
 					HoverOnMob()
 				end
-
 				task.wait(2)
 			end
 		end)
 	end
 })
-
 
 
 local Players = game:GetService("Players")
