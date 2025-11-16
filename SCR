@@ -419,7 +419,7 @@ SpeedAndJump:AddSlider({
 	})
 
 MiscSection:AddToggle({
-    Name = "AutoChestCollect",
+    Name = "AutoCollectChest",
     Default = false,
     Callback = function(state)
         getgenv().AutoChestCollect = state
@@ -440,16 +440,13 @@ MiscSection:AddToggle({
                         local prompt = chest:FindFirstChild("Collect")
                         if prompt then
                             fireproximityprompt(prompt)
-
-                            task.wait(8)
-
+                            task.wait(4)
                             local existingLoot = player:FindFirstChild("PlayerGui") and player.PlayerGui:FindFirstChild("Loot")
+
                             if existingLoot then
                                 existingLoot:Destroy()
                             end
-                            
                             task.wait(1)
-
                             local starterLoot = StarterGui:FindFirstChild("Loot")
                             if starterLoot then
                                 local newLoot = starterLoot:Clone()
@@ -662,16 +659,14 @@ AutoMission:AddToggle({
     Callback = function(state)
         local Players = game:GetService("Players")
         local player = Players.LocalPlayer
-        if not player.Character then return end
-        local character = player.Character
-        local hrp = character:WaitForChild("HumanoidRootPart")
         local ReplicatedStorage = game:GetService("ReplicatedStorage")
-        local playerGui = player:WaitForChild("PlayerGui")
+        if not player.Character then return end
+
         local HoverHeight = 20
         local IframeHeight = 1000
         local OffsetY = 20
 
-        local function EnableHover()
+        local function EnableHover(hrp)
             if not hrp:FindFirstChild("BodyPosition") then
                 local bp = Instance.new("BodyPosition")
                 bp.MaxForce = Vector3.new(9e9,9e9,9e9)
@@ -691,7 +686,7 @@ AutoMission:AddToggle({
             end
         end
 
-        local function DisableHover()
+        local function DisableHover(hrp)
             local bp = hrp:FindFirstChild("BodyPosition")
             if bp then bp:Destroy() end
             local bg = hrp:FindFirstChild("BodyGyro")
@@ -702,9 +697,12 @@ AutoMission:AddToggle({
             if game.PlaceId ~= 16379688837 then return end
 
             local Run = true
+
+            -- Task kiểm tra QuestMarker liên tục, cập nhật HRP mới
             task.spawn(function()
-                -- Task riêng cho dịch chuyển tới QuestMarker liên tục
                 while Run do
+                    local character = player.Character or player.CharacterAdded:Wait()
+                    local hrp = character:WaitForChild("HumanoidRootPart")
                     local bossSpawn = workspace:FindFirstChild("Objects")
                         and workspace.Objects:FindFirstChild("Spawns")
                         and workspace.Objects.Spawns:FindFirstChild("BossSpawn")
@@ -714,81 +712,96 @@ AutoMission:AddToggle({
                             hrp.CFrame = CFrame.new(pivot.Position + Vector3.new(0, OffsetY, 0))
                         end
                     end
-                    task.wait(1) -- kiểm tra mỗi 1 giây
+                    task.wait(1)
                 end
             end)
 
+            -- Task hover mob và replay
             task.spawn(function()
                 local mobsFolder = workspace:WaitForChild("Objects"):WaitForChild("Mobs")
                 local dropsFolder = workspace:WaitForChild("Objects"):WaitForChild("Drops")
-
-                local target
-                repeat
-                    local children = mobsFolder:GetChildren()
-                    if #children > 0 then
-                        target = children[1]
-                    end
-                    task.wait(0.5)
-                until target and target.PrimaryPart
-
-                local humanoid = target:FindFirstChild("Humanoid")
-                if not humanoid then return end
-
-                if noclip then noclip() end
-                EnableHover()
-                local bp = hrp:FindFirstChild("BodyPosition")
-                local bg = hrp:FindFirstChild("BodyGyro")
+                local playerGui = player:WaitForChild("PlayerGui")
 
                 while Run do
-                    if humanoid and humanoid.Health > 0 and target.PrimaryPart then
-                        local combatAgent = humanoid:FindFirstChild("CombatAgent")
-                        local iframes = combatAgent and combatAgent:FindFirstChild("Statuses") 
-                            and combatAgent.Statuses:FindFirstChild("Iframes")
-
-                        local desiredPos
-                        if iframes and iframes.Value then
-                            desiredPos = hrp.Position + Vector3.new(0, IframeHeight, 0)
-                        else
-                            desiredPos = target.PrimaryPart.Position + Vector3.new(0, HoverHeight, 0)
-                        end
-
-                        if bp then bp.Position = desiredPos end
-                        if bg then bg.CFrame = CFrame.new(hrp.Position) * CFrame.Angles(math.rad(-90),0,0) end
-                    end
-
-                    -- Replay tự động
-                    if #mobsFolder:GetChildren() == 0 and #dropsFolder:GetChildren() == 0 then
-                        local readyReplay = ReplicatedStorage:FindFirstChild("ReadyReplay")
-                        if readyReplay and readyReplay.Value == 0 then
-                            task.wait(2)
-                            local invResults = playerGui:FindFirstChild("InvestigationResults")
-                            if invResults then invResults:Destroy() end
-                            local remote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Server")
-                                :WaitForChild("Misc"):WaitForChild("ReadyReplay")
-                            remote:FireServer()
+                    -- Lấy mob đầu tiên còn sống
+                    local target = nil
+                    for _, mob in pairs(mobsFolder:GetChildren()) do
+                        local humanoid = mob:FindFirstChild("Humanoid")
+                        if humanoid and humanoid.Health > 0 and mob.PrimaryPart then
+                            target = mob
+                            break
                         end
                     end
 
-                    if humanoid and humanoid.Health <= 0 then
-                        Run = false
-                        break
-                    end
+                    if target then
+                        local humanoid = target:FindFirstChild("Humanoid")
+                        if not humanoid then break end
 
-                    task.wait(0.5)
+                        if noclip then noclip() end
+                        local character = player.Character or player.CharacterAdded:Wait()
+                        local hrp = character:WaitForChild("HumanoidRootPart")
+                        EnableHover(hrp)
+                        local bp = hrp:FindFirstChild("BodyPosition")
+                        local bg = hrp:FindFirstChild("BodyGyro")
+
+                        -- Hover trên mob
+                        while humanoid and humanoid.Health > 0 and target.PrimaryPart do
+                            local combatAgent = humanoid:FindFirstChild("CombatAgent")
+                            local iframes = combatAgent and combatAgent:FindFirstChild("Statuses") 
+                                and combatAgent.Statuses:FindFirstChild("Iframes")
+
+                            local desiredPos
+                            if iframes and iframes.Value then
+                                desiredPos = hrp.Position + Vector3.new(0, IframeHeight, 0)
+                            else
+                                desiredPos = target.PrimaryPart.Position + Vector3.new(0, HoverHeight, 0)
+                            end
+
+                            if bp then bp.Position = desiredPos end
+                            if bg then bg.CFrame = CFrame.new(hrp.Position) * CFrame.Angles(math.rad(-90),0,0) end
+
+                            task.wait(0.5)
+                        end
+
+                        -- Mob chết → tắt hover và noclip
+                        DisableHover(hrp)
+                        if clip then clip() end
+
+                        -- Chờ 10 giây sau đó check replay
+                        task.wait(10)
+                        if #mobsFolder:GetChildren() == 0 and #dropsFolder:GetChildren() == 0 then
+                            local readyReplay = ReplicatedStorage:FindFirstChild("ReadyReplay")
+                            if readyReplay and readyReplay.Value == 0 then
+                                task.wait(2)
+                                local invResults = playerGui:FindFirstChild("InvestigationResults")
+                                if invResults then invResults:Destroy() end
+                                local remote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Server")
+                                    :WaitForChild("Misc"):WaitForChild("ReadyReplay")
+                                remote:FireServer()
+                                task.wait(5)
+                            end
+                        end
+                    else
+                        task.wait(1)
+                    end
                 end
-
-                DisableHover()
-                if clip then clip() end
             end)
         else
-            local bp = hrp:FindFirstChild("BodyPosition")
-            if bp then bp:Destroy() end
-            local bg = hrp:FindFirstChild("BodyGyro")
-            if bg then bg:Destroy() end
+            Run = false
+            local character = player.Character
+            if character then
+                local hrp = character:FindFirstChild("HumanoidRootPart")
+                if hrp then
+                    DisableHover(hrp)
+                end
+            end
             if clip then clip() end
         end
     end
 })
+
+
+
 
 
 
