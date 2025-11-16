@@ -659,7 +659,7 @@ getgenv().AutoLoop = false
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
-local HoverHeight = 20
+local HoverHeight = 10
 local IframeHeight = 1000
 local OffsetY = 20
 
