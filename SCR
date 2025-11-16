@@ -811,7 +811,7 @@ AutoMission:AddToggle({
 					HoverOnMob()
 				end
 
-				task.wait(0.5)
+				task.wait(10)
 				RunReplay()
 			end
 		end)
