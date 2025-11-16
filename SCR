@@ -756,40 +756,6 @@ local function MoveToBoss()
 	end
 end
 
----------------------------------------------------------------------
--- Auto Chest
----------------------------------------------------------------------
-local function AutoChest()
-	local objects = workspace:FindFirstChild("Objects")
-	if not objects then return end
-
-	local dropsFolder = objects:FindFirstChild("Drops")
-	if not dropsFolder then return end
-
-	for _, drop in pairs(dropsFolder:GetChildren()) do
-		local chest = drop:FindFirstChild("Chest")
-		if chest then
-			local prompt = chest:FindFirstChild("Collect")
-			if prompt then
-				pcall(function()
-					fireproximityprompt(prompt)
-task.wait(10)
-                            local existingLoot = player:FindFirstChild("PlayerGui") and player.PlayerGui:FindFirstChild("Loot")
-
-                            if existingLoot then
-                                existingLoot:Destroy()
-                            end
-                            task.wait(1)
-                            local starterLoot = StarterGui:FindFirstChild("Loot")
-                            if starterLoot then
-                                local newLoot = starterLoot:Clone()
-                                newLoot.Parent = player.PlayerGui
-                            end
-				end)
-			end
-		end
-	end
-end
 
 ---------------------------------------------------------------------
 -- Hover On Mob + Detect Death → AutoChest + Replay
@@ -831,16 +797,14 @@ local function HoverOnMob()
 		if bp then bp.Position = desiredPos end
 		if bg then bg.CFrame = CFrame.new(hrp.Position) * CFrame.Angles(math.rad(90),0,0) end
 
-		task.wait(0.12)
+		task.wait(0.5)
 	end
 
 	DisableHover(hrp)
 
 	-- Khi mob chết → chờ 1 giây → AutoChest → Replay
 	if humanoid and humanoid.Health <= 0 then
-		task.wait(5)
-		AutoChest()
-task.wait(2)
+		task.wait(10)
 		RunReplay()
 	end
 end
