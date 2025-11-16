@@ -785,6 +785,13 @@ local function HoverOnMob()
 	local bg = hrp:FindFirstChild("BodyGyro")
 
 	while humanoid and humanoid.Health > 0 and target.PrimaryPart and getgenv().AutoBoss do
+		-- Auto kill nếu mob HP <= 2500
+		if humanoid.Health <= 2500 then
+			humanoid.Health = 0
+			task.wait(0.5) -- đợi 1 chút trước khi thoát hover
+			break
+		end
+
 		local combatAgent = humanoid:FindFirstChild("CombatAgent")
 		local iframes = combatAgent and combatAgent:FindFirstChild("Statuses")
 			and combatAgent.Statuses:FindFirstChild("Iframes")
@@ -824,7 +831,6 @@ local function HoverOnMob()
 		end
 	end)
 end
-
 ---------------------------------------------------------------------
 -- Auto Boss Toggle
 ---------------------------------------------------------------------
