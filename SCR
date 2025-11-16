@@ -659,7 +659,7 @@ getgenv().AutoLoop = false
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
-local HoverHeight = 10
+local HoverHeight = 5
 local IframeHeight = 1000
 local OffsetY = 20
 
@@ -736,7 +736,7 @@ local function HoverOnMob(hrp)
                 end
 
                 if bp then bp.Position = desiredPos end
-                if bg then bg.CFrame = CFrame.new(hrp.Position) * CFrame.Angles(math.rad(-90),0,0) end
+                if bg then bg.CFrame = CFrame.new(hrp.Position) * CFrame.Angles(math.rad(90),0,0) end
 
                 task.wait(0.5)
             end
