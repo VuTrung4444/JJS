@@ -6,6 +6,7 @@ local IsOpen = Subs.Wait
 
 local mainMenuPlaceID = 10450270085
 local BossPlaceID = 16379688837
+local InvestPlaceID = 16379684339
 local placeId = game.PlaceId
 
 
@@ -420,7 +421,7 @@ MiscSection:AddButton({
 })
 
 AutoMission:AddToggle({
-    Name = "AutoMission",
+    Name = "Auto Invest",
     Default = false,
     Callback = function(state)
         getgenv().AutoMissionEnabled = state
@@ -462,7 +463,7 @@ AutoMission:AddToggle({
                 end
 
 
-                if game.PlaceId == 16379684339 then
+                if game.PlaceId == InvestPlaceID then
                     getgenv().AutoKillMobs = true
                 end
 
@@ -594,6 +595,127 @@ AutoMission:AddToggle({
         end)
     end
 })
+
+--// Toggle AutoMission \\--
+AutoMission:AddToggle({
+    Name = "Auto Hover Mob",
+    Default = false,
+    Callback = function(state)
+        if state then
+            -- Chỉ chạy hover nếu map đúng
+            if game.PlaceId ~= 16379688837 then
+                return
+            end
+
+            local HoverHeight = 20
+            local IframeHeight = 1000
+            local OffsetY = 20
+
+            local Players = game:GetService("Players")
+            local player = Players.LocalPlayer
+            local character = player.Character or player.CharacterAdded:Wait()
+            local hrp = character:WaitForChild("HumanoidRootPart")
+
+            local function EnableHover()
+                if not hrp:FindFirstChild("BodyPosition") then
+                    local bp = Instance.new("BodyPosition")
+                    bp.MaxForce = Vector3.new(9e9,9e9,9e9)
+                    bp.P = 5e4
+                    bp.D = 1000
+                    bp.Name = "BodyPosition"
+                    bp.Parent = hrp
+                end
+
+                if not hrp:FindFirstChild("BodyGyro") then
+                    local bg = Instance.new("BodyGyro")
+                    bg.MaxTorque = Vector3.new(9e9,9e9,9e9)
+                    bg.P = 5e4
+                    bg.D = 1000
+                    bg.CFrame = CFrame.new(hrp.Position) * CFrame.Angles(math.rad(-90),0,0)
+                    bg.Name = "BodyGyro"
+                    bg.Parent = hrp
+                end
+            end
+
+            local function DisableHover()
+                local bp = hrp:FindFirstChild("BodyPosition")
+                if bp then bp:Destroy() end
+                local bg = hrp:FindFirstChild("BodyGyro")
+                if bg then bg:Destroy() end
+            end
+
+            -- Dịch chuyển tới BossSpawn nếu có QuestMarker
+            local bossSpawn = workspace:FindFirstChild("Objects")
+                and workspace.Objects:FindFirstChild("Spawns")
+                and workspace.Objects.Spawns:FindFirstChild("BossSpawn")
+
+            if bossSpawn and bossSpawn:FindFirstChild("QuestMarker") then
+                local pivot = bossSpawn:GetPivot()
+                if pivot then
+                    hrp.CFrame = CFrame.new(pivot.Position + Vector3.new(0, OffsetY, 0))
+                end
+            end
+
+            -- Khởi chạy hover loop
+            local Run = true
+            task.spawn(function()
+                local mobsFolder = workspace:FindFirstChild("Objects") 
+                    and workspace.Objects:FindFirstChild("Mobs")
+
+                local target
+                repeat
+                    if mobsFolder then
+                        local children = mobsFolder:GetChildren()
+                        if #children > 0 then
+                            target = children[1] -- có thể đổi logic chọn mob gần nhất
+                        end
+                    end
+                    task.wait(0.5)
+                until target and target.PrimaryPart
+
+                local humanoid = target:FindFirstChild("Humanoid")
+                if not humanoid then return end
+
+                EnableHover()
+                local bp = hrp:FindFirstChild("BodyPosition")
+                local bg = hrp:FindFirstChild("BodyGyro")
+
+                while Run and humanoid.Health > 0 do
+                    local combatAgent = humanoid:FindFirstChild("CombatAgent")
+                    local iframes = combatAgent and combatAgent:FindFirstChild("Statuses") 
+                        and combatAgent.Statuses:FindFirstChild("Iframes")
+
+                    local desiredPos
+                    if iframes and iframes.Value then
+                        desiredPos = hrp.Position + Vector3.new(0, IframeHeight, 0)
+                    else
+                        desiredPos = target.PrimaryPart.Position + Vector3.new(0, HoverHeight, 0)
+                    end
+
+                    if bp then
+                        bp.Position = desiredPos
+                    end
+
+                    if bg then
+                        bg.CFrame = CFrame.new(hrp.Position) * CFrame.Angles(math.rad(-90),0,0)
+                    end
+
+                    task.wait(0.5)
+                end
+
+                Run = false
+                DisableHover()
+            end)
+        else
+            -- Toggle OFF: dừng hover
+            local bp = hrp:FindFirstChild("BodyPosition")
+            if bp then bp:Destroy() end
+            local bg = hrp:FindFirstChild("BodyGyro")
+            if bg then bg:Destroy() end
+        end
+    end
+})
+
 
 
 
