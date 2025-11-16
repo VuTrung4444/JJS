@@ -440,7 +440,7 @@ MiscSection:AddToggle({
                         local prompt = chest:FindFirstChild("Collect")
                         if prompt then
                             fireproximityprompt(prompt)
-                            task.wait(4)
+                            task.wait(10)
                             local existingLoot = player:FindFirstChild("PlayerGui") and player.PlayerGui:FindFirstChild("Loot")
 
                             if existingLoot then
