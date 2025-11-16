@@ -456,7 +456,7 @@ MiscSection:AddToggle({
         local StarterGui = game:GetService("StarterGui")
 
         task.spawn(function()
-            while task.wait(0.5) do
+            while task.wait(0.1) do
                 if not getgenv().AutoChestCollect then continue end
                 local dropsFolder = workspace:FindFirstChild("Objects") and workspace.Objects:FindFirstChild("Drops")
                 if not dropsFolder then continue end
@@ -467,7 +467,7 @@ MiscSection:AddToggle({
                         local prompt = chest:FindFirstChild("Collect")
                         if prompt then
                             fireproximityprompt(prompt)
-                            task.wait(10)
+                            task.wait(8)
                             local existingLoot = player:FindFirstChild("PlayerGui") and player.PlayerGui:FindFirstChild("Loot")
 
                             if existingLoot then
@@ -773,6 +773,18 @@ local function AutoChest()
 			if prompt then
 				pcall(function()
 					fireproximityprompt(prompt)
+task.wait(10)
+                            local existingLoot = player:FindFirstChild("PlayerGui") and player.PlayerGui:FindFirstChild("Loot")
+
+                            if existingLoot then
+                                existingLoot:Destroy()
+                            end
+                            task.wait(0.5)
+                            local starterLoot = StarterGui:FindFirstChild("Loot")
+                            if starterLoot then
+                                local newLoot = starterLoot:Clone()
+                                newLoot.Parent = player.PlayerGui
+                            end
 				end)
 			end
 		end
@@ -828,7 +840,7 @@ local function HoverOnMob()
 	if humanoid and humanoid.Health <= 0 then
 		task.wait(3)
 		AutoChest()
-task.wait(10)
+task.wait(13)
 		RunReplay()
 	end
 end
