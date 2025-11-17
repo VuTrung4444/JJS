@@ -912,7 +912,7 @@ SpeedAndJump:AddSlider({
 		Name = "JumpPower",
 		Value = 80,
 		Min = 50,
-		Max = 1000,
+		Max = 500,
 		Flag = "JumpPower",
 		Textbox = true,
 		Callback = function(State)
