@@ -892,7 +892,7 @@ Ect:AddButton({
 
 SpeedAndJump:AddSlider({
 		Name = "WalkSpeed",
-		Value = 200,
+		Value = 150,
 		Min = 16,
 		Max = 300,
 		Flag = "WalkSpeed",
@@ -1620,7 +1620,7 @@ end)
 	local plr = game.Players.LocalPlayer
 	local Character = plr.Character or plr.CharacterAdded:Wait()	
 	local Humanoid = Character and Character:WaitForChild("Humanoid")
-	local WalkSpeed = 200
+	local WalkSpeed = 150
 	local JumpPower = 80
 
 	plr.CharacterAdded:Connect(function(Char)
