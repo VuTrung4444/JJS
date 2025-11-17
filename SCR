@@ -846,7 +846,6 @@ AutoMission:AddToggle({
 	end
 })
 
-
 KA:AddToggle({
     Name = "Auto Mob",
     Default = false,
@@ -876,7 +875,7 @@ KA:AddToggle({
                 local h = mob:FindFirstChild("Humanoid")
                 if h and h.Health > 0 and mob.PrimaryPart then
                     local distance = (hrp.Position - mob.PrimaryPart.Position).Magnitude
-                    if distance < closestDistance then
+                    if distance < closestDistance and distance <= 100 then
                         closestDistance = distance
                         target = mob
                         humanoid = h
@@ -894,9 +893,12 @@ KA:AddToggle({
             local bg = hrp:FindFirstChild("BodyGyro")
 
             while humanoid and humanoid.Health > 0 and target.PrimaryPart and getgenv().AutoMob do
+                local distance = (hrp.Position - target.PrimaryPart.Position).Magnitude
+                if distance > 100 then break end -- Dừng hover nếu mob quá xa
+
                 local desiredPos = target.PrimaryPart.Position + Vector3.new(0, HoverHeight, 0)
                 if bp then bp.Position = desiredPos end
-                if bg then bg.CFrame = CFrame.new(hrp.Position) * CFrame.Angles(math.rad(-90),0,0) end
+                if bg then bg.CFrame = CFrame.new(hrp.Position) * CFrame.Angles(math.rad(-90), 0, 0) end
                 task.wait(0.5)
             end
 
@@ -913,6 +915,7 @@ KA:AddToggle({
         end)
     end
 })
+
 
 
 getgenv().AutoReplay = false
