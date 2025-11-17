@@ -716,7 +716,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local workspace = game:GetService("Workspace")
 local player = Players.LocalPlayer
 
-local HoverHeight = 5
+local HoverHeight = 15
 local IframeHeight = 1000
 local OffsetY = 20
 
