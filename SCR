@@ -319,7 +319,7 @@ local function createESP(player)
             else
                 textLabel.Text = player.Name
             end
-            task.wait(0.5) -- cập nhật thường xuyên hơn
+            task.wait(2)
         end
         if billboard then billboard:Destroy() end
     end)
