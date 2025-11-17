@@ -456,31 +456,42 @@ MiscSection:AddToggle({
         local StarterGui = game:GetService("StarterGui")
 
         task.spawn(function()
-            while task.wait(0.1) do
+            while task.wait(1) do
                 if not getgenv().AutoChestCollect then continue end
+
                 local dropsFolder = workspace:FindFirstChild("Objects") and workspace.Objects:FindFirstChild("Drops")
                 if not dropsFolder then continue end
 
-                for _, drop in pairs(dropsFolder:GetChildren()) do
+                for _, drop in ipairs(dropsFolder:GetChildren()) do
                     local chest = drop:FindFirstChild("Chest")
-                    if chest then
-                        local prompt = chest:FindFirstChild("Collect")
-                        if prompt then
-                            fireproximityprompt(prompt)
-                            task.wait(10)
-                            local existingLoot = player:FindFirstChild("PlayerGui") and player.PlayerGui:FindFirstChild("Loot")
+                    if not chest then continue end
 
-                            if existingLoot then
-                                existingLoot:Destroy()
-                            end
-                            task.wait(1)
-                            local starterLoot = StarterGui:FindFirstChild("Loot")
-                            if starterLoot then
-                                local newLoot = starterLoot:Clone()
-                                newLoot.Parent = player.PlayerGui
-                            end
-                        break
+                    local prompt = chest:FindFirstChild("Collect")
+
+                    if prompt
+                        and prompt:IsA("ProximityPrompt")
+                        and prompt.ActionText == "Collect"
+                        and prompt.Enabled
+                    then
+
+                        task.spawn(function()
+                            fireproximityprompt(prompt)
+                        end)
+
+                        task.wait(12)
+
+                        local gui = player.PlayerGui
+                        local existingLoot = gui:FindFirstChild("Loot")
+                        if existingLoot then existingLoot:Destroy() end
+
+                        task.wait(1)
+
+                        local starterLoot = StarterGui:FindFirstChild("Loot")
+                        if starterLoot then
+                            starterLoot:Clone().Parent = gui
                         end
+
+                        break
                     end
                 end
             end
@@ -608,7 +619,6 @@ AutoMission:AddToggle({
                                 end
 
                                 if #civilians == 0 then
-                                    print("No more Civilian.")
                                     getgenv().AutoCivilian = false
                                     break
                                 end
@@ -956,7 +966,7 @@ task.spawn(function()
                     attackCounter = 0
                     task.wait(WAIT_AFTER_ATTACK)
                 else
-                    task.wait(0.1) -- delay giữa các lần tấn công
+                    task.wait(0.1)
                 end
             end
         else
@@ -1031,6 +1041,10 @@ end)
 		Humanoid.JumpPower = JumpPower
 	end)
 
+
+for i, v in next, getconnections(Player.Idled) do 
+    v:Disable() 
+end
 
 
 
