@@ -1125,7 +1125,7 @@ AutoMission:AddToggle({
                                     local pivot = item:GetPivot()
                                     local offsetY = 50
 							hrp.CFrame = CFrame.new(pivot.Position + Vector3.new(0, offsetY, 0))
-                                    task.wait(2)
+                                    task.wait(1)
                                     local prompt = item:FindFirstChild("Collect")
                                     if prompt then
                                         fireproximityprompt(prompt)
