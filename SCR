@@ -903,43 +903,6 @@ Ect:AddButton({
 })
 
 
-SpeedAndJump:AddSlider({
-		Name = "WalkSpeed",
-		Value = 200,
-		Min = 16,
-		Max = 300,
-		Flag = "WalkSpeed",
-		Textbox = true,
-		Callback = function(State)
-			WalkSpeed = State
-			if game.Players.LocalPlayer.Character then
-				local humanoid = game.Players.LocalPlayer.Character:FindFirstChild("Humanoid")
-				if humanoid then
-					humanoid.WalkSpeed = WalkSpeed
-				end
-			end
-		end
-	})
-
-	SpeedAndJump:AddSlider({
-		Name = "JumpPower",
-		Value = 80,
-		Min = 50,
-		Max = 500,
-		Flag = "JumpPower",
-		Textbox = true,
-		Callback = function(State)
-			JumpPower = State
-			if game.Players.LocalPlayer.Character then
-				local humanoid = game.Players.LocalPlayer.Character:FindFirstChild("Humanoid")
-				if humanoid then
-					humanoid.JumpPower = JumpPower
-				end
-			end
-		end
-	})
-
-
 MiscSection:AddToggle({
     Name = "AutoCollectChest",
     Default = false,
@@ -1611,67 +1574,77 @@ end)
 
 
 
-	--// Variables \\--
-	local plr = game:GetService("Players").LocalPlayer
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 
-	local function updateCharacterReferences(character)
-		local hrp = character:WaitForChild("HumanoidRootPart")
-			_G.Character = character
-			_G.HumanoidRootPart = hrp
-	end
-		if plr.Character then
-			updateCharacterReferences(plr.Character)
-		end
-		plr.CharacterAdded:Connect(function(character)
-		updateCharacterReferences(character)
-	end)
+local plr = Players.LocalPlayer
+local Character = plr.Character or plr.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
 
-	local insert = table.insert 
-	local character = plr.Character
-	local PlrHumanoidRootPart = character:WaitForChild("HumanoidRootPart")
+-- Giá trị mặc định
+local WalkSpeed = 200
+local JumpPower = 80
 
-	local plr = game.Players.LocalPlayer
-	local Character = plr.Character or plr.CharacterAdded:Wait()	
-	local Humanoid = Character and Character:WaitForChild("Humanoid")
-	local WalkSpeed = 200
-	local JumpPower = 80
+-- Hàm cập nhật Humanoid mới khi respawn
+local function updateHumanoid(char)
+    Character = char
+    Humanoid = char:WaitForChild("Humanoid")
 
-	plr.CharacterAdded:Connect(function(Char)
-		Character = Char
-		Humanoid = Character:WaitForChild("Humanoid")
+    -- Đặt lại WalkSpeed và JumpPower ngay khi Humanoid xuất hiện
+    Humanoid.WalkSpeed = WalkSpeed
+    Humanoid.JumpPower = JumpPower
 
-		-- Cập nhật tốc độ và sức bật ngay khi nhân vật xuất hiện
-		if WalkSpeed then
-			Humanoid.WalkSpeed = WalkSpeed
-		end
-		if JumpPower then
-			Humanoid.JumpPower = JumpPower
-		end
-	end)
+    -- Theo dõi khi WalkSpeed hoặc JumpPower bị reset
+    Humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
+        if Humanoid.WalkSpeed ~= WalkSpeed then
+            Humanoid.WalkSpeed = WalkSpeed
+        end
+    end)
 
-	game:GetService("RunService").Stepped:Connect(function()
-		if Character and Humanoid then
+    Humanoid:GetPropertyChangedSignal("JumpPower"):Connect(function()
+        if Humanoid.JumpPower ~= JumpPower then
+            Humanoid.JumpPower = JumpPower
+        end
+    end)
+end
 
-			if Humanoid.WalkSpeed ~= WalkSpeed then
-				Humanoid.WalkSpeed = WalkSpeed
-			end
-			
+-- Khi respawn
+plr.CharacterAdded:Connect(updateHumanoid)
 
-			if Humanoid.JumpPower ~= JumpPower then
-				Humanoid.JumpPower = JumpPower
-			end
-		end
-	end)
+-- Khởi tạo cho Character hiện tại
+updateHumanoid(Character)
 
-	plr.CharacterAdded:Connect(function(Char)
-		Character = Char
-		Humanoid = Character:WaitForChild("Humanoid")
+-- Khi người dùng thay đổi slider
+SpeedAndJump:AddSlider({
+    Name = "WalkSpeed",
+    Value = WalkSpeed,
+    Min = 16,
+    Max = 300,
+    Flag = "WalkSpeed",
+    Textbox = true,
+    Callback = function(state)
+        WalkSpeed = state
+        if Humanoid then
+            Humanoid.WalkSpeed = WalkSpeed
+        end
+    end
+})
 
+SpeedAndJump:AddSlider({
+    Name = "JumpPower",
+    Value = JumpPower,
+    Min = 50,
+    Max = 500,
+    Flag = "JumpPower",
+    Textbox = true,
+    Callback = function(state)
+        JumpPower = state
+        if Humanoid then
+            Humanoid.JumpPower = JumpPower
+        end
+    end
+})
 
-		task.wait()
-		Humanoid.WalkSpeed = WalkSpeed
-		Humanoid.JumpPower = JumpPower
-	end)
 
 
 for i, v in next, getconnections(Player.Idled) do 
