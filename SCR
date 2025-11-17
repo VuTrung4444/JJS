@@ -1174,7 +1174,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local workspace = game:GetService("Workspace")
 local player = Players.LocalPlayer
 
-local HoverHeight = 15
+local HoverHeight = 10
 local IframeHeight = 500
 local OffsetY = 20
 
@@ -1206,7 +1206,7 @@ local function EnableHover(hrp)
 		bg.MaxTorque = Vector3.new(9e9,9e9,9e9)
 		bg.P = 5e4
 		bg.D = 1000
-		bg.CFrame = CFrame.new(hrp.Position) * CFrame.Angles(math.rad(-90),0,0)
+		bg.CFrame = CFrame.new(hrp.Position)
 		bg.Name = "BodyGyro"
 		bg.Parent = hrp
 	end
@@ -1381,18 +1381,14 @@ function StartAutoReplay()
 
 
             if #mobsFolder:GetChildren() == 0 then
-                local readyReplay = replicatedStorage:FindFirstChild("ReadyReplay")
-
-                if readyReplay and readyReplay.Value == 0 and #dropsFolder:GetChildren() == 0 then
-                    task.wait(1)
-
-
-                    local invResults = playerGui:FindFirstChild("InvestigationResults")
+task.wait(1)
+local invResults = playerGui:FindFirstChild("InvestigationResults")
                     if invResults then
                         invResults:Destroy()
                     end
 
-
+                local readyReplay = replicatedStorage:FindFirstChild("ReadyReplay")
+                if readyReplay and readyReplay.Value == 0 and #dropsFolder:GetChildren() == 0 then
                     local remote = replicatedStorage
                         :WaitForChild("Remotes")
                         :WaitForChild("Server")
@@ -1402,8 +1398,6 @@ function StartAutoReplay()
                     remote:FireServer()
                 end
             end
-
-            task.wait(4)
         end
     end)
 end
