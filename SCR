@@ -1367,7 +1367,6 @@ KA:AddToggle({
 })
 
 
-
 getgenv().AutoReplay = false
 local player = game.Players.LocalPlayer
 
@@ -1381,14 +1380,15 @@ function StartAutoReplay()
 
 
             if #mobsFolder:GetChildren() == 0 then
-task.wait(1)
+task.wait(2)
 local invResults = playerGui:FindFirstChild("InvestigationResults")
                     if invResults then
                         invResults:Destroy()
                     end
-
                 local readyReplay = replicatedStorage:FindFirstChild("ReadyReplay")
+
                 if readyReplay and readyReplay.Value == 0 and #dropsFolder:GetChildren() == 0 then
+
                     local remote = replicatedStorage
                         :WaitForChild("Remotes")
                         :WaitForChild("Server")
@@ -1398,6 +1398,8 @@ local invResults = playerGui:FindFirstChild("InvestigationResults")
                     remote:FireServer()
                 end
             end
+
+            task.wait(4)
         end
     end)
 end
