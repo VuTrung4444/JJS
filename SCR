@@ -277,13 +277,13 @@ local LocalPlayer = Players.LocalPlayer
 
 --// Biến điều khiển ESP \\--
 getgenv().ESPenabled = false
-local ESPDistance = true -- hiển thị khoảng cách
+local ESPDistance = true
 local ESPTextSize = 18
 
 --// Hàm tạo ESP cho một người chơi \\--
 local function createESP(player)
     if player == LocalPlayer then return end
-    if player.Character and not player.Character:FindFirstChild("HumanoidRootPart") then return end
+    if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return end
 
     -- Nếu đã có ESP, xóa trước
     if player.Character:FindFirstChild("ESP") then
@@ -306,11 +306,11 @@ local function createESP(player)
     textLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
     textLabel.TextStrokeTransparency = 0
     textLabel.Font = Enum.Font.SourceSansBold
-    textLabel.TextScaled = false   -- tắt tự co giãn để dùng TextSize
-    textLabel.TextSize = ESPTextSize -- áp dụng cỡ chữ
+    textLabel.TextScaled = false
+    textLabel.TextSize = ESPTextSize
     textLabel.Parent = billboard
 
-    -- Cập nhật thông tin mỗi 2 giây
+    -- Cập nhật thông tin liên tục
     task.spawn(function()
         while getgenv().ESPenabled and player.Character and player.Character:FindFirstChild("HumanoidRootPart") do
             local distance = (player.Character.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
@@ -319,22 +319,27 @@ local function createESP(player)
             else
                 textLabel.Text = player.Name
             end
-            task.wait(2) -- delay 2 giây
+            task.wait(0.5) -- cập nhật thường xuyên hơn
         end
         if billboard then billboard:Destroy() end
     end)
 end
 
---// Tạo ESP cho tất cả người chơi hiện tại và người chơi mới \\--
-local function enableESP()
+--// Tạo ESP cho tất cả người chơi hiện tại \\--
+local function updateAllPlayersESP()
     for _, player in pairs(Players:GetPlayers()) do
         createESP(player)
     end
-
-    Players.PlayerAdded:Connect(function(player)
-        createESP(player)
-    end)
 end
+
+--// Kết nối PlayerAdded một lần duy nhất \\--
+Players.PlayerAdded:Connect(function(player)
+    -- Nếu ESP đang bật thì tạo ESP cho người chơi mới ngay
+    if getgenv().ESPenabled then
+        player.CharacterAdded:Wait() -- chờ character xuất hiện
+        createESP(player)
+    end
+end)
 
 --// Toggle ESP \\--
 Ect:AddToggle({
@@ -343,10 +348,18 @@ Ect:AddToggle({
     Callback = function(state)
         getgenv().ESPenabled = state
         if state then
-            enableESP()
+            updateAllPlayersESP()
+        else
+            -- Xóa tất cả ESP khi tắt
+            for _, player in pairs(Players:GetPlayers()) do
+                if player.Character and player.Character:FindFirstChild("ESP") then
+                    player.Character.ESP:Destroy()
+                end
+            end
         end
     end
 })
+
 
 local Noclip = nil
 local Clip = nil
@@ -892,7 +905,7 @@ Ect:AddButton({
 
 SpeedAndJump:AddSlider({
 		Name = "WalkSpeed",
-		Value = 150,
+		Value = 200,
 		Min = 16,
 		Max = 300,
 		Flag = "WalkSpeed",
@@ -1620,7 +1633,7 @@ end)
 	local plr = game.Players.LocalPlayer
 	local Character = plr.Character or plr.CharacterAdded:Wait()	
 	local Humanoid = Character and Character:WaitForChild("Humanoid")
-	local WalkSpeed = 150
+	local WalkSpeed = 200
 	local JumpPower = 80
 
 	plr.CharacterAdded:Connect(function(Char)
