@@ -847,6 +847,74 @@ AutoMission:AddToggle({
 })
 
 
+KA:AddToggle({
+    Name = "Auto Mob",
+    Default = false,
+    Callback = function(state)
+        getgenv().AutoMob = state
+
+        local HoverHeight = 15
+        local Players = game:GetService("Players")
+        local workspace = game:GetService("Workspace")
+        local player = Players.LocalPlayer
+        local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+
+        local function UpdateHRP(char)
+            task.wait(0.2)
+            hrp = char:WaitForChild("HumanoidRootPart")
+        end
+        player.CharacterAdded:Connect(UpdateHRP)
+
+        local function HoverOnNearestMob()
+            if not hrp then return end
+
+            local mobsFolder = workspace:WaitForChild("Objects"):WaitForChild("Mobs")
+            local target, humanoid = nil, nil
+            local closestDistance = math.huge
+
+            for _, mob in ipairs(mobsFolder:GetChildren()) do
+                local h = mob:FindFirstChild("Humanoid")
+                if h and h.Health > 0 and mob.PrimaryPart then
+                    local distance = (hrp.Position - mob.PrimaryPart.Position).Magnitude
+                    if distance < closestDistance then
+                        closestDistance = distance
+                        target = mob
+                        humanoid = h
+                    end
+                end
+            end
+
+            if not target then
+                DisableHover(hrp)
+                return
+            end
+
+            EnableHover(hrp)
+            local bp = hrp:FindFirstChild("BodyPosition")
+            local bg = hrp:FindFirstChild("BodyGyro")
+
+            while humanoid and humanoid.Health > 0 and target.PrimaryPart and getgenv().AutoMob do
+                local desiredPos = target.PrimaryPart.Position + Vector3.new(0, HoverHeight, 0)
+                if bp then bp.Position = desiredPos end
+                if bg then bg.CFrame = CFrame.new(hrp.Position) * CFrame.Angles(math.rad(-90),0,0) end
+                task.wait(0.5)
+            end
+
+            DisableHover(hrp)
+        end
+
+        task.spawn(function()
+            while getgenv().AutoMob do
+                if hrp then
+                    HoverOnNearestMob()
+                end
+                task.wait(1)
+            end
+        end)
+    end
+})
+
+
 getgenv().AutoReplay = false
 local player = game.Players.LocalPlayer
 
