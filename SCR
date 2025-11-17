@@ -1013,6 +1013,27 @@ MiscSection:AddButton({
 	end
 })
 
+
+AutoMission:AddToggle({
+    Name = "InstantKill",
+    Default = false,
+    Callback = function(state)
+        getgenv().AutoBoss = state
+        if state then
+            spawn(function()
+                while humanoid and humanoid.Health > 0 and target.PrimaryPart and getgenv().AutoBoss do
+                    if humanoid.Health <= 2500 then
+                        humanoid.Health = 0
+                        task.wait(0.5)
+                        break
+                    end
+                end
+            end)
+        end
+    end
+})
+
+
 AutoMission:AddToggle({
     Name = "Auto Invest",
     Default = false,
@@ -1263,13 +1284,6 @@ local function HoverOnMob()
 	local bg = hrp:FindFirstChild("BodyGyro")
 
 	while humanoid and humanoid.Health > 0 and target.PrimaryPart and getgenv().AutoBoss do
-
-		if humanoid.Health <= 2500 then
-			humanoid.Health = 0
-			task.wait(0.1)
-			break
-		end
-
 		local combatAgent = humanoid:FindFirstChild("CombatAgent")
 		local iframes = combatAgent and combatAgent:FindFirstChild("Statuses")
 			and combatAgent.Statuses:FindFirstChild("Iframes")
@@ -1284,7 +1298,6 @@ local function HoverOnMob()
 
 		task.wait(0.5)
 	end
-
 	DisableHover(hrp)
 end
 
@@ -1301,7 +1314,7 @@ AutoMission:AddToggle({
 					MoveToBoss()
 					HoverOnMob()
 				end
-				task.wait(2)
+				task.wait(1)
 			end
 		end)
 	end
