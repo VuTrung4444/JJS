@@ -1148,29 +1148,9 @@ AutoMission:AddToggle({
 
 
 				if currentTask ~= "Collect all objects" and currentTask ~= "Rescue civilians to the gate" then
-				local dropsFolder = workspace:WaitForChild("Objects"):WaitForChild("Drops")
 				local mobsFolder = workspace:WaitForChild("Objects"):WaitForChild("Mobs")
 				local replicatedStorage = game:GetService("ReplicatedStorage")
 				local playerGui = player:WaitForChild("PlayerGui")
-
-				task.spawn(function()
-					if #mobsFolder:GetChildren() == 0 then
-						while task.wait(4) do
-							local readyReplay = replicatedStorage:FindFirstChild("ReadyReplay")
-							if readyReplay and readyReplay.Value == 0 and #dropsFolder:GetChildren() == 0 then
-								task.wait(1)
-								local invResults = playerGui:FindFirstChild("InvestigationResults")
-								if invResults then
-									invResults:Destroy()
-								end
-
-								local remote = replicatedStorage:WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Misc"):WaitForChild("ReadyReplay")
-								remote:FireServer()
-							end
-						end
-					end
-				end)
-
 
 					local mobs = workspace:WaitForChild("Objects"):WaitForChild("Mobs"):GetChildren()
 					for _, mob in ipairs(mobs) do
