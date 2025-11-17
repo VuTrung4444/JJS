@@ -971,6 +971,63 @@ AutoMission:AddToggle({
 })
 
 
+local SelectedTown = nil
+
+
+local Towns = {
+    Town1 = workspace:WaitForChild("Objects"):WaitForChild("Locations"):WaitForChild("Towns"):WaitForChild("Town1"),
+    Town2 = workspace:WaitForChild("Objects"):WaitForChild("Locations"):WaitForChild("Towns"):WaitForChild("Town2"),
+    Town3 = workspace:WaitForChild("Objects"):WaitForChild("Locations"):WaitForChild("Towns"):WaitForChild("Town3"),
+    Town4 = workspace:WaitForChild("Objects"):WaitForChild("Locations"):WaitForChild("Towns"):WaitForChild("Town4"),
+    Town5 = workspace:WaitForChild("Objects"):WaitForChild("Locations"):WaitForChild("Towns"):WaitForChild("Town5"),
+}
+
+
+for townName, townInstance in pairs(Towns) do
+    Teleports:AddToggle({
+        Name = townName,
+        Default = false,
+        Callback = function(state)
+            if state then
+
+                SelectedTown = townInstance
+
+                for otherName, _ in pairs(Towns) do
+                    if otherName ~= townName then
+                        Teleports:UpdateToggle(otherName, false)
+                    end
+                end
+            else
+
+                if SelectedTown == townInstance then
+                    SelectedTown = nil
+                end
+            end
+        end
+    })
+end
+
+
+Teleports:AddButton({
+    Name = "Teleport",
+    Callback = function()
+        if SelectedTown then
+            local player = game:GetService("Players").LocalPlayer
+            local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                local pivot = SelectedTown:GetPivot()
+                local offsetY = 10
+                hrp.CFrame = CFrame.new(pivot.Position + Vector3.new(0, offsetY, 0))
+				task.wait(1)
+            end
+        else
+            warn("Chưa chọn Town để dịch chuyển!")
+        end
+    end
+})
+
+
+
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
