@@ -910,7 +910,7 @@ SpeedAndJump:AddSlider({
 
 	SpeedAndJump:AddSlider({
 		Name = "JumpPower",
-		Value = 80,
+		Value = 100,
 		Min = 50,
 		Max = 1000,
 		Flag = "JumpPower",
