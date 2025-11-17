@@ -819,7 +819,7 @@ local function HoverOnMob()
 				or (target.PrimaryPart.Position + Vector3.new(0, HoverHeight, 0))
 
 		if bp then bp.Position = desiredPos end
-		if bg then bg.CFrame = CFrame.new(hrp.Position) * CFrame.Angles(math.rad(90),0,0) end
+		if bg then bg.CFrame = CFrame.new(hrp.Position) * CFrame.Angles(math.rad(-90),0,0) end
 
 		task.wait(0.5)
 	end
