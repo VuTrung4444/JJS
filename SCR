@@ -457,18 +457,18 @@ MiscSection:AddToggle({
         local StarterGui = game:GetService("StarterGui")
 
         task.spawn(function()
-            while task.wait(0.5) do
+            while task.wait(1) do
                 if not getgenv().AutoChestCollect then continue end
 
                 local dropsFolder = workspace:FindFirstChild("Objects") and workspace.Objects:FindFirstChild("Drops")
                 if not dropsFolder then continue end
 
-                for _, drop in ipairs(dropsFolder:GetChildren()) do
+                local drops = dropsFolder:GetChildren()
+                for index, drop in ipairs(drops) do
                     local chest = drop:FindFirstChild("Chest")
                     if not chest then continue end
 
                     local prompt = chest:FindFirstChild("Collect")
-
                     if prompt
                         and prompt:IsA("ProximityPrompt")
                         and prompt.ClickablePrompt == true
@@ -476,11 +476,22 @@ MiscSection:AddToggle({
                     then
 
                         fireproximityprompt(prompt)
+                        task.wait(0.5)
 
-                        if chest then
+                        
+                        local currentDrops = dropsFolder:GetChildren()
+                        local chestStillExists = false
+                        for i = 1, #currentDrops do
+                            if currentDrops[i] == drop then
+                                chestStillExists = true
+                                break
+                            end
+                        end
+
+                        if chestStillExists then
+                            -- Chest vẫn tồn tại, break vòng for để quét chest tiếp
                             break
                         else
-
                             task.wait(12)
 
                             local gui = player.PlayerGui
@@ -494,7 +505,7 @@ MiscSection:AddToggle({
                                 starterLoot:Clone().Parent = gui
                             end
 
-                            break
+                            break -- thoát vòng for sau khi xử lý chest đã thu thập
                         end
                     end
                 end
@@ -502,6 +513,7 @@ MiscSection:AddToggle({
         end)
     end
 })
+
 
 
 
