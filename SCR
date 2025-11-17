@@ -693,9 +693,7 @@ local HoverHeight = 5
 local IframeHeight = 1000
 local OffsetY = 20
 
----------------------------------------------------------------------
--- ALWAYS cập nhật HRP sau mỗi respawn/replay
----------------------------------------------------------------------
+
 local hrp = nil
 local function UpdateHRP(char)
 	task.wait(0.2)
@@ -708,9 +706,7 @@ end
 
 player.CharacterAdded:Connect(UpdateHRP)
 
----------------------------------------------------------------------
--- Hover helpers
----------------------------------------------------------------------
+
 local function EnableHover(hrp)
 	if not hrp:FindFirstChild("BodyPosition") then
 		local bp = Instance.new("BodyPosition")
@@ -738,12 +734,9 @@ local function DisableHover(hrp)
 	if bg then bg:Destroy() end
 end
 
----------------------------------------------------------------------
--- Move to BossSpawn
----------------------------------------------------------------------
+
 local function MoveToBoss()
 	if not hrp then return end
-
 	local bossSpawn = workspace:FindFirstChild("Objects")
 		and workspace.Objects:FindFirstChild("Spawns")
 		and workspace.Objects.Spawns:FindFirstChild("BossSpawn")
@@ -756,9 +749,6 @@ local function MoveToBoss()
 	end
 end
 
----------------------------------------------------------------------
--- Hover On Mob + Auto Replay (logic y hệt Auto Invest)
----------------------------------------------------------------------
 local function HoverOnMob()
 	if not hrp then return end
 
@@ -785,10 +775,10 @@ local function HoverOnMob()
 	local bg = hrp:FindFirstChild("BodyGyro")
 
 	while humanoid and humanoid.Health > 0 and target.PrimaryPart and getgenv().AutoBoss do
-		-- Auto kill nếu mob HP <= 2500
+
 		if humanoid.Health <= 2500 then
 			humanoid.Health = 0
-			task.wait(0.5) -- đợi 1 chút trước khi thoát hover
+			task.wait(0.1)
 			break
 		end
 
@@ -808,32 +798,9 @@ local function HoverOnMob()
 	end
 
 	DisableHover(hrp)
-
-	-- Task riêng kiểm tra replay giống Auto Invest
-	task.spawn(function()
-		while true do
-			task.wait(4)
-			if humanoid.Health <= 0 and #dropsFolder:GetChildren() == 0 then
-				local readyReplay = ReplicatedStorage:FindFirstChild("ReadyReplay")
-				if readyReplay and readyReplay.Value == 0 then
-					local playerGui = player:WaitForChild("PlayerGui")
-					local invResults = playerGui:FindFirstChild("InvestigationResults")
-					if invResults then
-						invResults:Destroy()
-					end
-
-					local remote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Server")
-						:WaitForChild("Misc"):WaitForChild("ReadyReplay")
-					remote:FireServer()
-				end
-				break
-			end
-		end
-	end)
 end
----------------------------------------------------------------------
--- Auto Boss Toggle
----------------------------------------------------------------------
+
+
 AutoMission:AddToggle({
 	Name = "Auto Boss",
 	Default = false,
@@ -851,6 +818,60 @@ AutoMission:AddToggle({
 		end)
 	end
 })
+
+
+getgenv().AutoReplay = false
+local player = game.Players.LocalPlayer
+
+function StartAutoReplay()
+    task.spawn(function()
+        while getgenv().AutoReplay do
+            local dropsFolder = workspace:WaitForChild("Objects"):WaitForChild("Drops")
+            local mobsFolder = workspace:WaitForChild("Objects"):WaitForChild("Mobs")
+            local replicatedStorage = game:GetService("ReplicatedStorage")
+            local playerGui = player:WaitForChild("PlayerGui")
+
+
+            if #mobsFolder:GetChildren() == 0 then
+                local readyReplay = replicatedStorage:FindFirstChild("ReadyReplay")
+
+                if readyReplay and readyReplay.Value == 0 and #dropsFolder:GetChildren() == 0 then
+                    task.wait(1)
+
+
+                    local invResults = playerGui:FindFirstChild("InvestigationResults")
+                    if invResults then
+                        invResults:Destroy()
+                    end
+
+
+                    local remote = replicatedStorage
+                        :WaitForChild("Remotes")
+                        :WaitForChild("Server")
+                        :WaitForChild("Misc")
+                        :WaitForChild("ReadyReplay")
+
+                    remote:FireServer()
+                end
+            end
+
+            task.wait(4)
+        end
+    end)
+end
+
+
+AutoMission:AddToggle({
+    Name = "Auto Replay",
+    Default = false,
+    Callback = function(State)
+        getgenv().AutoReplay = State
+        if State then
+            StartAutoReplay()
+        end
+    end,
+})
+
 
 
 local Players = game:GetService("Players")
@@ -1011,171 +1032,17 @@ end)
 	end)
 
 
-	local RunService = game:GetService("RunService");
-	local Players = game:GetService("Players");
-	local Player = Players.LocalPlayer;
-	local chr = Player.Character
-	local root = chr and chr:FindFirstChild("HumanoidRootPart")
-	local NextFrame = RunService.Heartbeat;
-
-
-	local VirtualUser = game:GetService("VirtualUser")
-	local Players = game:GetService("Players")
-	local player = Players.LocalPlayer
-	local ReplicatedStorage = game:GetService("ReplicatedStorage")
-	local Remotes = ReplicatedStorage:WaitForChild("Remotes")
-	local Map = Workspace:WaitForChild("Map")
-
-
-	local activeToggle = nil
-	local toggles = {}
-
-
-
-
-
-	--// Tween \\--
-	local function GetDistance(Endpoint)
-		if typeof(Endpoint) == "Instance" then
-			Endpoint = Vector3.new(Endpoint.Position.X, game.Players.LocalPlayer.Character.HumanoidRootPart.Position.Y, Endpoint.Position.Z)
-		elseif typeof(Endpoint) == "CFrame" then
-			Endpoint = Vector3.new(Endpoint.Position.X, game.Players.LocalPlayer.Character.HumanoidRootPart.Position.Y, Endpoint.Position.Z)
-		end
-		local Magnitude = (Endpoint - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
-		return Magnitude
-	end
-
-	function Tween(Endpoint)
-	if typeof(Endpoint) == "Instance" then
-			Endpoint = Endpoint.CFrame
-		end
-		local TweenFunc = {}
-		local Distance = GetDistance(Endpoint)
-		local TweenInfo = TweenInfo.new(Distance / getgenv().tweenspeed, Enum.EasingStyle.Linear)
-
-		local targetCFrame = Endpoint
-
-		-- Giữ nguyên hướng nhìn khi ở chế độ "Above" hoặc "Below"
-		if FarmMethod == "Above" then
-			targetCFrame = CFrame.new(Endpoint.Position) * CFrame.Angles(math.rad(-90), 0, 0)
-		elseif FarmMethod == "Below" then
-			targetCFrame = CFrame.new(Endpoint.Position) * CFrame.Angles(math.rad(90), 0, 0)
-		end
-
-		local TweenObj = game:GetService("TweenService"):Create(
-			game.Players.LocalPlayer.Character.HumanoidRootPart, 
-			TweenInfo, 
-			{ CFrame = targetCFrame }
-		)
-		TweenObj:Play()
-
-		function TweenFunc:Cancel()
-			TweenObj:Cancel()
-			return false
-		end
-
-		if Distance <= 100 then
-			game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = targetCFrame
-			TweenObj:Cancel()
-			return false
-		end
-
-		return TweenFunc
-	end
-
-	local function EnableAntiFall()
-		local plr = game.Players.LocalPlayer
-		if not plr.Character or not plr.Character:FindFirstChild("HumanoidRootPart") then
-			return
-		end
-
-		local humanoidRootPart = plr.Character.HumanoidRootPart
-		if not humanoidRootPart:FindFirstChild("BodyVelocity") then
-			local antifall = Instance.new("BodyVelocity")
-			antifall.Velocity = Vector3.new(0, 0, 0)
-			antifall.MaxForce = Vector3.new(9e9, 9e9, 9e9)
-			antifall.Name = "BodyVelocity"
-			antifall.Parent = humanoidRootPart
-		end
-	end
-
-	local function DisableAntiFall()
-		local plr = game.Players.LocalPlayer
-		if not plr.Character or not plr.Character:FindFirstChild("HumanoidRootPart") then
-			return
-		end
-
-		local humanoidRootPart = plr.Character.HumanoidRootPart
-		local humanoid = plr.Character:FindFirstChildOfClass("Humanoid")
-		local antifall = humanoidRootPart:FindFirstChild("BodyVelocity")
-
-		-- Xóa lực AntiFall nếu tồn tại
-		if antifall then
-			antifall:Destroy()
-			task.wait(0.1)
-		end
-
-		-- Đặt lại vận tốc để tránh bị giữ lại bởi lực cũ
-		humanoidRootPart.Velocity = Vector3.new(0, 0, 0)
-		humanoidRootPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-
-		-- Đảm bảo nhân vật có thể di chuyển
-		if humanoid then
-			humanoid.PlatformStand = false  -- Ngăn trạng thái đứng yên cứng
-			humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)  -- Đưa nhân vật về trạng thái bình thường
-			task.wait(0.1)  -- Chờ một chút để trạng thái được cập nhật
-
-			-- Nhảy ngay lập tức để kiểm tra xem có bị khóa không
-			humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-		end
-	end
-
-
-	--// Get Closest \\---
-	function IsEntitySelected(entity, selectedEntities)
-		for _, selectedEntity in ipairs(selectedEntities) do
-			if entity.Name == selectedEntity then
-				return true
-			end
-		end
-		return false
-	end
-
-
-
-	function getclosest(selectedEntities, parentFolder)
-		local closestEntity = nil
-		local closestDistance = math.huge
-
-		local entities = parentFolder:GetDescendants()
-
-		for i, entity in ipairs(entities) do
-			if entity:IsA("Model") and IsEntitySelected(entity, selectedEntities) then
-				local entityName = entity.Name
-				local humanoid = entity:FindFirstChild("Humanoid")
-				if humanoid and humanoid.Health > 0 then
-					local entityCFrame = entity:GetModelCFrame()
-					local distance = (entityCFrame.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
-					if distance < closestDistance then
-						closestDistance = distance
-						closestEntity = entity
-					end
-				end
-			end
-		end
-
-		return closestEntity
-	end
 
 
 	local VirtualUser = game:GetService("VirtualUser")
 	local Players = game:GetService("Players")
 
-	-- Hàm tạo thời gian random kiểu tự nhiên, có lúc nhanh lúc chậm
+
+
 	local function naturalWaitTime()
-		local baseTime = 600 -- 10 phút
-		local offset = math.random(-120, 180) -- lệch ngẫu nhiên từ -2 phút đến +3 phút
-		return math.max(300, baseTime + offset) -- đảm bảo tối thiểu 5 phút
+		local baseTime = 600
+		local offset = math.random(-120, 180)
+		return math.max(300, baseTime + offset)
 	end
 
 	spawn(function()
