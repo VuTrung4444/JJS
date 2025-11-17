@@ -445,6 +445,7 @@ SpeedAndJump:AddSlider({
 		end
 	})
 
+
 MiscSection:AddToggle({
     Name = "AutoCollectChest",
     Default = false,
@@ -456,7 +457,7 @@ MiscSection:AddToggle({
         local StarterGui = game:GetService("StarterGui")
 
         task.spawn(function()
-            while task.wait(1) do
+            while task.wait(0.5) do
                 if not getgenv().AutoChestCollect then continue end
 
                 local dropsFolder = workspace:FindFirstChild("Objects") and workspace.Objects:FindFirstChild("Drops")
@@ -470,34 +471,38 @@ MiscSection:AddToggle({
 
                     if prompt
                         and prompt:IsA("ProximityPrompt")
-                        and prompt.ActionText == "Collect"
-                        and prompt.Enabled
+                        and prompt.ClickablePrompt == true
+                        and prompt.Enabled == true
                     then
 
-                        task.spawn(function()
-                            fireproximityprompt(prompt)
-                        end)
+                        fireproximityprompt(prompt)
 
-                        task.wait(12)
+                        if chest then
+                            break
+                        else
 
-                        local gui = player.PlayerGui
-                        local existingLoot = gui:FindFirstChild("Loot")
-                        if existingLoot then existingLoot:Destroy() end
+                            task.wait(12)
 
-                        task.wait(1)
+                            local gui = player.PlayerGui
+                            local existingLoot = gui:FindFirstChild("Loot")
+                            if existingLoot then existingLoot:Destroy() end
 
-                        local starterLoot = StarterGui:FindFirstChild("Loot")
-                        if starterLoot then
-                            starterLoot:Clone().Parent = gui
+                            task.wait(1)
+
+                            local starterLoot = StarterGui:FindFirstChild("Loot")
+                            if starterLoot then
+                                starterLoot:Clone().Parent = gui
+                            end
+
+                            break
                         end
-
-                        break
                     end
                 end
             end
         end)
     end
 })
+
 
 
 MiscSection:AddButton({
