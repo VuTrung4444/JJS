@@ -904,68 +904,82 @@ Ect:AddButton({
 
 
 MiscSection:AddToggle({
-    Name = "AutoCollectChest",
+    Name = "Auto Chest",
     Default = false,
     Callback = function(state)
-        getgenv().AutoChestCollect = state
+        getgenv().AutoChest = state
 
         local Players = game:GetService("Players")
         local player = Players.LocalPlayer
+        local workspace = game:GetService("Workspace")
         local StarterGui = game:GetService("StarterGui")
 
+        repeat task.wait(0.1) until player and player:FindFirstChild("PlayerGui")
+        local gui = player.PlayerGui
+
+        getgenv().canCollectChest = true
+
         task.spawn(function()
-            while task.wait(1) do
-                if not getgenv().AutoChestCollect then continue end
+            while true do
+                if not getgenv().AutoChest then
+                    task.wait(1)
+                    continue
+                end
 
-                local dropsFolder = workspace:FindFirstChild("Objects") and workspace.Objects:FindFirstChild("Drops")
-                if not dropsFolder then continue end
-
-                local drops = dropsFolder:GetChildren()
-                for index, drop in ipairs(drops) do
-                    local chest = drop:FindFirstChild("Chest")
-                    if not chest then continue end
-
-                    local prompt = chest:FindFirstChild("Collect")
-                    if prompt
-                        and prompt:IsA("ProximityPrompt")
-                        and prompt.ClickablePrompt == true
-                        and prompt.Enabled == true
-                    then
-
-                        fireproximityprompt(prompt)
-                        task.wait(0.5)
-
-                        
-                        local currentDrops = dropsFolder:GetChildren()
-                        local chestStillExists = false
-                        for i = 1, #currentDrops do
-                            if currentDrops[i] == drop then
-                                chestStillExists = true
-                                break
+                if getgenv().canCollectChest then
+                    local dropsFolder = workspace:FindFirstChild("Objects") and workspace.Objects:FindFirstChild("Drops")
+                    if dropsFolder then
+                        for _, drop in ipairs(dropsFolder:GetChildren()) do
+                            local chest = drop:FindFirstChild("Chest")
+                            if chest then
+                                local prompt = chest:FindFirstChild("Collect")
+                                if prompt 
+                                    and prompt:IsA("ProximityPrompt") 
+                                    and prompt.ClickablePrompt 
+                                    and prompt.Enabled 
+                                then
+                                    fireproximityprompt(prompt)
+                                    task.wait(0.5)
+                                    break
+                                end
                             end
-                        end
-
-                        if chestStillExists then
-                            -- Chest vẫn tồn tại, break vòng for để quét chest tiếp
-                            break
-                        else
-                            task.wait(12)
-
-                            local gui = player.PlayerGui
-                            local existingLoot = gui:FindFirstChild("Loot")
-                            if existingLoot then existingLoot:Destroy() end
-
-                            task.wait(1)
-
-                            local starterLoot = StarterGui:FindFirstChild("Loot")
-                            if starterLoot then
-                                starterLoot:Clone().Parent = gui
-                            end
-
-                            break -- thoát vòng for sau khi xử lý chest đã thu thập
                         end
                     end
                 end
+                task.wait(1)
+            end
+        end)
+
+        task.spawn(function()
+            while true do
+                if not getgenv().AutoChest then
+                    task.wait(1)
+                    continue
+                end
+
+                local lootGUI = gui:FindFirstChild("Loot")
+                local scrollingFrame = lootGUI 
+                                    and lootGUI:FindFirstChild("Results") 
+                                    and lootGUI.Results:FindFirstChild("Main") 
+                                    and gui.Loot.Results.Main:FindFirstChild("ScrollingFrame")
+
+                if scrollingFrame then
+                    getgenv().canCollectChest = false
+                    task.wait(12)
+
+                    if lootGUI then
+                        lootGUI:Destroy()
+                    end
+
+                    local starterLoot = StarterGui:FindFirstChild("Loot")
+                    if starterLoot then
+                        starterLoot:Clone().Parent = gui
+                    end
+
+                    getgenv().canCollectChest = true
+                end
+
+                task.wait(1)
             end
         end)
     end
