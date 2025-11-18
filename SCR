@@ -917,7 +917,7 @@ MiscSection:AddToggle({
         -- Luồng chính để thu thập chest
         task.spawn(function()
             while true do
-                task.wait(0.5) -- delay giữa các lần quét
+                task.wait(1) -- delay giữa các lần quét
                 if not getgenv().AutoChest then continue end
 
                 local dropsFolder = workspace:FindFirstChild("Objects") and workspace.Objects:FindFirstChild("Drops")
@@ -935,14 +935,15 @@ MiscSection:AddToggle({
                         and prompt.Enabled
                     then
                         fireproximityprompt(prompt)
-                        task.wait(1)
+                        task.wait(2)
 
                         -- Kiểm tra GUI loot
                         local gui = player:WaitForChild("PlayerGui")
                         local lootGUI = gui:FindFirstChild("Loot")
+
                         if lootGUI then
                             lootGUI:Destroy()
-                            task.wait(2)
+                            task.wait(1)
 
                             local starterLoot = StarterGui:FindFirstChild("Loot")
                             if starterLoot then
@@ -1385,16 +1386,15 @@ function StartAutoReplay()
                and readyReplay.Value == 0 
                and AreDropsEmpty(dropsFolder)
             then
-				task.wait(3)
+
                 local remote = replicatedStorage
                     :WaitForChild("Remotes")
                     :WaitForChild("Server")
                     :WaitForChild("Misc")
                     :WaitForChild("ReadyReplay")
-
+				task.wait(4)
                 remote:FireServer()
             end
-
             task.wait(1) 
         end
     end)
