@@ -1160,7 +1160,7 @@ local workspace = game:GetService("Workspace")
 local player = Players.LocalPlayer
 
 local HoverHeight = 10
-local IframeHeight = 500
+local IframeHeight = 200
 local OffsetY = 20
 
 
@@ -1280,6 +1280,7 @@ AutoMission:AddToggle({
 		end)
 	end
 })
+
 
 KA:AddToggle({
     Name = "Auto Mob",
