@@ -911,75 +911,46 @@ MiscSection:AddToggle({
 
         local Players = game:GetService("Players")
         local player = Players.LocalPlayer
-        local workspace = game:GetService("Workspace")
         local StarterGui = game:GetService("StarterGui")
+        local workspace = game:GetService("Workspace")
 
-        repeat task.wait(0.1) until player and player:FindFirstChild("PlayerGui")
-        local gui = player.PlayerGui
-
-        getgenv().canCollectChest = true
-
+        -- Luồng chính để thu thập chest
         task.spawn(function()
             while true do
-                if not getgenv().AutoChest then
-                    task.wait(1)
-                    continue
-                end
+                task.wait(0.5) -- delay giữa các lần quét
+                if not getgenv().AutoChest then continue end
 
-                if getgenv().canCollectChest then
-                    local dropsFolder = workspace:FindFirstChild("Objects") and workspace.Objects:FindFirstChild("Drops")
-                    if dropsFolder then
-                        for _, drop in ipairs(dropsFolder:GetChildren()) do
-                            local chest = drop:FindFirstChild("Chest")
-                            if chest then
-                                local prompt = chest:FindFirstChild("Collect")
-                                if prompt 
-                                    and prompt:IsA("ProximityPrompt") 
-                                    and prompt.ClickablePrompt 
-                                    and prompt.Enabled 
-                                then
-                                    fireproximityprompt(prompt)
-                                    task.wait(0.5)
-                                    break
-                                end
+                local dropsFolder = workspace:FindFirstChild("Objects") and workspace.Objects:FindFirstChild("Drops")
+                if not dropsFolder then continue end
+
+                local drops = dropsFolder:GetChildren()
+                for _, drop in ipairs(drops) do
+                    local chest = drop:FindFirstChild("Chest")
+                    if not chest then continue end
+
+                    local prompt = chest:FindFirstChild("Collect")
+                    if prompt
+                        and prompt:IsA("ProximityPrompt")
+                        and prompt.ClickablePrompt
+                        and prompt.Enabled
+                    then
+                        fireproximityprompt(prompt)
+                        task.wait(1)
+
+                        -- Kiểm tra GUI loot
+                        local gui = player:WaitForChild("PlayerGui")
+                        local lootGUI = gui:FindFirstChild("Loot")
+                        if lootGUI then
+                            lootGUI:Destroy()
+                            task.wait(2)
+
+                            local starterLoot = StarterGui:FindFirstChild("Loot")
+                            if starterLoot then
+                                starterLoot:Clone().Parent = gui
                             end
                         end
                     end
                 end
-                task.wait(1)
-            end
-        end)
-
-        task.spawn(function()
-            while true do
-                if not getgenv().AutoChest then
-                    task.wait(1)
-                    continue
-                end
-
-                local lootGUI = gui:FindFirstChild("Loot")
-                local scrollingFrame = lootGUI 
-                                    and lootGUI:FindFirstChild("Results") 
-                                    and lootGUI.Results:FindFirstChild("Main") 
-                                    and gui.Loot.Results.Main:FindFirstChild("ScrollingFrame")
-
-                if scrollingFrame then
-                    getgenv().canCollectChest = false
-                    task.wait(12)
-
-                    if lootGUI then
-                        lootGUI:Destroy()
-                    end
-
-                    local starterLoot = StarterGui:FindFirstChild("Loot")
-                    if starterLoot then
-                        starterLoot:Clone().Parent = gui
-                    end
-
-                    getgenv().canCollectChest = true
-                end
-
-                task.wait(1)
             end
         end)
     end
@@ -1316,7 +1287,7 @@ KA:AddToggle({
     Callback = function(state)
         getgenv().AutoMob = state
 
-        local HoverHeight = 15
+        local HoverHeight = 5
         local Players = game:GetService("Players")
         local workspace = game:GetService("Workspace")
         local player = Players.LocalPlayer
@@ -1383,40 +1354,54 @@ KA:AddToggle({
 
 getgenv().AutoReplay = false
 local player = game.Players.LocalPlayer
+local replicatedStorage = game:GetService("ReplicatedStorage")
+
+-- Kiểm tra Drops trống (BasePart hoặc Model)
+local function AreDropsEmpty(dropsFolder)
+    for _, obj in ipairs(dropsFolder:GetDescendants()) do
+        if obj:IsA("BasePart") or obj:IsA("Model") then
+            return false
+        end
+    end
+    return true
+end
+
+-- Kiểm tra ScrollingFrame trong Loot GUI
+local function IsScrollingFramePresent(lootGUI)
+    if lootGUI then
+        local results = lootGUI:FindFirstChild("Results")
+        if results and results:FindFirstChild("Main") then
+            for _, obj in ipairs(results.Main:GetDescendants()) do
+                if obj:IsA("ScrollingFrame") then
+                    return true
+                end
+            end
+        end
+    end
+    return false
+end
 
 function StartAutoReplay()
     task.spawn(function()
         while getgenv().AutoReplay do
             local dropsFolder = workspace:WaitForChild("Objects"):WaitForChild("Drops")
-            local replicatedStorage = game:GetService("ReplicatedStorage")
             local playerGui = player:WaitForChild("PlayerGui")
 
-            task.wait(1)
-
+            -- Xóa InvestigationResults nếu tồn tại
             local invResults = playerGui:FindFirstChild("InvestigationResults")
             if invResults then
                 invResults:Destroy()
             end
 
+            local lootGUI = playerGui:FindFirstChild("Loot")
+            local scrollingExists = IsScrollingFramePresent(lootGUI)
+
             local readyReplay = replicatedStorage:FindFirstChild("ReadyReplay")
 
-            local lootGUI = playerGui:FindFirstChild("Loot")
-            local scrollingExists = false
-            if lootGUI then
-                local results = lootGUI:FindFirstChild("Results")
-                if results and results:FindFirstChild("Main") then
-                    for _, child in ipairs(results.Main:GetChildren()) do
-                        if child:IsA("GuiObject") and child.Parent:IsA("ScrollingFrame") then
-                            scrollingExists = true
-                            break
-                        end
-                    end
-                end
-            end
-
+            -- Chỉ replay khi Drops trống, Loot GUI sạch, ReadyReplay = 0
             if readyReplay 
                and readyReplay.Value == 0 
-               and #dropsFolder:GetChildren() == 0 
+               and AreDropsEmpty(dropsFolder)
                and not scrollingExists 
             then
                 local remote = replicatedStorage
@@ -1428,7 +1413,7 @@ function StartAutoReplay()
                 remote:FireServer()
             end
 
-            task.wait(1)
+            task.wait(1) -- delay giữa các lần kiểm tra
         end
     end)
 end
@@ -1443,8 +1428,6 @@ AutoMission:AddToggle({
         end
     end,
 })
-
-
 
 
 local SelectedTown = nil
