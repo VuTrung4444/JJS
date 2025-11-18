@@ -1388,36 +1388,50 @@ function StartAutoReplay()
     task.spawn(function()
         while getgenv().AutoReplay do
             local dropsFolder = workspace:WaitForChild("Objects"):WaitForChild("Drops")
-            local mobsFolder = workspace:WaitForChild("Objects"):WaitForChild("Mobs")
             local replicatedStorage = game:GetService("ReplicatedStorage")
             local playerGui = player:WaitForChild("PlayerGui")
 
+            task.wait(1)
 
-            if #mobsFolder:GetChildren() == 0 then
-task.wait(2)
-local invResults = playerGui:FindFirstChild("InvestigationResults")
-                    if invResults then
-                        invResults:Destroy()
+            local invResults = playerGui:FindFirstChild("InvestigationResults")
+            if invResults then
+                invResults:Destroy()
+            end
+
+            local readyReplay = replicatedStorage:FindFirstChild("ReadyReplay")
+
+            local lootGUI = playerGui:FindFirstChild("Loot")
+            local scrollingExists = false
+            if lootGUI then
+                local results = lootGUI:FindFirstChild("Results")
+                if results and results:FindFirstChild("Main") then
+                    for _, child in ipairs(results.Main:GetChildren()) do
+                        if child:IsA("GuiObject") and child.Parent:IsA("ScrollingFrame") then
+                            scrollingExists = true
+                            break
+                        end
                     end
-                local readyReplay = replicatedStorage:FindFirstChild("ReadyReplay")
-
-                if readyReplay and readyReplay.Value == 0 and #dropsFolder:GetChildren() == 0 then
-
-                    local remote = replicatedStorage
-                        :WaitForChild("Remotes")
-                        :WaitForChild("Server")
-                        :WaitForChild("Misc")
-                        :WaitForChild("ReadyReplay")
-
-                    remote:FireServer()
                 end
             end
 
-            task.wait(4)
+            if readyReplay 
+               and readyReplay.Value == 0 
+               and #dropsFolder:GetChildren() == 0 
+               and not scrollingExists 
+            then
+                local remote = replicatedStorage
+                    :WaitForChild("Remotes")
+                    :WaitForChild("Server")
+                    :WaitForChild("Misc")
+                    :WaitForChild("ReadyReplay")
+
+                remote:FireServer()
+            end
+
+            task.wait(1)
         end
     end)
 end
-
 
 AutoMission:AddToggle({
     Name = "Auto Replay",
@@ -1429,6 +1443,8 @@ AutoMission:AddToggle({
         end
     end,
 })
+
+
 
 
 local SelectedTown = nil
