@@ -1392,7 +1392,7 @@ function StartAutoReplay()
             print("ReadyReplay Value:", readyReplay and readyReplay.Value, "Drops Exist:", dropsExist)
 
             if readyReplay and readyReplay.Value == 0 then
-                task.wait(5)
+                task.wait(4)
                 local dropsExistAfterDelay = HasDrops()
 
                 if not dropsExistAfterDelay then
