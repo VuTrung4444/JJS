@@ -1009,7 +1009,7 @@ AutoMission:AddToggle({
                         if humanoid and humanoid.Health > 0 and mob.PrimaryPart then
                             if humanoid.Health <= 2500 then
                                 humanoid.Health = 0
-                                task.wait(1)
+                                task.wait(0.2)
                             end
                         end
                     end
