@@ -950,7 +950,7 @@ MiscSection:AddToggle({
                                         end
 
                                         if frameDetected then
-											task.wait(2)
+											task.wait(12)
                                             lootGUI:Destroy()
                                             task.wait(1)
                                             local starterLoot = StarterGui:FindFirstChild("Loot")
