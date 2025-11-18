@@ -1404,6 +1404,7 @@ function StartAutoReplay()
                and AreDropsEmpty(dropsFolder)
                and not scrollingExists 
             then
+				task.wait(3)
                 local remote = replicatedStorage
                     :WaitForChild("Remotes")
                     :WaitForChild("Server")
@@ -1413,7 +1414,7 @@ function StartAutoReplay()
                 remote:FireServer()
             end
 
-            task.wait(1) -- delay giữa các lần kiểm tra
+            task.wait(1) 
         end
     end)
 end
