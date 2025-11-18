@@ -987,24 +987,40 @@ MiscSection:AddButton({
 })
 
 
+
+
+getgenv().InsBoss = false
+
+
 AutoMission:AddToggle({
     Name = "InstantKill",
     Default = false,
     Callback = function(state)
-        getgenv().AutoBoss = state
+        getgenv().InsBoss = state
+
         if state then
+
             spawn(function()
-                while humanoid and humanoid.Health > 0 and target.PrimaryPart and getgenv().AutoBoss do
-                    if humanoid.Health <= 2500 then
-                        humanoid.Health = 0
-                        task.wait(1)
-                        break
+                while getgenv().InsBoss do
+
+                    local mobsFolder = workspace:WaitForChild("Objects"):WaitForChild("Mobs")
+                    for _, mob in ipairs(mobsFolder:GetChildren()) do
+                        local humanoid = mob:FindFirstChild("Humanoid")
+                        if humanoid and humanoid.Health > 0 and mob.PrimaryPart then
+                            if humanoid.Health <= 2500 then
+                                humanoid.Health = 0
+                                task.wait(1)
+                            end
+                        end
                     end
+                    task.wait(1)
                 end
             end)
         end
     end
 })
+
+
 
 
 AutoMission:AddToggle({
