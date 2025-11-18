@@ -1356,7 +1356,6 @@ getgenv().AutoReplay = false
 local player = game.Players.LocalPlayer
 local replicatedStorage = game:GetService("ReplicatedStorage")
 
--- Kiểm tra Drops trống (BasePart hoặc Model)
 local function AreDropsEmpty(dropsFolder)
     for _, obj in ipairs(dropsFolder:GetDescendants()) do
         if obj:IsA("BasePart") or obj:IsA("Model") then
@@ -1366,20 +1365,6 @@ local function AreDropsEmpty(dropsFolder)
     return true
 end
 
--- Kiểm tra ScrollingFrame trong Loot GUI
-local function IsScrollingFramePresent(lootGUI)
-    if lootGUI then
-        local results = lootGUI:FindFirstChild("Results")
-        if results and results:FindFirstChild("Main") then
-            for _, obj in ipairs(results.Main:GetDescendants()) do
-                if obj:IsA("ScrollingFrame") then
-                    return true
-                end
-            end
-        end
-    end
-    return false
-end
 
 function StartAutoReplay()
     task.spawn(function()
@@ -1387,22 +1372,17 @@ function StartAutoReplay()
             local dropsFolder = workspace:WaitForChild("Objects"):WaitForChild("Drops")
             local playerGui = player:WaitForChild("PlayerGui")
 
-            -- Xóa InvestigationResults nếu tồn tại
+
             local invResults = playerGui:FindFirstChild("InvestigationResults")
             if invResults then
                 invResults:Destroy()
             end
 
-            local lootGUI = playerGui:FindFirstChild("Loot")
-            local scrollingExists = IsScrollingFramePresent(lootGUI)
-
             local readyReplay = replicatedStorage:FindFirstChild("ReadyReplay")
 
-            -- Chỉ replay khi Drops trống, Loot GUI sạch, ReadyReplay = 0
             if readyReplay 
                and readyReplay.Value == 0 
                and AreDropsEmpty(dropsFolder)
-               and not scrollingExists 
             then
 				task.wait(3)
                 local remote = replicatedStorage
