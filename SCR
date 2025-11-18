@@ -902,7 +902,6 @@ Ect:AddButton({
     end
 })
 
-
 MiscSection:AddToggle({
     Name = "Auto Chest",
     Default = false,
@@ -917,37 +916,50 @@ MiscSection:AddToggle({
         -- Luồng chính để thu thập chest
         task.spawn(function()
             while true do
-                task.wait(1) -- delay giữa các lần quét
+                task.wait(0.5)
                 if not getgenv().AutoChest then continue end
 
                 local dropsFolder = workspace:FindFirstChild("Objects") and workspace.Objects:FindFirstChild("Drops")
                 if not dropsFolder then continue end
 
-                local drops = dropsFolder:GetChildren()
-                for _, drop in ipairs(drops) do
+                for _, drop in ipairs(dropsFolder:GetChildren()) do
                     local chest = drop:FindFirstChild("Chest")
                     if not chest then continue end
 
                     local prompt = chest:FindFirstChild("Collect")
-                    if prompt
-                        and prompt:IsA("ProximityPrompt")
-                        and prompt.ClickablePrompt
-                        and prompt.Enabled
-                    then
+                    if prompt and prompt:IsA("ProximityPrompt") and prompt.ClickablePrompt and prompt.Enabled then
                         fireproximityprompt(prompt)
-                        task.wait(2)
+                        task.wait(1)
 
-                        -- Kiểm tra GUI loot
+
                         local gui = player:WaitForChild("PlayerGui")
                         local lootGUI = gui:FindFirstChild("Loot")
-
                         if lootGUI then
-                            lootGUI:Destroy()
-                            task.wait(1)
+                            local results = lootGUI:FindFirstChild("Results")
+                            if results then
+                                local mainFrame = results:FindFirstChild("Main")
+                                if mainFrame then
+                                    local scrollingFrame = mainFrame:FindFirstChild("ScrollingFrame")
+                                    if scrollingFrame then
+                                        local frameDetected = false
+                                        for _, itemFrame in ipairs(scrollingFrame:GetChildren()) do
+                                            if itemFrame.ClassName == "Frame" then
+                                                frameDetected = true
+                                                break
+                                            end
+                                        end
 
-                            local starterLoot = StarterGui:FindFirstChild("Loot")
-                            if starterLoot then
-                                starterLoot:Clone().Parent = gui
+                                        if frameDetected then
+											task.wait(12)
+                                            lootGUI:Destroy()
+                                            task.wait(1)
+                                            local starterLoot = StarterGui:FindFirstChild("Loot")
+                                            if starterLoot then
+                                                starterLoot:Clone().Parent = gui
+                                            end
+                                        end
+                                    end
+                                end
                             end
                         end
                     end
@@ -956,7 +968,6 @@ MiscSection:AddToggle({
         end)
     end
 })
-
 
 
 
@@ -1161,7 +1172,7 @@ local workspace = game:GetService("Workspace")
 local player = Players.LocalPlayer
 
 local HoverHeight = 10
-local IframeHeight = 200
+local IframeHeight = 50
 local OffsetY = 20
 
 
@@ -1353,25 +1364,19 @@ KA:AddToggle({
     end
 })
 
-
 getgenv().AutoReplay = false
 local player = game.Players.LocalPlayer
-local replicatedStorage = game:GetService("ReplicatedStorage")
 
-local function AreDropsEmpty(dropsFolder)
-    for _, obj in ipairs(dropsFolder:GetDescendants()) do
-        if obj:IsA("BasePart") or obj:IsA("Model") then
-            return false
-        end
-    end
-    return true
+local function HasDrops()
+    local dropsFolder = workspace:FindFirstChild("Objects") and workspace.Objects:FindFirstChild("Drops")
+    if not dropsFolder then return false end
+    return #dropsFolder:GetChildren() > 0
 end
-
 
 function StartAutoReplay()
     task.spawn(function()
         while getgenv().AutoReplay do
-            local dropsFolder = workspace:WaitForChild("Objects"):WaitForChild("Drops")
+            local replicatedStorage = game:GetService("ReplicatedStorage")
             local playerGui = player:WaitForChild("PlayerGui")
 
 
@@ -1381,21 +1386,26 @@ function StartAutoReplay()
             end
 
             local readyReplay = replicatedStorage:FindFirstChild("ReadyReplay")
+            local dropsExist = HasDrops()
 
-            if readyReplay 
-               and readyReplay.Value == 0 
-               and AreDropsEmpty(dropsFolder)
-            then
 
-                local remote = replicatedStorage
-                    :WaitForChild("Remotes")
-                    :WaitForChild("Server")
-                    :WaitForChild("Misc")
-                    :WaitForChild("ReadyReplay")
-				task.wait(4)
-                remote:FireServer()
+            print("ReadyReplay Value:", readyReplay and readyReplay.Value, "Drops Exist:", dropsExist)
+
+            if readyReplay and readyReplay.Value == 0 then
+                task.wait(5)
+                local dropsExistAfterDelay = HasDrops()
+
+                if not dropsExistAfterDelay then
+                    local remote = replicatedStorage
+                        :WaitForChild("Remotes")
+                        :WaitForChild("Server")
+                        :WaitForChild("Misc")
+                        :WaitForChild("ReadyReplay")
+                    remote:FireServer()
+
+                end
             end
-            task.wait(1) 
+            task.wait(1)
         end
     end)
 end
@@ -1410,6 +1420,8 @@ AutoMission:AddToggle({
         end
     end,
 })
+
+
 
 
 local SelectedTown = nil
