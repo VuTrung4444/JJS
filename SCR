@@ -197,7 +197,7 @@ KA:AddToggle({
         if v then
             task.spawn(function()
                 while ToggleBF do
-                    local mob = GetNearestMobInRange(100)
+                    local mob = GetNearestMobInRange(1000)
 
                     if mob then
                         -- chạy blackflash
