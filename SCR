@@ -202,10 +202,11 @@ KA:AddToggle({
                     local hrp = game.Players.LocalPlayer.Character
                         and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
 
+
                     local calamity = workspace.Objects.Mobs:FindFirstChild("Six Eyed Calamity")
 
                     local isCalamityStunned = false
-                    if calamity 
+                    if calamity
                         and calamity:FindFirstChild("Humanoid")
                         and calamity.Humanoid:FindFirstChild("CombatAgent")
                         and calamity.Humanoid.CombatAgent:FindFirstChild("Statuses")
@@ -214,22 +215,34 @@ KA:AddToggle({
                     end
 
 
-                    local isAnyDestructibleInRange = false
                     local destructFolder = workspace.Objects:FindFirstChild("Destructibles")
+                    local isAnyDestructibleInRange = false
+
+
+                    local blockBlackFlash = false
 
                     if destructFolder and hrp then
                         for _, item in ipairs(destructFolder:GetChildren()) do
+
+                            if item.Name == "SEC Infinity Crystal" and item.PrimaryPart then
+                                local distCrystal = (hrp.Position - item.PrimaryPart.Position).Magnitude
+                                if distCrystal <= 20 then
+                                    blockBlackFlash = true
+                                end
+                            end
+
+
                             if item:IsA("Model") and item.PrimaryPart then
                                 local dist = (hrp.Position - item.PrimaryPart.Position).Magnitude
                                 if dist <= 100 then
                                     isAnyDestructibleInRange = true
-                                    break
                                 end
                             end
                         end
                     end
 
-                    if mob or isCalamityStunned or isAnyDestructibleInRange then
+
+                    if not blockBlackFlash and (mob or isCalamityStunned or isAnyDestructibleInRange) then
                         local args = {1.123}
                         local rs = game:GetService("ReplicatedStorage").Remotes.Server.Combat
 
@@ -237,12 +250,13 @@ KA:AddToggle({
                         rs.M2:FireServer()
                     end
 
-                    task.wait(1)
+                    task.wait(0.5)
                 end
             end)
         end
     end
 })
+
 
 
 
