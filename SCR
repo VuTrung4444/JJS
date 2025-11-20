@@ -109,9 +109,8 @@ end
 	local MiscTab = Window:CreateTab({Name = "Misc"})
 	local MiscSection = MiscTab:CreateSection({Name = "Misc"})
 	local Ect = MiscTab:CreateSection({Name = "Ect", Side = "Left"})
-	local Breathings = MiscTab:CreateSection({Name = "Breathings", Side = "Left"})
 	local Calamity = MiscTab:CreateSection({Name = "Calamity", Side = "Right"})
-
+	local SpeedAndJump = MiscTab:CreateSection({Name = "Speed&Jump", Side = "Right"})
 
 
     -- Toggle Auto Spin
