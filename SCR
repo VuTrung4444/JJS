@@ -1126,7 +1126,6 @@ AutoMission:AddToggle({
         local workspaceDrops = workspace:WaitForChild("Objects"):WaitForChild("Drops")
 
 
-        getgenv().AutoKillMobs = false
         getgenv().AutoCollect = false
         getgenv().AutoCivilian = false
 
@@ -1135,7 +1134,6 @@ AutoMission:AddToggle({
         task.spawn(function()
             while task.wait(1) do
                 if not getgenv().AutoMissionEnabled then
-                    getgenv().AutoKillMobs = false
                     getgenv().AutoCollect = false
                     getgenv().AutoCivilian = false
                     continue
@@ -1150,26 +1148,9 @@ AutoMission:AddToggle({
 
 
                 if currentTask ~= lastTaskText then
-                    getgenv().AutoKillMobs = false
                     getgenv().AutoCollect = false
                     getgenv().AutoCivilian = false
                     lastTaskText = currentTask
-                end
-
-
-                if game.PlaceId == InvestPlaceID then
-                    getgenv().AutoKillMobs = true
-                end
-
-
-                if getgenv().AutoKillMobs then
-                    for _, mob in ipairs(workspace:WaitForChild("Objects"):WaitForChild("Mobs"):GetChildren()) do
-                        local humanoid = mob:FindFirstChild("Humanoid")
-                        if humanoid and humanoid.Health > 0 then
-                            humanoid.Health = 0
-							task.wait(0.1)
-                        end
-                    end
                 end
 
 
