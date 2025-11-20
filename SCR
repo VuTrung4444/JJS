@@ -1292,136 +1292,133 @@ getgenv().AutoBoss = false
 getgenv().FloatingEnabled = false -- Kiểm soát trạng thái lơ lửng
 
 local Players = game:GetService("Players")
-local workspace = game:GetService("Workspace")
+local Workspace = game:GetService("Workspace")
 local player = Players.LocalPlayer
 
-local HoverHeight = 10
-local IframeHeight = 100
-local OffsetY = 20
+local HoverHeight = 10       -- Chiều cao hover khi theo mob
+local IframeHeight = 100     -- Chiều cao hover khi mob đang bất tử
+local OffsetY = 20           -- Chiều cao hover tại vị trí boss spawn
 
 local hrp = nil
+
+-- Cập nhật HumanoidRootPart khi nhân vật spawn hoặc respawn
 local function UpdateHRP(char)
-	task.wait(1)
-	hrp = char:WaitForChild("HumanoidRootPart")
+    task.wait(0.2)
+    hrp = char:WaitForChild("HumanoidRootPart")
 end
 
 if player.Character then
-	UpdateHRP(player.Character)
+    UpdateHRP(player.Character)
 end
+
 player.CharacterAdded:Connect(UpdateHRP)
 
--- Hàm bật/tắt hover (BodyGyro + BodyVelocity)
+-- Hàm bật/tắt hover bằng BodyPosition + BodyGyro
 local function setFloating(enable)
-	if not hrp then return end
-	if enable then
-		for _, obj in ipairs(hrp:GetChildren()) do
-			if obj:IsA("BodyGyro") or obj:IsA("BodyVelocity") then obj:Destroy() end
-		end
-		local bg = Instance.new("BodyGyro")
-		bg.P = 9e4
-		bg.D = 1000
-		bg.MaxTorque = Vector3.new(1e5,1e5,1e5)
-		bg.CFrame = hrp.CFrame
-		bg.Parent = hrp
+    if not hrp then return end
 
-		local bv = Instance.new("BodyVelocity")
-		bv.Velocity = Vector3.new(0,0,0)
-		bv.MaxForce = Vector3.new(1e5,1e5,1e5)
-		bv.Parent = hrp
-	else
-		for _, obj in ipairs(hrp:GetChildren()) do
-			if obj:IsA("BodyGyro") or obj:IsA("BodyVelocity") then obj:Destroy() end
-		end
-	end
+    -- Xóa các Body trước nếu có
+    for _, obj in ipairs(hrp:GetChildren()) do
+        if obj:IsA("BodyGyro") or obj:IsA("BodyPosition") then
+            obj:Destroy()
+        end
+    end
+
+    if enable then
+        -- BodyGyro giữ hướng ổn định
+        local bg = Instance.new("BodyGyro")
+        bg.P = 5e4
+        bg.D = 1000
+        bg.MaxTorque = Vector3.new(9e9,9e9,9e9)
+        bg.CFrame = hrp.CFrame
+        bg.Parent = hrp
+
+        -- BodyPosition giữ vị trí hover, chống knockback
+        local bp = Instance.new("BodyPosition")
+        bp.P = 5e4
+        bp.D = 1000
+        bp.MaxForce = Vector3.new(9e9,9e9,9e9)
+        bp.Position = hrp.Position
+        bp.Parent = hrp
+    end
 end
 
 
 local function HoverLoop()
-	while getgenv().FloatingEnabled do
-		if hrp then
+    while getgenv().FloatingEnabled and hrp do
+        setFloating(true)
+        local bp = hrp:FindFirstChildOfClass("BodyPosition")
 
-			setFloating(true)
-		end
-		task.wait(1)
-	end
-	setFloating(false)
+
+        local mobsFolder = Workspace:WaitForChild("Objects"):WaitForChild("Mobs")
+        local target, humanoid = nil, nil
+        for _, mob in ipairs(mobsFolder:GetChildren()) do
+            local h = mob:FindFirstChild("Humanoid")
+            if h and h.Health > 0 and mob.PrimaryPart then
+                target = mob
+                humanoid = h
+                break
+            end
+        end
+
+        local desiredPos
+        if target and humanoid then
+            local combatAgent = humanoid:FindFirstChild("CombatAgent")
+            local iframes = combatAgent and combatAgent:FindFirstChild("Statuses")
+                and combatAgent.Statuses:FindFirstChild("Iframes")
+
+            if iframes and iframes.Value then
+                desiredPos = hrp.Position + Vector3.new(0, IframeHeight, 0)
+            else
+                desiredPos = target.PrimaryPart.Position + Vector3.new(0, HoverHeight, 0)
+            end
+        else
+
+            local bossSpawn = Workspace:FindFirstChild("Objects")
+                and Workspace.Objects:FindFirstChild("Spawns")
+                and Workspace.Objects.Spawns:FindFirstChild("BossSpawn")
+            if bossSpawn and bossSpawn:FindFirstChild("QuestMarker") then
+                local pivot = bossSpawn:GetPivot()
+                if pivot then
+                    desiredPos = pivot.Position + Vector3.new(0, OffsetY, 0)
+                end
+            end
+        end
+
+        if bp and desiredPos then
+            bp.Position = desiredPos
+        end
+
+        task.wait(0.5)
+    end
+
+
+    setFloating(false)
 end
 
-
-local function MoveToBossOrMob()
-	if not hrp then return end
-
-	local mobsFolder = workspace:WaitForChild("Objects"):WaitForChild("Mobs")
-	local target, humanoid = nil, nil
-
-	for _, mob in ipairs(mobsFolder:GetChildren()) do
-		local h = mob:FindFirstChild("Humanoid")
-		if h and h.Health > 0 and mob.PrimaryPart then
-			target = mob
-			humanoid = h
-			break
-		end
-	end
-
-	local desiredPos
-	if target and humanoid then
-		local combatAgent = humanoid:FindFirstChild("CombatAgent")
-		local iframes = combatAgent and combatAgent:FindFirstChild("Statuses")
-			and combatAgent.Statuses:FindFirstChild("Iframes")
-		if iframes and iframes.Value then
-			desiredPos = hrp.Position + Vector3.new(0, IframeHeight, 0)
-		else
-			desiredPos = target.PrimaryPart.Position + Vector3.new(0, HoverHeight, 0)
-		end
-	else
-		local bossSpawn = workspace:FindFirstChild("Objects")
-			and workspace.Objects:FindFirstChild("Spawns")
-			and workspace.Objects.Spawns:FindFirstChild("BossSpawn")
-		if bossSpawn and bossSpawn:FindFirstChild("QuestMarker") then
-			local pivot = bossSpawn:GetPivot()
-			if pivot then
-				desiredPos = pivot.Position + Vector3.new(0, OffsetY, 0)
-			end
-		end
-	end
-
-	if desiredPos then
-		hrp.CFrame = CFrame.new(desiredPos)
-	end
-end
 
 AutoMission:AddToggle({
-	Name = "Auto Boss",
-	Default = false,
-	Callback = function(state)
-		getgenv().AutoBoss = state
-		getgenv().FloatingEnabled = state
+    Name = "Auto Boss",
+    Default = false,
+    Callback = function(state)
+        getgenv().AutoBoss = state
+        getgenv().FloatingEnabled = state
 
-		if state then
-			-- Hover loop riêng
-			task.spawn(HoverLoop)
+        if state then
+            task.spawn(HoverLoop)
+        else
+            setFloating(false)
+        end
 
-			task.spawn(function()
-				while getgenv().AutoBoss do
-					if hrp then
-						MoveToBossOrMob()
-					end
-					task.wait(0.5)
-				end
-			end)
-		else
-			setFloating(false)
-		end
-
-		-- Tự động bật hover khi respawn
-		player.CharacterAdded:Connect(function(char)
-			task.wait(1)
-			UpdateHRP(char)
-			if getgenv().FloatingEnabled then
-				setFloating(true)
-			end
-		end)
-	end
+        -- Tự động bật hover khi respawn
+        player.CharacterAdded:Connect(function(char)
+            task.wait(0.5)
+            UpdateHRP(char)
+            if getgenv().FloatingEnabled then
+                setFloating(true)
+            end
+        end)
+    end
 })
 
 
