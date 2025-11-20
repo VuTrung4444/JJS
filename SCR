@@ -228,6 +228,10 @@ KA:AddToggle({
 
 
                     if mob or isCalamityStunned or hasNonCrystalDestructible then
+local args = {
+	"Demon Vessel: Switch"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("Skill"):FireServer(unpack(args))
                         local args = {1.123}
                         local rs = game:GetService("ReplicatedStorage").Remotes.Server.Combat
 
