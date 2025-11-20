@@ -1297,13 +1297,13 @@ local player = Players.LocalPlayer
 
 local HoverHeight = 5
 local IframeHeight = 100
-local OffsetY = 5
+local OffsetY = 13
 
 local hrp = nil
 
 -- Cập nhật HumanoidRootPart khi nhân vật spawn hoặc respawn
 local function UpdateHRP(char)
-    task.wait(0.2)
+    task.wait(1)
     hrp = char:WaitForChild("HumanoidRootPart")
 end
 
@@ -1333,7 +1333,7 @@ local function setFloating(enable)
         bg.CFrame = hrp.CFrame
         bg.Parent = hrp
 
-        -- BodyPosition giữ vị trí hover, chống knockback
+
         local bp = Instance.new("BodyPosition")
         bp.P = 5e4
         bp.D = 1000
@@ -1412,7 +1412,7 @@ AutoMission:AddToggle({
 
         -- Tự động bật hover khi respawn
         player.CharacterAdded:Connect(function(char)
-            task.wait(0.5)
+            task.wait(1)
             UpdateHRP(char)
             if getgenv().FloatingEnabled then
                 setFloating(true)
