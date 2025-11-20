@@ -1148,9 +1148,9 @@ AutoMission:AddToggle({
                                     local hrp = char and char:FindFirstChild("HumanoidRootPart")
                                     if not hrp then continue end
                                     local pivot = item:GetPivot()
-                                    local offsetY = 50
+                                    local offsetY = 0
 							hrp.CFrame = CFrame.new(pivot.Position + Vector3.new(0, offsetY, 0))
-                                    task.wait(1)
+                                    task.wait(0.1)
                                     local prompt = item:FindFirstChild("Collect")
                                     if prompt then
                                         fireproximityprompt(prompt)
@@ -1217,7 +1217,7 @@ AutoMission:AddToggle({
 						local hrp = char and char:FindFirstChild("HumanoidRootPart")
 						if hrp and mob:IsDescendantOf(workspace) then
 							local pivot = mob:GetPivot()
-							local offsetY = 10
+							local offsetY = 1
 							hrp.CFrame = CFrame.new(pivot.Position + Vector3.new(0, offsetY, 0))
 							task.wait(4)
 						end
