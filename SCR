@@ -1295,9 +1295,9 @@ local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local player = Players.LocalPlayer
 
-local HoverHeight = 10       -- Chiều cao hover khi theo mob
-local IframeHeight = 100     -- Chiều cao hover khi mob đang bất tử
-local OffsetY = 20           -- Chiều cao hover tại vị trí boss spawn
+local HoverHeight = 5
+local IframeHeight = 100
+local OffsetY = 5
 
 local hrp = nil
 
@@ -1780,8 +1780,3 @@ SpeedAndJump:AddSlider({
     end
 })
 
-
-
-for i, v in next, getconnections(Player.Idled) do 
-    v:Disable() 
-end
