@@ -110,7 +110,7 @@ end
 	local MiscSection = MiscTab:CreateSection({Name = "Misc"})
 	local Ect = MiscTab:CreateSection({Name = "Ect", Side = "Left"})
 	local Breathings = MiscTab:CreateSection({Name = "Breathings", Side = "Left"})
-	local SpeedAndJump = MiscTab:CreateSection({Name = "Speed&Jump", Side = "Right"})
+	local Calamity = MiscTab:CreateSection({Name = "Calamity", Side = "Right"})
 
 
 
@@ -301,6 +301,48 @@ Ect:AddToggle({
         end
     end
 })
+
+
+Calamity:AddButton({
+    Name = "SECEnergyCharge",
+    Callback = function()
+        local player = game.Players.LocalPlayer
+        local character = player.Character or player.CharacterAdded:Wait()
+        local hrp = character:WaitForChild("HumanoidRootPart")
+
+        local function getDistance(a, b)
+            return (a - b).Magnitude
+        end
+
+        local function moveToFurthestCharge()
+            local effectsFolder = workspace:WaitForChild("Objects"):WaitForChild("Effects")
+            local charges = effectsFolder:GetChildren()
+            
+            local furthestCharge = nil
+            local maxDistance = -math.huge
+            
+            for _, obj in ipairs(charges) do
+                if obj.Name == "SECEnergyCharge" then
+                    local distance = getDistance(hrp.Position, obj.Position)
+                    if distance > maxDistance then
+                        maxDistance = distance
+                        furthestCharge = obj
+                    end
+                end
+            end
+
+            if furthestCharge then
+                hrp.CFrame = CFrame.new(furthestCharge.Position + Vector3.new(0, 3, 0))
+                print("Đã di chuyển tới SECEnergyCharge xa nhất tại:", furthestCharge.Position)
+            else
+                print("Không tìm thấy SECEnergyCharge nào.")
+            end
+        end
+
+        moveToFurthestCharge()
+    end
+})
+
 
 --// Services \\--
 local Players = game:GetService("Players")
