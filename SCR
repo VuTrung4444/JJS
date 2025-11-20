@@ -1115,7 +1115,7 @@ AutoMission:AddToggle({
     Default = false,
     Callback = function(state)
         getgenv().AutoMissionEnabled = state
-        getgenv().FloatingEnabled = state  -- Biến kiểm tra trạng thái lơ lửng
+        getgenv().FloatingEnabled = state
 
         local Players = game:GetService("Players")
         local player = Players.LocalPlayer
