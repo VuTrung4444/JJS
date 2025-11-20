@@ -1136,20 +1136,18 @@ AutoMission:AddToggle({
                             obj:Destroy()
                         end
                     end
-                    -- Thêm BodyGyro giữ hướng ổn định
+
                     local bg = Instance.new("BodyGyro")
                     bg.P = 9e4
                     bg.D = 1000
                     bg.MaxTorque = Vector3.new(1e5,1e5,1e5)
                     bg.CFrame = hrp.CFrame
                     bg.Parent = hrp
-                    -- Thêm BodyVelocity giữ lơ lửng
                     local bv = Instance.new("BodyVelocity")
                     bv.Velocity = Vector3.new(0,0,0)
                     bv.MaxForce = Vector3.new(1e5,1e5,1e5)
                     bv.Parent = hrp
                 else
-                    -- Xóa BodyGyro/BodyVelocity khi tắt
                     for _, obj in ipairs(hrp:GetChildren()) do
                         if obj:IsA("BodyGyro") or obj:IsA("BodyVelocity") then
                             obj:Destroy()
@@ -1164,7 +1162,7 @@ AutoMission:AddToggle({
 
 
         player.CharacterAdded:Connect(function(char)
-            task.wait(0.5) -- chờ HRP xuất hiện
+            task.wait(0.5)
             if getgenv().FloatingEnabled then
                 setFloating(true)
             end
@@ -1295,9 +1293,9 @@ local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local player = Players.LocalPlayer
 
-local HoverHeight = 5
-local IframeHeight = 100
-local OffsetY = 13
+local HoverHeight = 15
+local IframeHeight = 200
+local OffsetY = 15
 
 local hrp = nil
 
@@ -1333,7 +1331,7 @@ local function setFloating(enable)
         bg.CFrame = hrp.CFrame
         bg.Parent = hrp
 
-
+        -- BodyPosition giữ vị trí hover, chống knockback
         local bp = Instance.new("BodyPosition")
         bp.P = 5e4
         bp.D = 1000
@@ -1412,7 +1410,7 @@ AutoMission:AddToggle({
 
         -- Tự động bật hover khi respawn
         player.CharacterAdded:Connect(function(char)
-            task.wait(1)
+            task.wait(0.5)
             UpdateHRP(char)
             if getgenv().FloatingEnabled then
                 setFloating(true)
