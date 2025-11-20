@@ -1112,29 +1112,73 @@ AutoMission:AddToggle({
 
 
 
-
 AutoMission:AddToggle({
     Name = "Auto Invest",
     Default = false,
     Callback = function(state)
         getgenv().AutoMissionEnabled = state
+        getgenv().FloatingEnabled = state  -- Biến kiểm tra trạng thái lơ lửng
 
         local Players = game:GetService("Players")
         local player = Players.LocalPlayer
-        local StarterGui = game:GetService("StarterGui")
-        local workspaceDrops = workspace:WaitForChild("Objects"):WaitForChild("Drops")
-
 
         getgenv().AutoCollect = false
         getgenv().AutoCivilian = false
 
         local lastTaskText = nil
 
+        local function setFloating(enable)
+            local char = player.Character
+            local hrp = char and char:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                if enable then
+                    -- Xóa BodyGyro/BodyVelocity cũ nếu có
+                    for _, obj in ipairs(hrp:GetChildren()) do
+                        if obj:IsA("BodyGyro") or obj:IsA("BodyVelocity") then
+                            obj:Destroy()
+                        end
+                    end
+                    -- Thêm BodyGyro giữ hướng ổn định
+                    local bg = Instance.new("BodyGyro")
+                    bg.P = 9e4
+                    bg.D = 1000
+                    bg.MaxTorque = Vector3.new(1e5,1e5,1e5)
+                    bg.CFrame = hrp.CFrame
+                    bg.Parent = hrp
+                    -- Thêm BodyVelocity giữ lơ lửng
+                    local bv = Instance.new("BodyVelocity")
+                    bv.Velocity = Vector3.new(0,0,0)
+                    bv.MaxForce = Vector3.new(1e5,1e5,1e5)
+                    bv.Parent = hrp
+                else
+                    -- Xóa BodyGyro/BodyVelocity khi tắt
+                    for _, obj in ipairs(hrp:GetChildren()) do
+                        if obj:IsA("BodyGyro") or obj:IsA("BodyVelocity") then
+                            obj:Destroy()
+                        end
+                    end
+                end
+            end
+        end
+
+        -- Áp dụng lơ lửng khi toggle bật
+        setFloating(state)
+
+        -- Tự động áp dụng lại khi nhân vật respawn
+        player.CharacterAdded:Connect(function(char)
+            task.wait(0.5) -- chờ HRP xuất hiện
+            if getgenv().FloatingEnabled then
+                setFloating(true)
+            end
+        end)
+
         task.spawn(function()
             while task.wait(1) do
                 if not getgenv().AutoMissionEnabled then
                     getgenv().AutoCollect = false
                     getgenv().AutoCivilian = false
+                    getgenv().FloatingEnabled = false
+                    setFloating(false)
                     continue
                 end
 
@@ -1145,14 +1189,13 @@ AutoMission:AddToggle({
                 local taskDesc = questInfo:WaitForChild("Task"):WaitForChild("Description")
                 local currentTask = taskDesc.Text
 
-
                 if currentTask ~= lastTaskText then
                     getgenv().AutoCollect = false
                     getgenv().AutoCivilian = false
                     lastTaskText = currentTask
                 end
 
-
+                -- Auto Collect Objects
                 if currentTask == "Collect all objects" then
                     if not getgenv().AutoCollect then
                         getgenv().AutoCollect = true
@@ -1171,7 +1214,7 @@ AutoMission:AddToggle({
                                     if not hrp then continue end
                                     local pivot = item:GetPivot()
                                     local offsetY = 1
-							hrp.CFrame = CFrame.new(pivot.Position + Vector3.new(0, offsetY, 0))
+                                    hrp.CFrame = CFrame.new(pivot.Position + Vector3.new(0, offsetY, 0))
                                     task.wait(0.5)
                                     local prompt = item:FindFirstChild("Collect")
                                     if prompt then
@@ -1184,7 +1227,7 @@ AutoMission:AddToggle({
                     end
                 end
 
-
+                -- Auto Rescue Civilians
                 if currentTask == "Rescue civilians to the gate" then
                     if not getgenv().AutoCivilian then
                         getgenv().AutoCivilian = true
@@ -1227,28 +1270,25 @@ AutoMission:AddToggle({
                     end
                 end
 
-
-				if currentTask ~= "Collect all objects" and currentTask ~= "Rescue civilians to the gate" then
-				local mobsFolder = workspace:WaitForChild("Objects"):WaitForChild("Mobs")
-				local replicatedStorage = game:GetService("ReplicatedStorage")
-				local playerGui = player:WaitForChild("PlayerGui")
-
-					local mobs = workspace:WaitForChild("Objects"):WaitForChild("Mobs"):GetChildren()
-					for _, mob in ipairs(mobs) do
-						local char = player.Character
-						local hrp = char and char:FindFirstChild("HumanoidRootPart")
-						if hrp and mob:IsDescendantOf(workspace) then
-							local pivot = mob:GetPivot()
-							local offsetY = 1
-							hrp.CFrame = CFrame.new(pivot.Position + Vector3.new(0, offsetY, 0))
-							task.wait(4)
-						end
-					end
-				end
+                -- Auto Attack Mobs
+                if currentTask ~= "Collect all objects" and currentTask ~= "Rescue civilians to the gate" then
+                    local mobs = workspace:WaitForChild("Objects"):WaitForChild("Mobs"):GetChildren()
+                    for _, mob in ipairs(mobs) do
+                        local char = player.Character
+                        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+                        if hrp and mob:IsDescendantOf(workspace) then
+                            local pivot = mob:GetPivot()
+                            local offsetY = 1
+                            hrp.CFrame = CFrame.new(pivot.Position + Vector3.new(0, offsetY, 0))
+                            task.wait(4)
+                        end
+                    end
+                end
             end
         end)
     end
 })
+
 
 
 getgenv().AutoBoss = false
