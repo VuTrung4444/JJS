@@ -332,9 +332,7 @@ Calamity:AddButton({
 
             if furthestCharge then
                 hrp.CFrame = CFrame.new(furthestCharge.Position + Vector3.new(0, 3, 0))
-                print("Đã di chuyển tới SECEnergyCharge xa nhất tại:", furthestCharge.Position)
-            else
-                print("Không tìm thấy SECEnergyCharge nào.")
+			
             end
         end
 
@@ -1195,7 +1193,7 @@ AutoMission:AddToggle({
                     lastTaskText = currentTask
                 end
 
-                -- Auto Collect Objects
+
                 if currentTask == "Collect all objects" then
                     if not getgenv().AutoCollect then
                         getgenv().AutoCollect = true
@@ -1227,7 +1225,7 @@ AutoMission:AddToggle({
                     end
                 end
 
-                -- Auto Rescue Civilians
+
                 if currentTask == "Rescue civilians to the gate" then
                     if not getgenv().AutoCivilian then
                         getgenv().AutoCivilian = true
@@ -1270,7 +1268,7 @@ AutoMission:AddToggle({
                     end
                 end
 
-                -- Auto Attack Mobs
+
                 if currentTask ~= "Collect all objects" and currentTask ~= "Rescue civilians to the gate" then
                     local mobs = workspace:WaitForChild("Objects"):WaitForChild("Mobs"):GetChildren()
                     for _, mob in ipairs(mobs) do
@@ -1519,9 +1517,6 @@ function StartAutoReplay()
 
             local readyReplay = replicatedStorage:FindFirstChild("ReadyReplay")
             local dropsExist = HasDrops()
-
-
-            print("ReadyReplay Value:", readyReplay and readyReplay.Value, "Drops Exist:", dropsExist)
 
             if readyReplay and readyReplay.Value == 0 then
                 task.wait(4)
