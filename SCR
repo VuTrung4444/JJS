@@ -1136,7 +1136,7 @@ AutoMission:AddToggle({
                             else
                                 if hrp then
                                     local dist = (mobRoot.Position - hrp.Position).Magnitude
-                                    if dist <= 300 then
+                                    if dist <= 400 then
                                         humanoid.Health = 0
                                         task.wait(0.1)
                                     end
