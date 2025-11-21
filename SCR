@@ -302,43 +302,57 @@ Ect:AddToggle({
 })
 
 
+local Players = game:GetService("Players")
+local UIS = game:GetService("UserInputService")
+
+
+local function moveToFurthestCharge()
+    local player = Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local hrp = character:WaitForChild("HumanoidRootPart")
+
+    local function getDistance(a, b)
+        return (a - b).Magnitude
+    end
+
+    local effectsFolder = workspace:WaitForChild("Objects"):WaitForChild("Effects")
+    local charges = effectsFolder:GetChildren()
+    
+    local furthestCharge = nil
+    local maxDistance = -math.huge
+    
+    for _, obj in ipairs(charges) do
+        if obj.Name == "SECEnergyCharge" then
+            local distance = getDistance(hrp.Position, obj.Position)
+            if distance > maxDistance then
+                maxDistance = distance
+                furthestCharge = obj
+            end
+        end
+    end
+
+    if furthestCharge then
+        hrp.CFrame = CFrame.new(furthestCharge.Position + Vector3.new(0, 3, 0))
+    else
+        warn("Không tìm thấy SECEnergyCharge nào trong Effects.")
+    end
+end
+
+
 Calamity:AddButton({
     Name = "SECEnergyCharge",
-    Callback = function()
-        local player = game.Players.LocalPlayer
-        local character = player.Character or player.CharacterAdded:Wait()
-        local hrp = character:WaitForChild("HumanoidRootPart")
-
-        local function getDistance(a, b)
-            return (a - b).Magnitude
-        end
-
-        local function moveToFurthestCharge()
-            local effectsFolder = workspace:WaitForChild("Objects"):WaitForChild("Effects")
-            local charges = effectsFolder:GetChildren()
-            
-            local furthestCharge = nil
-            local maxDistance = -math.huge
-            
-            for _, obj in ipairs(charges) do
-                if obj.Name == "SECEnergyCharge" then
-                    local distance = getDistance(hrp.Position, obj.Position)
-                    if distance > maxDistance then
-                        maxDistance = distance
-                        furthestCharge = obj
-                    end
-                end
-            end
-
-            if furthestCharge then
-                hrp.CFrame = CFrame.new(furthestCharge.Position + Vector3.new(0, 3, 0))
-			
-            end
-        end
-
-        moveToFurthestCharge()
-    end
+    Callback = moveToFurthestCharge
 })
+
+-- Gán phím tắt "R"
+UIS.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.R then
+        moveToFurthestCharge() -- gọi trực tiếp hàm, không dùng button.Callback
+    end
+end)
+
+
 
 Calamity:AddButton({
     Name = "Né",
