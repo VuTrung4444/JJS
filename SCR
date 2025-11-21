@@ -1366,9 +1366,9 @@ local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local player = Players.LocalPlayer
 
-local HoverHeight = 15
+local HoverHeight = 13
 local IframeHeight = 200
-local OffsetY = 15
+local OffsetY = 13
 
 local hrp = nil
 
@@ -1441,7 +1441,7 @@ local function HoverLoop()
             if iframes and iframes.Value then
                 desiredPos = hrp.Position + Vector3.new(0, IframeHeight, 0)
             else
-                desiredPos = Vector3.new(hrp.Position.X, hrp.Position.Y + HoverHeight, hrp.Position.Z)
+                desiredPos = target.PrimaryPart.Position + Vector3.new(0, HoverHeight, 0)
             end
         else
 
