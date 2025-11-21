@@ -344,6 +344,30 @@ Calamity:AddButton({
     end
 })
 
+Calamity:AddButton({
+    Name = "Né",
+    Callback = function()
+        local player = game.Players.LocalPlayer
+        local char = player.Character or player.CharacterAdded:Wait()
+        local hrp = char:WaitForChild("HumanoidRootPart")
+
+        local calamity = workspace.Objects.Mobs:FindFirstChild("Six Eyed Calamity")
+        local calamityHRP = calamity:WaitForChild("HumanoidRootPart")
+
+        local offset = hrp.Position - calamityHRP.Position
+        local angle = math.rad(-90)
+
+        local rotatedOffset = Vector3.new(
+            offset.X * math.cos(angle) - offset.Z * math.sin(angle),
+            offset.Y,
+            offset.X * math.sin(angle) + offset.Z * math.cos(angle)
+        )
+
+        local newPos = calamityHRP.Position + rotatedOffset
+        hrp.CFrame = CFrame.new(newPos)
+    end
+})
+
 
 --// Services \\--
 local Players = game:GetService("Players")
