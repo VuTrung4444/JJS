@@ -977,6 +977,27 @@ Ect:AddButton({
     end
 })
 
+
+local function CastSwitch()
+	local args = {
+		"Demon Vessel: Switch"
+	}
+	game:GetService("ReplicatedStorage")
+		:WaitForChild("Remotes")
+		:WaitForChild("Server")
+		:WaitForChild("Combat")
+		:WaitForChild("Skill")
+		:FireServer(unpack(args))
+end
+
+
+Ect:AddButton({
+	Name = "Buff",
+	Callback = function()
+		CastSwitch()
+	end
+})
+
 MiscSection:AddToggle({
     Name = "Auto Chest",
     Default = false,
@@ -1383,6 +1404,8 @@ local function HoverLoop()
                 local pivot = bossSpawn:GetPivot()
                 if pivot then
                     desiredPos = pivot.Position + Vector3.new(0, OffsetY, 0)
+					task.wait(0.1)
+					CastSwitch()
                 end
             end
         end
