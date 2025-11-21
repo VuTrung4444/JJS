@@ -1441,7 +1441,7 @@ local function HoverLoop()
             if iframes and iframes.Value then
                 desiredPos = hrp.Position + Vector3.new(0, IframeHeight, 0)
             else
-                desiredPos = target.PrimaryPart.Position + Vector3.new(0, HoverHeight, 0)
+                desiredPos = Vector3.new(hrp.Position.X, hrp.Position.Y + HoverHeight, hrp.Position.Z)
             end
         else
 
