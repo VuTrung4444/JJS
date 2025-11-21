@@ -333,8 +333,6 @@ local function moveToFurthestCharge()
 
     if furthestCharge then
         hrp.CFrame = CFrame.new(furthestCharge.Position + Vector3.new(0, 3, 0))
-    else
-        warn("Không tìm thấy SECEnergyCharge nào trong Effects.")
     end
 end
 
@@ -344,39 +342,55 @@ Calamity:AddButton({
     Callback = moveToFurthestCharge
 })
 
--- Gán phím tắt "R"
+
 UIS.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
     if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.R then
-        moveToFurthestCharge() -- gọi trực tiếp hàm, không dùng button.Callback
+        moveToFurthestCharge()
     end
 end)
 
 
+local Players = game:GetService("Players")
+local UIS = game:GetService("UserInputService")
+
+
+local function dodgeCalamity()
+    local player = Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local hrp = character:WaitForChild("HumanoidRootPart")
+
+    local calamity = workspace.Objects.Mobs:FindFirstChild("Six Eyed Calamity")
+    if not calamity then return end
+    local calamityHRP = calamity:WaitForChild("HumanoidRootPart")
+
+    local offset = hrp.Position - calamityHRP.Position
+    local angle = math.rad(-130)
+
+    local rotatedOffset = Vector3.new(
+        offset.X * math.cos(angle) - offset.Z * math.sin(angle),
+        offset.Y,
+        offset.X * math.sin(angle) + offset.Z * math.cos(angle)
+    )
+
+    local newPos = calamityHRP.Position + rotatedOffset + Vector3.new(0, 20, 0)
+
+    hrp.CFrame = CFrame.new(newPos)
+end
 
 Calamity:AddButton({
     Name = "Né",
-    Callback = function()
-        local player = game.Players.LocalPlayer
-        local char = player.Character or player.CharacterAdded:Wait()
-        local hrp = char:WaitForChild("HumanoidRootPart")
-
-        local calamity = workspace.Objects.Mobs:FindFirstChild("Six Eyed Calamity")
-        local calamityHRP = calamity:WaitForChild("HumanoidRootPart")
-
-        local offset = hrp.Position - calamityHRP.Position
-        local angle = math.rad(-90)
-
-        local rotatedOffset = Vector3.new(
-            offset.X * math.cos(angle) - offset.Z * math.sin(angle),
-            offset.Y,
-            offset.X * math.sin(angle) + offset.Z * math.cos(angle)
-        )
-
-        local newPos = calamityHRP.Position + rotatedOffset
-        hrp.CFrame = CFrame.new(newPos)
-    end
+    Callback = dodgeCalamity
 })
+
+
+UIS.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.T then
+        dodgeCalamity()
+    end
+end)
+
 
 
 --// Services \\--
