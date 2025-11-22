@@ -1853,3 +1853,28 @@ SpeedAndJump:AddSlider({
     end
 })
 
+local Players = game:GetService("Players")
+local VirtualUser = game:GetService("VirtualUser")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+
+local function naturalWaitTime()
+	local baseTime = 600
+	local offset = math.random(-120, 180)
+	return math.max(300, baseTime + offset)
+end
+
+spawn(function()
+	while true do
+		if humanoid.MoveDirection.Magnitude == 0 then
+			humanoid:Move(Vector3.new(0.1, 0, 0))
+		end
+		
+		VirtualUser:CaptureController()
+		VirtualUser:ClickButton2(Vector2.new(math.random(100, 1820), math.random(100, 980)))
+
+		wait(naturalWaitTime())
+	end
+end)
+
