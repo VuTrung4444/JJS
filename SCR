@@ -1368,7 +1368,7 @@ local player = Players.LocalPlayer
 
 local HoverHeight = 13
 local IframeHeight = 200
-local OffsetY = 13
+local OffsetY = 15
 
 local hrp = nil
 
@@ -1433,7 +1433,7 @@ local function HoverLoop()
         end
 
         local desiredPos
-        if target and humanoid then
+        if target and humanoid and humanoid.Health > 0 then
             local combatAgent = humanoid:FindFirstChild("CombatAgent")
             local iframes = combatAgent and combatAgent:FindFirstChild("Statuses")
                 and combatAgent.Statuses:FindFirstChild("Iframes")
