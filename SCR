@@ -332,7 +332,7 @@ local function moveToFurthestCharge()
     end
 
     if furthestCharge then
-        hrp.CFrame = CFrame.new(furthestCharge.Position + Vector3.new(0, 3, 0))
+        hrp.CFrame = CFrame.new(furthestCharge.Position + Vector3.new(0, 10, 0))
     end
 end
 
