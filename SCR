@@ -1058,7 +1058,7 @@ MiscSection:AddToggle({
         -- Luồng chính để thu thập chest
         task.spawn(function()
             while true do
-                task.wait(0.5)
+                task.wait(0.2)
                 if not getgenv().AutoChest then continue end
 
                 local dropsFolder = workspace:FindFirstChild("Objects") and workspace.Objects:FindFirstChild("Drops")
