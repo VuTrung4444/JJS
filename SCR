@@ -1195,7 +1195,7 @@ AutoMission:AddToggle({
         local hrp = nil
 
         local function UpdateHRP(char)
-            task.wait(0.5)
+            task.wait(4)
             hrp = char:WaitForChild("HumanoidRootPart")
         end
 
@@ -1233,7 +1233,7 @@ AutoMission:AddToggle({
         setFloating(state)
 
         player.CharacterAdded:Connect(function(char)
-            task.wait(0.5)
+            task.wait(2)
             UpdateHRP(char)
             if getgenv().FloatingEnabled then
                 setFloating(true)
@@ -1290,7 +1290,7 @@ AutoMission:AddToggle({
                                     task.wait(0.4)
                                     local prompt = item:FindFirstChild("Collect")
                                     if prompt then fireproximityprompt(prompt) end
-                                    task.wait(0.3)
+                                    task.wait(0.5)
                                 end
                             end
                         end)
@@ -1326,7 +1326,7 @@ AutoMission:AddToggle({
                                     if spawn then
                                         MoveToPosition(spawn.Position + Vector3.new(0, 2, 0))
                                     end
-                                    task.wait(0.4)
+                                    task.wait(0.7)
                                 end
                             end
                         end)
