@@ -1612,19 +1612,20 @@ AutoMission:AddToggle({
 })
 
 
-
-
 local SelectedTown = nil
 
+local Towns = {}
 
-local Towns = {
-    Town1 = workspace:WaitForChild("Objects"):WaitForChild("Locations"):WaitForChild("Towns"):WaitForChild("Town1"),
-    Town2 = workspace:WaitForChild("Objects"):WaitForChild("Locations"):WaitForChild("Towns"):WaitForChild("Town2"),
-    Town3 = workspace:WaitForChild("Objects"):WaitForChild("Locations"):WaitForChild("Towns"):WaitForChild("Town3"),
-    Town4 = workspace:WaitForChild("Objects"):WaitForChild("Locations"):WaitForChild("Towns"):WaitForChild("Town4"),
-    Town5 = workspace:WaitForChild("Objects"):WaitForChild("Locations"):WaitForChild("Towns"):WaitForChild("Town5"),
-}
+local townNames = {"Town1", "Town2", "Town3", "Town4", "Town5"}
 
+for _, name in ipairs(townNames) do
+    local success, townInstance = pcall(function()
+        return workspace:WaitForChild("Objects"):WaitForChild("Locations"):WaitForChild("Towns"):WaitForChild(name)
+    end)
+    if success and townInstance then
+        Towns[name] = townInstance
+    end
+end
 
 for townName, townInstance in pairs(Towns) do
     Teleports:AddToggle({
@@ -1632,7 +1633,6 @@ for townName, townInstance in pairs(Towns) do
         Default = false,
         Callback = function(state)
             if state then
-
                 SelectedTown = townInstance
 
                 for otherName, _ in pairs(Towns) do
@@ -1641,7 +1641,6 @@ for townName, townInstance in pairs(Towns) do
                     end
                 end
             else
-
                 if SelectedTown == townInstance then
                     SelectedTown = nil
                 end
@@ -1650,25 +1649,25 @@ for townName, townInstance in pairs(Towns) do
     })
 end
 
-
 Teleports:AddButton({
     Name = "Teleport",
     Callback = function()
         if SelectedTown then
             local player = game:GetService("Players").LocalPlayer
             local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-            if hrp then
+            if hrp and SelectedTown:IsDescendantOf(workspace) then
                 local pivot = SelectedTown:GetPivot()
                 local offsetY = 10
                 hrp.CFrame = CFrame.new(pivot.Position + Vector3.new(0, offsetY, 0))
-				task.wait(1)
+                task.wait(1)
+            else
+                warn("Town chưa load hoặc không tồn tại trong workspace!")
             end
         else
             warn("Chưa chọn Town để dịch chuyển!")
         end
     end
 })
-
 
 
 
