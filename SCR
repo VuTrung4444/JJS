@@ -391,6 +391,29 @@ UIS.InputBegan:Connect(function(input, gameProcessed)
     end
 end)
 
+Calamity:AddButton({
+    Name = "Bypass Clash",
+    Callback = function()
+        local player = game:GetService("Players").LocalPlayer
+        local targets = {
+            player.PlayerGui:WaitForChild("Main"):WaitForChild("Frame"):WaitForChild("BottomMiddle"):WaitForChild("DomainClash"),
+            game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Client"):WaitForChild("PromptOneTimeQTE")
+        }
+
+        local function hook(r)
+            if r:IsA("RemoteEvent") then
+                r.OnClientEvent:Connect(function(...) end)
+            elseif r:IsA("RemoteFunction") then
+                r.OnClientInvoke = function(...) return ... end
+            end
+        end
+
+        for _, r in ipairs(targets) do
+            hook(r)
+        end
+    end
+})
+
 
 
 --// Services \\--
@@ -1790,8 +1813,8 @@ local Character = plr.Character or plr.CharacterAdded:Wait()
 local Humanoid = Character:WaitForChild("Humanoid")
 
 -- Giá trị mặc định
-local WalkSpeed = 200
-local JumpPower = 80
+local WalkSpeed = 150
+local JumpPower = 50
 
 -- Hàm cập nhật Humanoid mới khi respawn
 local function updateHumanoid(char)
@@ -1816,10 +1839,10 @@ local function updateHumanoid(char)
     end)
 end
 
--- Khi respawn
+
 plr.CharacterAdded:Connect(updateHumanoid)
 
--- Khởi tạo cho Character hiện tại
+
 updateHumanoid(Character)
 
 -- Khi người dùng thay đổi slider
@@ -1853,28 +1876,4 @@ SpeedAndJump:AddSlider({
     end
 })
 
-local Players = game:GetService("Players")
-local VirtualUser = game:GetService("VirtualUser")
-local player = Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local humanoid = character:WaitForChild("Humanoid")
-
-local function naturalWaitTime()
-	local baseTime = 600
-	local offset = math.random(-120, 180)
-	return math.max(300, baseTime + offset)
-end
-
-spawn(function()
-	while true do
-		if humanoid.MoveDirection.Magnitude == 0 then
-			humanoid:Move(Vector3.new(0.1, 0, 0))
-		end
-		
-		VirtualUser:CaptureController()
-		VirtualUser:ClickButton2(Vector2.new(math.random(100, 1820), math.random(100, 980)))
-
-		wait(naturalWaitTime())
-	end
-end)
 
