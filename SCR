@@ -1359,13 +1359,13 @@ local workspace = game:GetService("Workspace")
 local player = Players.LocalPlayer
 
 local HoverHeight = 13
-local IframeHeight = 50
+local IframeHeight = 100
 local OffsetY = 13
 
 
 local hrp = nil
 local function UpdateHRP(char)
-	task.wait(4)
+	task.wait(1)
 	hrp = char:WaitForChild("HumanoidRootPart")
 end
 
