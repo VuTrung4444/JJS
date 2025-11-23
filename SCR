@@ -1058,12 +1058,12 @@ MiscSection:AddToggle({
         -- Luồng chính để thu thập chest
         task.spawn(function()
             while true do
-                task.wait(0.2)
+                task.wait(1)
                 if not getgenv().AutoChest then continue end
 
                 local dropsFolder = workspace:FindFirstChild("Objects") and workspace.Objects:FindFirstChild("Drops")
                 if not dropsFolder then continue end
-
+task.wait(4)
                 for _, drop in ipairs(dropsFolder:GetChildren()) do
                     local chest = drop:FindFirstChild("Chest")
                     if not chest then continue end
