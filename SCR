@@ -1069,6 +1069,26 @@ Ect:AddButton({
 	end
 })
 
+Ect:AddButton({
+    Name = "Anti-AFK",
+    Callback = function()
+        task.spawn(function()
+            local ReplicatedStorage = game:GetService("ReplicatedStorage")
+            local Remote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Teleport"):WaitForChild("TeleportAFK")
+
+            if Remote:IsA("RemoteEvent") then
+                Remote.OnClientEvent:Connect(function(...)
+                end)
+            elseif Remote:IsA("RemoteFunction") then
+                Remote.OnClientInvoke = function(...)
+                    return nil
+                end
+            end
+        end)
+    end
+})
+
+
 MiscSection:AddToggle({
     Name = "Auto Chest",
     Default = false,
