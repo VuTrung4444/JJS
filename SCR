@@ -351,7 +351,10 @@ Calamity:AddButton({
         local player = game:GetService("Players").LocalPlayer
         local targets = {
             player.PlayerGui:WaitForChild("Main"):WaitForChild("Frame"):WaitForChild("BottomMiddle"):WaitForChild("DomainClash"),
-            game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Client"):WaitForChild("PromptOneTimeQTE")
+            game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Client"):WaitForChild("PromptOneTimeQTE"),
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Client"):WaitForChild("GetDomainMeter"),
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Client"):WaitForChild("DepleteDomainMeter")
+
         }
 
         local function hook(r)
