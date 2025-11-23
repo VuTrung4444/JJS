@@ -1063,7 +1063,7 @@ MiscSection:AddToggle({
 
                 local dropsFolder = workspace:FindFirstChild("Objects") and workspace.Objects:FindFirstChild("Drops")
                 if not dropsFolder then continue end
-task.wait(4)
+task.wait(7)
                 for _, drop in ipairs(dropsFolder:GetChildren()) do
                     local chest = drop:FindFirstChild("Chest")
                     if not chest then continue end
