@@ -1178,9 +1178,6 @@ AutoMission:AddToggle({
     end
 })
 
-
-
-
 AutoMission:AddToggle({
     Name = "Auto Invest",
     Default = false,
@@ -1195,49 +1192,61 @@ AutoMission:AddToggle({
         getgenv().AutoCivilian = false
 
         local lastTaskText = nil
+        local hrp = nil
+
+        local function UpdateHRP(char)
+            task.wait(0.5)
+            hrp = char:WaitForChild("HumanoidRootPart")
+        end
+
+        if player.Character then
+            UpdateHRP(player.Character)
+        end
+        player.CharacterAdded:Connect(UpdateHRP)
 
         local function setFloating(enable)
-            local char = player.Character
-            local hrp = char and char:FindFirstChild("HumanoidRootPart")
-            if hrp then
-                if enable then
-                    -- Xóa BodyGyro/BodyVelocity cũ nếu có
-                    for _, obj in ipairs(hrp:GetChildren()) do
-                        if obj:IsA("BodyGyro") or obj:IsA("BodyVelocity") then
-                            obj:Destroy()
-                        end
-                    end
+            if not hrp then return end
 
-                    local bg = Instance.new("BodyGyro")
-                    bg.P = 9e4
-                    bg.D = 1000
-                    bg.MaxTorque = Vector3.new(1e5,1e5,1e5)
-                    bg.CFrame = hrp.CFrame
-                    bg.Parent = hrp
-                    local bv = Instance.new("BodyVelocity")
-                    bv.Velocity = Vector3.new(0,0,0)
-                    bv.MaxForce = Vector3.new(1e5,1e5,1e5)
-                    bv.Parent = hrp
-                else
-                    for _, obj in ipairs(hrp:GetChildren()) do
-                        if obj:IsA("BodyGyro") or obj:IsA("BodyVelocity") then
-                            obj:Destroy()
-                        end
-                    end
+            for _, obj in ipairs(hrp:GetChildren()) do
+                if obj:IsA("BodyGyro") or obj:IsA("BodyPosition") then
+                    obj:Destroy()
                 end
+            end
+
+            if enable then
+                local bg = Instance.new("BodyGyro")
+                bg.P = 5e4
+                bg.D = 1000
+                bg.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+                bg.CFrame = hrp.CFrame
+                bg.Parent = hrp
+
+                local bp = Instance.new("BodyPosition")
+                bp.P = 5e4
+                bp.D = 1000
+                bp.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+                bp.Position = hrp.Position
+                bp.Parent = hrp
             end
         end
 
-
         setFloating(state)
-
 
         player.CharacterAdded:Connect(function(char)
             task.wait(0.5)
+            UpdateHRP(char)
             if getgenv().FloatingEnabled then
                 setFloating(true)
             end
         end)
+
+        local function MoveToPosition(pos)
+            if not hrp then return end
+            local bp = hrp:FindFirstChildWhichIsA("BodyPosition")
+            if bp then
+                bp.Position = pos
+            end
+        end
 
         task.spawn(function()
             while task.wait(1) do
@@ -1262,7 +1271,6 @@ AutoMission:AddToggle({
                     lastTaskText = currentTask
                 end
 
-
                 if currentTask == "Collect all objects" then
                     if not getgenv().AutoCollect then
                         getgenv().AutoCollect = true
@@ -1276,24 +1284,18 @@ AutoMission:AddToggle({
                                 for _, item in ipairs(items) do
                                     if not getgenv().AutoCollect then break end
                                     if not item:IsDescendantOf(workspace) then continue end
-                                    local char = player.Character
-                                    local hrp = char and char:FindFirstChild("HumanoidRootPart")
                                     if not hrp then continue end
                                     local pivot = item:GetPivot()
-                                    local offsetY = 1
-                                    hrp.CFrame = CFrame.new(pivot.Position + Vector3.new(0, offsetY, 0))
-                                    task.wait(0.5)
+                                    MoveToPosition(pivot.Position + Vector3.new(0, 2, 0))
+                                    task.wait(0.4)
                                     local prompt = item:FindFirstChild("Collect")
-                                    if prompt then
-                                        fireproximityprompt(prompt)
-                                    end
-                                    task.wait(0.5)
+                                    if prompt then fireproximityprompt(prompt) end
+                                    task.wait(0.3)
                                 end
                             end
                         end)
                     end
                 end
-
 
                 if currentTask == "Rescue civilians to the gate" then
                     if not getgenv().AutoCivilian then
@@ -1301,53 +1303,43 @@ AutoMission:AddToggle({
                         task.spawn(function()
                             while getgenv().AutoCivilian and task.wait() do
                                 local civilians = {}
-                                for _, obj in ipairs(workspace:WaitForChild("Objects"):WaitForChild("MissionItems"):GetChildren()) do
+                                for _, obj in ipairs(workspace.Objects.MissionItems:GetChildren()) do
                                     if obj.Name == "Civilian" then
                                         table.insert(civilians, obj)
                                     end
                                 end
-
                                 if #civilians == 0 then
                                     getgenv().AutoCivilian = false
                                     break
                                 end
-
                                 for _, civ in ipairs(civilians) do
                                     if not getgenv().AutoCivilian then break end
                                     if not civ:IsDescendantOf(workspace) then continue end
-                                    local char = player.Character
-                                    local hrp = char and char:FindFirstChild("HumanoidRootPart")
                                     if not hrp then continue end
                                     local pivot = civ:GetPivot()
-                                    hrp.CFrame = CFrame.new(pivot.Position)
+                                    MoveToPosition(pivot.Position + Vector3.new(0, 2, 0))
                                     task.wait(0.4)
                                     local pickup = civ:FindFirstChild("PickUp")
-                                    if pickup then
-                                        fireproximityprompt(pickup)
-                                    end
+                                    if pickup then fireproximityprompt(pickup) end
                                     repeat task.wait() until not civ:FindFirstChild("PickUp")
-                                    local spawn = workspace:WaitForChild("Map"):WaitForChild("Parts"):FindFirstChild("SpawnLocation")
+                                    local spawn = workspace.Map.Parts:FindFirstChild("SpawnLocation")
                                     if spawn then
-                                        hrp.CFrame = CFrame.new(spawn.Position)
+                                        MoveToPosition(spawn.Position + Vector3.new(0, 2, 0))
                                     end
-                                    task.wait(0.5)
+                                    task.wait(0.4)
                                 end
                             end
                         end)
                     end
                 end
 
-
                 if currentTask ~= "Collect all objects" and currentTask ~= "Rescue civilians to the gate" then
-                    local mobs = workspace:WaitForChild("Objects"):WaitForChild("Mobs"):GetChildren()
-                    for _, mob in ipairs(mobs) do
-                        local char = player.Character
-                        local hrp = char and char:FindFirstChild("HumanoidRootPart")
-                        if hrp and mob:IsDescendantOf(workspace) then
+                    for _, mob in ipairs(workspace.Objects.Mobs:GetChildren()) do
+                        if not hrp then break end
+                        if mob:IsDescendantOf(workspace) and mob:FindFirstChild("Humanoid") then
                             local pivot = mob:GetPivot()
-                            local offsetY = 1
-                            hrp.CFrame = CFrame.new(pivot.Position + Vector3.new(0, offsetY, 0))
-                            task.wait(4)
+                            MoveToPosition(pivot.Position + Vector3.new(0, 2, 0))
+                            task.wait(5)
                         end
                     end
                 end
