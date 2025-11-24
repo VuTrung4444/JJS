@@ -1363,7 +1363,7 @@ local workspace = game:GetService("Workspace")
 local player = Players.LocalPlayer
 
 local HoverHeight = 13
-local IframeHeight = 50
+local IframeHeight = 10
 local OffsetY = 13
 
 
