@@ -1269,7 +1269,6 @@ AutoMission:AddToggle({
     end
 })
 
-
 AutoMission:AddToggle({
     Name = "Auto Invest",
     Default = false,
@@ -1342,8 +1341,7 @@ AutoMission:AddToggle({
 
         task.spawn(function()
             while task.wait(1) do
-
-game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Client"):WaitForChild("StorylineDialogueSkip"):FireServer()
+                game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Client"):WaitForChild("StorylineDialogueSkip"):FireServer()
 
                 if not getgenv().AutoMissionEnabled then
                     getgenv().AutoCollect = false
@@ -1392,63 +1390,62 @@ game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Clien
                     end
                 end
 
-if currentTask == "Rescue civilians to the gate" then
-    if not getgenv().AutoCivilian then
-        getgenv().AutoCivilian = true
-        task.spawn(function()
-            while getgenv().AutoCivilian and task.wait() do
-                local civilians = {}
+                if currentTask == "Rescue civilians to the gate" then
+                    if not getgenv().AutoCivilian then
+                        getgenv().AutoCivilian = true
+                        task.spawn(function()
+                            while getgenv().AutoCivilian and task.wait() do
+                                local civilians = {}
 
-                -- Lấy danh sách civilian
-                for _, obj in ipairs(workspace.Objects.MissionItems:GetChildren()) do
-                    if obj.Name == "Civilian" then
-                        table.insert(civilians, obj)
-                    end
-                end
+                                -- Lấy danh sách civilian
+                                for _, obj in ipairs(workspace.Objects.MissionItems:GetChildren()) do
+                                    if obj.Name == "Civilian" then
+                                        table.insert(civilians, obj)
+                                    end
+                                end
 
-                -- Không còn civilian → tắt auto
-                if #civilians == 0 then
-                    getgenv().AutoCivilian = false
-                    break
-                end
+                                -- Không còn civilian → tắt auto
+                                if #civilians == 0 then
+                                    getgenv().AutoCivilian = false
+                                    break
+                                end
 
-                for _, civ in ipairs(civilians) do
-                    if not getgenv().AutoCivilian then break end
-                    if not civ:IsDescendantOf(workspace) then continue end
-                    if not hrp then continue end
+                                for _, civ in ipairs(civilians) do
+                                    if not getgenv().AutoCivilian then break end
+                                    if not civ:IsDescendantOf(workspace) then continue end
+                                    if not hrp then continue end
 
-                    -- *** Dịch chuyển đến civilian ***
-                    local cv = civ:GetPivot()
-                    if cv then
-                        hrp.CFrame = CFrame.new(cv.Position + Vector3.new(0, 2, 0))
-                    end
+                                    -- *** Dịch chuyển đến civilian ***
+                                    local ok, cv = pcall(function() return civ:GetPivot() end)
+                                    if ok and cv then
+                                        hrp.CFrame = CFrame.new(cv.Position + Vector3.new(0, 2, 0))
+                                    elseif civ.CFrame then
+                                        hrp.CFrame = CFrame.new(civ.CFrame.Position + Vector3.new(0, 2, 0))
+                                    end
 
-                    task.wait(0.5)
+                                    task.wait(0.5)
 
-                    -- Nhặt civilian
-                    local pickup = civ:FindFirstChild("PickUp")
-                    if pickup then
-                        fireproximityprompt(pickup)
-task.wait(0.2)
-                    end
+                                    -- Nhặt civilian
+                                    local pickup = civ:FindFirstChild("PickUp")
+                                    if pickup then
+                                        pcall(function() fireproximityprompt(pickup) end)
+                                        task.wait(0.5)
+                                    end
 
-                    repeat task.wait() until not civ:FindFirstChild("PickUp")
+                                    repeat task.wait() until not civ:FindFirstChild("PickUp")
 
-                    -- *** Dịch chuyển về SpawnLocation ***
-                    local spawn = workspace.Map.Parts:FindFirstChild("SpawnLocation")
-                    if spawn and hrp then
-                        local pivot = spawn:GetPivot and spawn:GetPivot() or spawn.CFrame
-                        hrp.CFrame = CFrame.new(pivot.Position + Vector3.new(0, 2, 0))
-                    end
+                                    -- *** Dịch chuyển về SpawnLocation ***
+                                    local spawn = workspace.Map and workspace.Map.Parts and workspace.Map.Parts:FindFirstChild("SpawnLocation")
+                                    if spawn and hrp then
+                                        local ok2, spPivot = pcall(function() return spawn:GetPivot() end)
+                                        if ok2 and spPivot then
+                                            hrp.CFrame = CFrame.new(spPivot.Position + Vector3.new(0, 2, 0))
+                                        elseif spawn.CFrame then
+                                            hrp.CFrame = CFrame.new(spawn.CFrame.Position + Vector3.new(0, 2, 0))
+                                        end
+                                    end
 
-                    task.wait(1)
-                end
-            end
-        end)
-    end
-end
-
-
+                                    task.wait(1)
                                 end
                             end
                         end)
