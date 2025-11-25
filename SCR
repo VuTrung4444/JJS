@@ -1121,8 +1121,7 @@ Ect:AddButton({
     Callback = function()
         task.spawn(function()
             local ReplicatedStorage = game:GetService("ReplicatedStorage")
-            local Remote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Teleport"):WaitForChild("TeleportAFK")
-
+            local Remote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Teleport")
             if Remote:IsA("RemoteEvent") then
                 Remote.OnClientEvent:Connect(function(...)
                 end)
