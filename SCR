@@ -1544,6 +1544,7 @@ local function MoveToBoss()
 	if bossSpawn and bossSpawn:FindFirstChild("QuestMarker") then
 		local pivot = bossSpawn:GetPivot()
 		if pivot then
+CastSwitch()
 			hrp.CFrame = CFrame.new(pivot.Position + Vector3.new(0, OffsetY, 0))
 		end
 	end
