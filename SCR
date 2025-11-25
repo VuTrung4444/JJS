@@ -370,8 +370,6 @@ Calamity:AddButton({
 })
 
 
-
---// Services \\--
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
@@ -381,85 +379,160 @@ getgenv().ESPenabled = false
 local ESPDistance = true
 local ESPTextSize = 18
 
---// Hàm tạo ESP cho một người chơi \\--
+---------------------------------------------------------
+-- HÀM TẠO ESP CHUNG (Áp dụng cho Player và Mob)
+---------------------------------------------------------
+local function createBillboard(adornee, text, parent)
+    local billboard = Instance.new("BillboardGui")
+    billboard.Name = "ESP"
+    billboard.Adornee = adornee
+    billboard.Size = UDim2.new(0, 200, 0, 50)
+    billboard.StudsOffset = Vector3.new(0, 3, 0)
+    billboard.AlwaysOnTop = true
+    billboard.Parent = parent
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.TextColor3 = Color3.fromRGB(255, 0, 0)
+    label.TextStrokeTransparency = 0
+    label.Font = Enum.Font.SourceSansBold
+    label.TextScaled = false
+    label.TextSize = ESPTextSize
+    label.Text = text
+    label.Parent = billboard
+
+    return billboard, label
+end
+
+---------------------------------------------------------
+-- ESP CHO NGƯỜI CHƠI
+---------------------------------------------------------
 local function createESP(player)
     if player == LocalPlayer then return end
     if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return end
 
-    -- Nếu đã có ESP, xóa trước
     if player.Character:FindFirstChild("ESP") then
-        player.Character:FindFirstChild("ESP"):Destroy()
+        player.Character.ESP:Destroy()
     end
 
-    -- Tạo BillboardGui
-    local billboard = Instance.new("BillboardGui")
-    billboard.Name = "ESP"
-    billboard.Adornee = player.Character:WaitForChild("HumanoidRootPart")
-    billboard.Size = UDim2.new(0, 200, 0, 50)
-    billboard.StudsOffset = Vector3.new(0, 3, 0)
-    billboard.AlwaysOnTop = true
-    billboard.Parent = player.Character
+    local root = player.Character:WaitForChild("HumanoidRootPart")
+    local billboard, textLabel = createBillboard(root, player.Name, player.Character)
 
-    -- TextLabel hiển thị tên + khoảng cách
-    local textLabel = Instance.new("TextLabel")
-    textLabel.Size = UDim2.new(1, 0, 1, 0)
-    textLabel.BackgroundTransparency = 1
-    textLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
-    textLabel.TextStrokeTransparency = 0
-    textLabel.Font = Enum.Font.SourceSansBold
-    textLabel.TextScaled = false
-    textLabel.TextSize = ESPTextSize
-    textLabel.Parent = billboard
-
-    -- Cập nhật thông tin liên tục
     task.spawn(function()
-        while getgenv().ESPenabled and player.Character and player.Character:FindFirstChild("HumanoidRootPart") do
-            local distance = (player.Character.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+        while getgenv().ESPenabled 
+        and player.Character 
+        and player.Character:FindFirstChild("HumanoidRootPart") do
+            
+            local distance = (root.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+            
             if ESPDistance then
                 textLabel.Text = player.Name .. " | " .. math.floor(distance) .. " studs"
             else
                 textLabel.Text = player.Name
             end
+
             task.wait(2)
         end
+
         if billboard then billboard:Destroy() end
     end)
 end
 
---// Tạo ESP cho tất cả người chơi hiện tại \\--
-local function updateAllPlayersESP()
-    for _, player in pairs(Players:GetPlayers()) do
-        createESP(player)
+---------------------------------------------------------
+-- ESP CHO 3 MOB: Egg Jaw, Mantis Curse, Monk of The Lake
+---------------------------------------------------------
+local MobList = {
+    workspace.Objects.Mobs["Egg Jaw"],
+    workspace.Objects.Mobs["Mantis Curse"],
+    workspace.Objects.Mobs["Monk of The Lake"],
+}
+
+local function createMobESP(mob)
+    if not mob or not mob:FindFirstChild("HumanoidRootPart") then return end
+
+    if mob:FindFirstChild("ESP") then
+        mob.ESP:Destroy()
+    end
+
+    local root = mob:WaitForChild("HumanoidRootPart")
+    local billboard, textLabel = createBillboard(root, mob.Name, mob)
+
+    task.spawn(function()
+        while getgenv().ESPenabled 
+        and mob 
+        and mob:FindFirstChild("HumanoidRootPart") do
+
+            local distance = (root.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+
+            if ESPDistance then
+                textLabel.Text = mob.Name .. " | " .. math.floor(distance) .. " studs"
+            else
+                textLabel.Text = mob.Name
+            end
+
+            task.wait(2)
+        end
+
+        if billboard then billboard:Destroy() end
+    end)
+end
+
+local function updateAllMobsESP()
+    for _, mob in ipairs(MobList) do
+        createMobESP(mob)
     end
 end
 
---// Kết nối PlayerAdded một lần duy nhất \\--
+---------------------------------------------------------
+-- CẬP NHẬT ESP TẤT CẢ ENTITY
+---------------------------------------------------------
+local function updateAllPlayersESP()
+    for _, plr in pairs(Players:GetPlayers()) do
+        createESP(plr)
+    end
+end
+
+---------------------------------------------------------
+-- TỰ ĐỘNG THÊM ESP KHI PLAYER VÀO GAME
+---------------------------------------------------------
 Players.PlayerAdded:Connect(function(player)
-    -- Nếu ESP đang bật thì tạo ESP cho người chơi mới ngay
     if getgenv().ESPenabled then
-        player.CharacterAdded:Wait() -- chờ character xuất hiện
+        player.CharacterAdded:Wait()
         createESP(player)
     end
 end)
 
---// Toggle ESP \\--
+---------------------------------------------------------
+-- TOGGLE ESP
+---------------------------------------------------------
 Ect:AddToggle({
     Name = "ESP",
     Flag = "ESP_Toggle",
     Callback = function(state)
         getgenv().ESPenabled = state
+
         if state then
             updateAllPlayersESP()
+            updateAllMobsESP()  -- <== THÊM DÒNG NÀY
         else
-            -- Xóa tất cả ESP khi tắt
-            for _, player in pairs(Players:GetPlayers()) do
-                if player.Character and player.Character:FindFirstChild("ESP") then
-                    player.Character.ESP:Destroy()
+            -- Xoá ESP người chơi
+            for _, plr in pairs(Players:GetPlayers()) do
+                if plr.Character and plr.Character:FindFirstChild("ESP") then
+                    plr.Character.ESP:Destroy()
+                end
+            end
+
+            -- Xoá ESP mobs
+            for _, mob in ipairs(MobList) do
+                if mob:FindFirstChild("ESP") then
+                    mob.ESP:Destroy()
                 end
             end
         end
     end
 })
+
 
 
 local Noclip = nil
@@ -1251,6 +1324,9 @@ AutoMission:AddToggle({
 
         task.spawn(function()
             while task.wait(1) do
+
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Client"):WaitForChild("StorylineDialogueSkip"):FireServer()
+
                 if not getgenv().AutoMissionEnabled then
                     getgenv().AutoCollect = false
                     getgenv().AutoCivilian = false
