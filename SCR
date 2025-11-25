@@ -1380,7 +1380,7 @@ AutoMission:AddToggle({
                                     if not hrp then continue end
                                     local pivot = item:GetPivot()
                                     MoveToPosition(pivot.Position + Vector3.new(0, 2, 0))
-                                    task.wait(0.2)
+                                    task.wait(0.5)
                                     local prompt = item:FindFirstChild("Collect")
                                     if prompt then fireproximityprompt(prompt) end
                                     task.wait(0.5)
