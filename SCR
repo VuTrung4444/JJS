@@ -1106,6 +1106,19 @@ local function CastSwitch()
 		:WaitForChild("Combat")
 		:WaitForChild("Skill")
 		:FireServer(unpack(args))
+
+local args = {
+	"Damage Vial"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Data"):WaitForChild("EquipItem"):InvokeServer(unpack(args))
+local args = {
+	"Damage Gourd"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Data"):WaitForChild("EquipItem"):InvokeServer(unpack(args))
+local args = {
+	"Rage Gourd"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Data"):WaitForChild("EquipItem"):InvokeServer(unpack(args))
 end
 
 
