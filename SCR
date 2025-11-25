@@ -1392,38 +1392,62 @@ game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Clien
                     end
                 end
 
-                if currentTask == "Rescue civilians to the gate" then
-                    if not getgenv().AutoCivilian then
-                        getgenv().AutoCivilian = true
-                        task.spawn(function()
-                            while getgenv().AutoCivilian and task.wait() do
-                                local civilians = {}
-                                for _, obj in ipairs(workspace.Objects.MissionItems:GetChildren()) do
-                                    if obj.Name == "Civilian" then
-                                        table.insert(civilians, obj)
-                                    end
-                                end
-                                if #civilians == 0 then
-                                    getgenv().AutoCivilian = false
-                                    break
-                                end
-                                for _, civ in ipairs(civilians) do
-                                    if not getgenv().AutoCivilian then break end
-                                    if not civ:IsDescendantOf(workspace) then continue end
-                                    if not hrp then continue end
-                                    local pivot = civ:GetPivot()
-                                    MoveToPosition(pivot.Position + Vector3.new(0, 2, 0))
-                                    task.wait(0.4)
-                                    local pickup = civ:FindFirstChild("PickUp")
-                                    if pickup then fireproximityprompt(pickup) end
-                                    repeat task.wait() until not civ:FindFirstChild("PickUp")
-local spawn = workspace.Map.Parts:FindFirstChild("SpawnLocation")
-if spawn and hrp then
-    local pivot = spawn.CFrame or CFrame.new(spawn.Position)
-    hrp.CFrame = CFrame.new(pivot.Position + Vector3.new(0, 2, 0))
+if currentTask == "Rescue civilians to the gate" then
+    if not getgenv().AutoCivilian then
+        getgenv().AutoCivilian = true
+        task.spawn(function()
+            while getgenv().AutoCivilian and task.wait() do
+                local civilians = {}
+
+                -- Lấy danh sách civilian
+                for _, obj in ipairs(workspace.Objects.MissionItems:GetChildren()) do
+                    if obj.Name == "Civilian" then
+                        table.insert(civilians, obj)
+                    end
+                end
+
+                -- Không còn civilian → tắt auto
+                if #civilians == 0 then
+                    getgenv().AutoCivilian = false
+                    break
+                end
+
+                for _, civ in ipairs(civilians) do
+                    if not getgenv().AutoCivilian then break end
+                    if not civ:IsDescendantOf(workspace) then continue end
+                    if not hrp then continue end
+
+                    -- *** Dịch chuyển đến civilian ***
+                    local cv = civ:GetPivot()
+                    if cv then
+                        hrp.CFrame = CFrame.new(cv.Position + Vector3.new(0, 2, 0))
+                    end
+
+                    task.wait(0.5)
+
+                    -- Nhặt civilian
+                    local pickup = civ:FindFirstChild("PickUp")
+                    if pickup then
+                        fireproximityprompt(pickup)
+task.wait(0.2)
+                    end
+
+                    repeat task.wait() until not civ:FindFirstChild("PickUp")
+
+                    -- *** Dịch chuyển về SpawnLocation ***
+                    local spawn = workspace.Map.Parts:FindFirstChild("SpawnLocation")
+                    if spawn and hrp then
+                        local pivot = spawn:GetPivot and spawn:GetPivot() or spawn.CFrame
+                        hrp.CFrame = CFrame.new(pivot.Position + Vector3.new(0, 2, 0))
+                    end
+
+                    task.wait(1)
+                end
+            end
+        end)
+    end
 end
 
-task.wait(1)
 
                                 end
                             end
