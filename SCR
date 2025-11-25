@@ -1423,7 +1423,7 @@ if spawn and hrp then
     hrp.CFrame = CFrame.new(pivot.Position + Vector3.new(0, 2, 0))
 end
 
-task.wait(2.5)
+task.wait(1)
 
                                 end
                             end
