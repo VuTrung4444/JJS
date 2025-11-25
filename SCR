@@ -423,7 +423,7 @@ local function createESP(player)
         while getgenv().ESPenabled 
         and player.Character 
         and player.Character:FindFirstChild("HumanoidRootPart") do
-            
+
             local distance = (root.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
             
             if ESPDistance then
@@ -440,14 +440,17 @@ local function createESP(player)
 end
 
 ---------------------------------------------------------
--- ESP CHO 3 MOB: Egg Jaw, Mantis Curse, Monk of The Lake
+-- DANH SÁCH TÊN MOB (KHÔNG GỌI TRỰC TIẾP)
 ---------------------------------------------------------
-local MobList = {
-    workspace.Objects.Mobs["Egg Jaw"],
-    workspace.Objects.Mobs["Mantis Curse"],
-    workspace.Objects.Mobs["Monk of The Lake"],
+local MobNames = {
+    "Egg Jaw",
+    "Mantis Curse",
+    "Monk of The Lake",
 }
 
+---------------------------------------------------------
+-- ESP CHO MOBS
+---------------------------------------------------------
 local function createMobESP(mob)
     if not mob or not mob:FindFirstChild("HumanoidRootPart") then return end
 
@@ -478,14 +481,23 @@ local function createMobESP(mob)
     end)
 end
 
+---------------------------------------------------------
+-- CẬP NHẬT ESP TẤT CẢ MOBS (KIỂM TRA TỒN TẠI)
+---------------------------------------------------------
 local function updateAllMobsESP()
-    for _, mob in ipairs(MobList) do
-        createMobESP(mob)
+    for _, mobName in ipairs(MobNames) do
+        local mobFolder = workspace:FindFirstChild("Objects")
+            and workspace.Objects:FindFirstChild("Mobs")
+
+        if mobFolder and mobFolder:FindFirstChild(mobName) then
+            local mob = mobFolder[mobName]
+            createMobESP(mob)
+        end
     end
 end
 
 ---------------------------------------------------------
--- CẬP NHẬT ESP TẤT CẢ ENTITY
+-- CẬP NHẬT ESP TẤT CẢ NGƯỜI CHƠI
 ---------------------------------------------------------
 local function updateAllPlayersESP()
     for _, plr in pairs(Players:GetPlayers()) do
@@ -514,7 +526,7 @@ Ect:AddToggle({
 
         if state then
             updateAllPlayersESP()
-            updateAllMobsESP()  -- <== THÊM DÒNG NÀY
+            updateAllMobsESP()
         else
             -- Xoá ESP người chơi
             for _, plr in pairs(Players:GetPlayers()) do
@@ -523,15 +535,22 @@ Ect:AddToggle({
                 end
             end
 
-            -- Xoá ESP mobs
-            for _, mob in ipairs(MobList) do
-                if mob:FindFirstChild("ESP") then
-                    mob.ESP:Destroy()
+            -- Xoá ESP mobs (an toàn)
+            for _, mobName in ipairs(MobNames) do
+                local mobFolder = workspace:FindFirstChild("Objects")
+                    and workspace.Objects:FindFirstChild("Mobs")
+
+                if mobFolder and mobFolder:FindFirstChild(mobName) then
+                    local mob = mobFolder[mobName]
+                    if mob:FindFirstChild("ESP") then
+                        mob.ESP:Destroy()
+                    end
                 end
             end
         end
     end
 })
+
 
 
 
