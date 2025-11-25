@@ -1390,52 +1390,70 @@ AutoMission:AddToggle({
                     end
                 end
 
-                if currentTask == "Rescue civilians to the gate" then
-                    if not getgenv().AutoCivilian then
-                        getgenv().AutoCivilian = true
+				if currentTask == "Rescue civilians to the gate" then
+					if not getgenv().AutoCivilian then
+						getgenv().AutoCivilian = true
 
-                        task.spawn(function()
-                            while getgenv().AutoCivilian and task.wait() do
+						task.spawn(function()
+							while getgenv().AutoCivilian and task.wait(0.2) do
+								local char = player.Character
+								local hrp = char and char:FindFirstChild("HumanoidRootPart")
+								if not hrp then continue end
 
-                                local civilians = {}
-                                for _, obj in ipairs(workspace:WaitForChild("Objects"):WaitForChild("MissionItems"):GetChildren()) do
-                                    if obj.Name == "Civilian" then
-                                        table.insert(civilians, obj)
-                                    end
-                                end
 
-                                if #civilians == 0 then
-                                    getgenv().AutoCivilian = false
-                                    break
-                                end
+								local civilians = {}
+								for _, obj in ipairs(workspace.Objects.MissionItems:GetChildren()) do
+									if obj.Name == "Civilian" and obj:IsDescendantOf(workspace) then
+										table.insert(civilians, obj)
+									end
+								end
 
-                                for _, civ in ipairs(civilians) do
-                                    if not getgenv().AutoCivilian then break end
-                                    if not civ:IsDescendantOf(workspace) then continue end
 
-                                    local char = player.Character
-                                    local hrp = char and char:FindFirstChild("HumanoidRootPart")
-                                    if not hrp then continue end
+								if #civilians == 0 then
+									getgenv().AutoCivilian = false
+									break
+								end
 
-                                    local pivot = civ:GetPivot()
-                                    hrp.CFrame = CFrame.new(pivot.Position)
-                                    task.wait(0.5)
 
-                                    local pickup = civ:FindFirstChild("PickUp")
-                                    if pickup then fireproximityprompt(pickup) end
+								for _, civ in ipairs(civilians) do
+									if not getgenv().AutoCivilian then break end
+									if not civ:IsDescendantOf(workspace) then continue end
 
-                                    repeat task.wait() until not civ:FindFirstChild("PickUp")
+									local ok = pcall(function()
 
-                                    local spawn = workspace:WaitForChild("Map"):WaitForChild("Parts"):FindFirstChild("SpawnLocation")
-                                    if spawn then
-                                        hrp.CFrame = CFrame.new(spawn.Position)
-                                    end
-                                    task.wait(1.5)
-                                end
-                            end
-                        end)
-                    end
-                end
+										local pivot = civ:GetPivot()
+										hrp.CFrame = pivot + Vector3.new(0, 2, 0)
+										task.wait(0.3)
+
+
+										local prompt = civ:FindFirstChild("PickUp")
+										if prompt then
+											fireproximityprompt(prompt)
+										end
+
+
+										local t = time()
+										while civ:FindFirstChild("PickUp") and time() - t < 1 do
+											task.wait()
+										end
+
+										local spawn = workspace.Map.Parts:FindFirstChild("SpawnLocation")
+										if spawn then
+											hrp.CFrame = spawn.CFrame + Vector3.new(0, 3, 0)
+										end
+
+										task.wait(0.6)
+									end)
+
+									if not ok then
+										task.wait(0.2)
+									end
+								end
+							end
+						end)
+					end
+				end
+
 
                 if currentTask ~= "Collect all objects" and currentTask ~= "Rescue civilians to the gate" then
                     for _, mob in ipairs(workspace.Objects.Mobs:GetChildren()) do
