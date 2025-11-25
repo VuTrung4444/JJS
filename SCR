@@ -1269,6 +1269,7 @@ AutoMission:AddToggle({
     end
 })
 
+
 AutoMission:AddToggle({
     Name = "Auto Invest",
     Default = false,
@@ -1341,8 +1342,7 @@ AutoMission:AddToggle({
 
         task.spawn(function()
             while task.wait(1) do
-                game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Client"):WaitForChild("StorylineDialogueSkip"):FireServer()
-
+			 game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Client"):WaitForChild("StorylineDialogueSkip"):FireServer()
                 if not getgenv().AutoMissionEnabled then
                     getgenv().AutoCollect = false
                     getgenv().AutoCivilian = false
@@ -1393,18 +1393,17 @@ AutoMission:AddToggle({
                 if currentTask == "Rescue civilians to the gate" then
                     if not getgenv().AutoCivilian then
                         getgenv().AutoCivilian = true
+
                         task.spawn(function()
                             while getgenv().AutoCivilian and task.wait() do
-                                local civilians = {}
 
-                                -- Lấy danh sách civilian
-                                for _, obj in ipairs(workspace.Objects.MissionItems:GetChildren()) do
+                                local civilians = {}
+                                for _, obj in ipairs(workspace:WaitForChild("Objects"):WaitForChild("MissionItems"):GetChildren()) do
                                     if obj.Name == "Civilian" then
                                         table.insert(civilians, obj)
                                     end
                                 end
 
-                                -- Không còn civilian → tắt auto
                                 if #civilians == 0 then
                                     getgenv().AutoCivilian = false
                                     break
@@ -1413,39 +1412,25 @@ AutoMission:AddToggle({
                                 for _, civ in ipairs(civilians) do
                                     if not getgenv().AutoCivilian then break end
                                     if not civ:IsDescendantOf(workspace) then continue end
+
+                                    local char = player.Character
+                                    local hrp = char and char:FindFirstChild("HumanoidRootPart")
                                     if not hrp then continue end
 
-                                    -- *** Dịch chuyển đến civilian ***
-                                    local ok, cv = pcall(function() return civ:GetPivot() end)
-                                    if ok and cv then
-                                        hrp.CFrame = CFrame.new(cv.Position + Vector3.new(0, 2, 0))
-                                    elseif civ.CFrame then
-                                        hrp.CFrame = CFrame.new(civ.CFrame.Position + Vector3.new(0, 2, 0))
-                                    end
-
+                                    local pivot = civ:GetPivot()
+                                    hrp.CFrame = CFrame.new(pivot.Position)
                                     task.wait(0.5)
 
-                                    -- Nhặt civilian
                                     local pickup = civ:FindFirstChild("PickUp")
-                                    if pickup then
-                                        pcall(function() fireproximityprompt(pickup) end)
-                                        task.wait(0.5)
-                                    end
+                                    if pickup then fireproximityprompt(pickup) end
 
                                     repeat task.wait() until not civ:FindFirstChild("PickUp")
 
-                                    -- *** Dịch chuyển về SpawnLocation ***
-                                    local spawn = workspace.Map and workspace.Map.Parts and workspace.Map.Parts:FindFirstChild("SpawnLocation")
-                                    if spawn and hrp then
-                                        local ok2, spPivot = pcall(function() return spawn:GetPivot() end)
-                                        if ok2 and spPivot then
-                                            hrp.CFrame = CFrame.new(spPivot.Position + Vector3.new(0, 2, 0))
-                                        elseif spawn.CFrame then
-                                            hrp.CFrame = CFrame.new(spawn.CFrame.Position + Vector3.new(0, 2, 0))
-                                        end
+                                    local spawn = workspace:WaitForChild("Map"):WaitForChild("Parts"):FindFirstChild("SpawnLocation")
+                                    if spawn then
+                                        hrp.CFrame = CFrame.new(spawn.Position)
                                     end
-
-                                    task.wait(1)
+                                    task.wait(1.5)
                                 end
                             end
                         end)
@@ -1458,8 +1443,8 @@ AutoMission:AddToggle({
                         if mob:IsDescendantOf(workspace) and mob:FindFirstChild("Humanoid") then
                             local pivot = mob:GetPivot()
                             local yDifference = math.abs(pivot.Position.Y - hrp.Position.Y)
-                            -- Chỉ di chuyển nếu chênh lệch Y ≤ 100
-                            if yDifference <= 100 then
+                            -- Chỉ di chuyển nếu chênh lệch Y ≤ 150
+                            if yDifference <= 150 then
                                 MoveToPosition(pivot.Position + Vector3.new(0, 2, 0))
                                 task.wait(4)
                             end
@@ -1470,8 +1455,6 @@ AutoMission:AddToggle({
         end)
     end
 })
-
-
 
 getgenv().AutoBoss = false
 
