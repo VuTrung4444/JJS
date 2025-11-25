@@ -1417,11 +1417,14 @@ game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Clien
                                     local pickup = civ:FindFirstChild("PickUp")
                                     if pickup then fireproximityprompt(pickup) end
                                     repeat task.wait() until not civ:FindFirstChild("PickUp")
-                                    local spawn = workspace.Map.Parts:FindFirstChild("SpawnLocation")
-                                    if spawn then
-                                        MoveToPosition(spawn.Position + Vector3.new(0, 2, 0))
-                                    end
-                                    task.wait(2.5)
+local spawn = workspace.Map.Parts:FindFirstChild("SpawnLocation")
+if spawn and hrp then
+    local pivot = spawn.CFrame or CFrame.new(spawn.Position)
+    hrp.CFrame = CFrame.new(pivot.Position + Vector3.new(0, 2, 0))
+end
+
+task.wait(2.5)
+
                                 end
                             end
                         end)
