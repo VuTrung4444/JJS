@@ -242,8 +242,97 @@ KA:AddToggle({
     end
 })
 
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+local plr = Players.LocalPlayer
 
 
+local MAX_DISTANCE = 100
+local ATTACK_COUNT = 5
+local WAIT_AFTER_ATTACK = 2
+
+--// Hàm lấy mob gần nhất trong phạm vi MAX_DISTANCE \\--
+local function getClosestMob()
+    local mobsFolder = Workspace:WaitForChild("Objects"):WaitForChild("Mobs")
+    local closestMob = nil
+    local closestDistance = math.huge
+
+    for _, mob in ipairs(mobsFolder:GetChildren()) do
+        if mob:IsA("Model") then
+            local humanoid = mob:FindFirstChild("Humanoid")
+            local rootPart = mob:FindFirstChild("HumanoidRootPart")
+            if humanoid and humanoid.Health > 0 and rootPart then
+                local distance = (rootPart.Position - plr.Character.HumanoidRootPart.Position).Magnitude
+                if distance < MAX_DISTANCE and distance < closestDistance then
+                    closestDistance = distance
+                    closestMob = mob
+                end
+            end
+        end
+    end
+
+    return closestMob
+end
+
+--// Hàm gửi lệnh tấn công đến server \\--
+local function attack(target)
+    if not target then return end
+    local humanoid = target:FindFirstChild("Humanoid")
+    local rootPart = target:FindFirstChild("HumanoidRootPart")
+    if not humanoid or humanoid.Health <= 0 or not rootPart then return end
+
+    local playerRoot = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+    if not playerRoot then return end
+
+    local distance = (rootPart.Position - playerRoot.Position).Magnitude
+    if distance > MAX_DISTANCE then return end
+
+    local args = {1, {humanoid}}
+    ReplicatedStorage
+        :WaitForChild("Remotes")
+        :WaitForChild("Server")
+        :WaitForChild("Combat")
+        :WaitForChild("M1")
+        :FireServer(unpack(args))
+end
+
+--// Kill Aura vòng lặp chính \\--
+task.spawn(function()
+    local attackCounter = 0
+    local currentTarget = nil
+
+    while task.wait(0.2) do
+        if getgenv().KillAura and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+
+
+            if not currentTarget 
+                or not currentTarget:FindFirstChild("Humanoid") 
+                or currentTarget.Humanoid.Health <= 0
+                or not currentTarget:FindFirstChild("HumanoidRootPart")
+                or (currentTarget.HumanoidRootPart.Position - plr.Character.HumanoidRootPart.Position).Magnitude > MAX_DISTANCE 
+            then
+                currentTarget = getClosestMob()
+            end
+
+            if currentTarget then
+
+                attack(currentTarget)
+                attackCounter = attackCounter + 1
+
+                if attackCounter >= ATTACK_COUNT then
+                    attackCounter = 0
+                    task.wait(WAIT_AFTER_ATTACK)
+                else
+                    task.wait(0.1)
+                end
+            end
+        else
+            attackCounter = 0
+            currentTarget = nil
+        end
+    end
+end)
 
 
 	--// Kill Aura Toggle \\--
@@ -1796,102 +1885,6 @@ Teleports:AddButton({
         end
     end
 })
-
-
-
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Workspace = game:GetService("Workspace")
-local plr = Players.LocalPlayer
-
-
-local MAX_DISTANCE = 100
-local ATTACK_COUNT = 5
-local WAIT_AFTER_ATTACK = 2
-
---// Hàm lấy mob gần nhất trong phạm vi MAX_DISTANCE \\--
-local function getClosestMob()
-    local mobsFolder = Workspace:WaitForChild("Objects"):WaitForChild("Mobs")
-    local closestMob = nil
-    local closestDistance = math.huge
-
-    for _, mob in ipairs(mobsFolder:GetChildren()) do
-        if mob:IsA("Model") then
-            local humanoid = mob:FindFirstChild("Humanoid")
-            local rootPart = mob:FindFirstChild("HumanoidRootPart")
-            if humanoid and humanoid.Health > 0 and rootPart then
-                local distance = (rootPart.Position - plr.Character.HumanoidRootPart.Position).Magnitude
-                if distance < MAX_DISTANCE and distance < closestDistance then
-                    closestDistance = distance
-                    closestMob = mob
-                end
-            end
-        end
-    end
-
-    return closestMob
-end
-
---// Hàm gửi lệnh tấn công đến server \\--
-local function attack(target)
-    if not target then return end
-    local humanoid = target:FindFirstChild("Humanoid")
-    local rootPart = target:FindFirstChild("HumanoidRootPart")
-    if not humanoid or humanoid.Health <= 0 or not rootPart then return end
-
-    local playerRoot = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
-    if not playerRoot then return end
-
-    local distance = (rootPart.Position - playerRoot.Position).Magnitude
-    if distance > MAX_DISTANCE then return end
-
-    local args = {1, {humanoid}}
-    ReplicatedStorage
-        :WaitForChild("Remotes")
-        :WaitForChild("Server")
-        :WaitForChild("Combat")
-        :WaitForChild("M1")
-        :FireServer(unpack(args))
-end
-
---// Kill Aura vòng lặp chính \\--
-task.spawn(function()
-    local attackCounter = 0
-    local currentTarget = nil
-
-    while task.wait(0.2) do
-        if getgenv().KillAura and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-
-
-            if not currentTarget 
-                or not currentTarget:FindFirstChild("Humanoid") 
-                or currentTarget.Humanoid.Health <= 0
-                or not currentTarget:FindFirstChild("HumanoidRootPart")
-                or (currentTarget.HumanoidRootPart.Position - plr.Character.HumanoidRootPart.Position).Magnitude > MAX_DISTANCE 
-            then
-                currentTarget = getClosestMob()
-            end
-
-            if currentTarget then
-
-                attack(currentTarget)
-                attackCounter = attackCounter + 1
-
-                if attackCounter >= ATTACK_COUNT then
-                    attackCounter = 0
-                    task.wait(WAIT_AFTER_ATTACK)
-                else
-                    task.wait(0.1)
-                end
-            end
-        else
-            attackCounter = 0
-            currentTarget = nil
-        end
-    end
-end)
-
-
 
 
 local Players = game:GetService("Players")
