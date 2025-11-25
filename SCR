@@ -1380,7 +1380,7 @@ AutoMission:AddToggle({
                                     if not hrp then continue end
                                     local pivot = item:GetPivot()
                                     MoveToPosition(pivot.Position + Vector3.new(0, 2, 0))
-                                    task.wait(0.4)
+                                    task.wait(0.2)
                                     local prompt = item:FindFirstChild("Collect")
                                     if prompt then fireproximityprompt(prompt) end
                                     task.wait(0.5)
@@ -1419,7 +1419,7 @@ AutoMission:AddToggle({
 									local ok = pcall(function()
 										local pivot = civ:GetPivot()
 										MoveToPosition(pivot.Position + Vector3.new(0, 2, 0))
-										task.wait(0.3)
+										task.wait(0.5)
 
 										local prompt = civ:FindFirstChild("PickUp")
 										if prompt then
@@ -1436,7 +1436,7 @@ AutoMission:AddToggle({
 											MoveToPosition(spawn.Position + Vector3.new(0, 3, 0))
 										end
 
-										task.wait(0.6)
+										task.wait(1)
 									end)
 
 									if not ok then
