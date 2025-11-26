@@ -1231,7 +1231,7 @@ MiscSection:AddToggle({
         local StarterGui = game:GetService("StarterGui")
         local workspace = game:GetService("Workspace")
 
-        -- Luồng chính để thu thập chest
+
         task.spawn(function()
             while true do
                 task.wait(2)
@@ -1241,6 +1241,9 @@ MiscSection:AddToggle({
                 if not dropsFolder then continue end
 
                 for _, drop in ipairs(dropsFolder:GetChildren()) do
+
+                    if not drop.Name:match("^" .. player.Name .. "|") then continue end
+
                     local chest = drop:FindFirstChild("Chest")
                     if not chest then continue end
 
@@ -1248,7 +1251,6 @@ MiscSection:AddToggle({
                     if prompt and prompt:IsA("ProximityPrompt") and prompt.ClickablePrompt and prompt.Enabled then
                         fireproximityprompt(prompt)
                         task.wait(1)
-
 
                         local gui = player:WaitForChild("PlayerGui")
                         local lootGUI = gui:FindFirstChild("Loot")
@@ -1268,7 +1270,7 @@ MiscSection:AddToggle({
                                         end
 
                                         if frameDetected then
-											task.wait(3)
+                                            task.wait(3)
                                             lootGUI:Destroy()
                                             task.wait(1)
                                             local starterLoot = StarterGui:FindFirstChild("Loot")
