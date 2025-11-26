@@ -704,6 +704,8 @@ Ect:AddToggle({
 		end)
 	end)
 
+
+
 Ect:AddButton({
     Name = "Fly",
     Default = false,
@@ -1210,6 +1212,13 @@ local args = {
 game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Data"):WaitForChild("EquipItem"):InvokeServer(unpack(args))
 end
 
+
+Ect:AddButton({
+	Name = "Buff",
+	Callback = function()
+		CastSwitch()
+	end
+})
 
 MiscSection:AddToggle({
     Name = "Auto Chest",
