@@ -1234,7 +1234,7 @@ MiscSection:AddToggle({
 
         task.spawn(function()
             while true do
-                task.wait(2)
+                task.wait(1)
                 if not getgenv().AutoChest then continue end
 
                 local dropsFolder = workspace:FindFirstChild("Objects") and workspace.Objects:FindFirstChild("Drops")
