@@ -1545,7 +1545,7 @@ AutoMission:AddToggle({
 						local hrp = char and char:FindFirstChild("HumanoidRootPart")
 						if hrp and mob:IsDescendantOf(workspace) then
 							local pivot = mob:GetPivot()
-							task.wait(7)
+							task.wait(4)
 							MoveToPosition(pivot.Position + Vector3.new(0, 2, 0))
                         end
                     end
