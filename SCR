@@ -1555,13 +1555,9 @@ AutoMission:AddToggle({
                 if currentTask ~= "Collect all objects" and currentTask ~= "Rescue civilians to the gate" then
                     for _, mob in ipairs(workspace.Objects.Mobs:GetChildren()) do
                         if not hrp then break end
-                        if mob:IsDescendantOf(workspace) and mob:FindFirstChild("Humanoid") then
-                            local pivot = mob:GetPivot()
-                            local yDifference = math.abs(pivot.Position.Y - hrp.Position.Y)
-                            -- Chỉ di chuyển nếu chênh lệch Y ≤ 150
-                            if yDifference <= 150 then
+                        if mob:IsDescendantOf(workspace) and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health >= 0 then
+task.wait(7)
                                 MoveToPosition(pivot.Position + Vector3.new(0, 2, 0))
-                                task.wait(4)
                             end
                         end
                     end
