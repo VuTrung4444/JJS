@@ -1219,22 +1219,94 @@ Ect:AddButton({
 })
 
 Ect:AddButton({
-    Name = "Anti-AFK",
+    Name = "Anti AFK",
     Callback = function()
-        task.spawn(function()
-            local ReplicatedStorage = game:GetService("ReplicatedStorage")
-            local Remote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Teleport")
-            if Remote:IsA("RemoteEvent") then
-                Remote.OnClientEvent:Connect(function(...)
-                end)
-            elseif Remote:IsA("RemoteFunction") then
-                Remote.OnClientInvoke = function(...)
-                    return nil
+
+        local configs = {
+            funcEnabled = true,
+            autoblock = false,
+            logcheckcaller = false,
+            advancedinfo = false
+        }
+
+        -- Giữ nguyên mọi hook gốc
+        local function OldDebugId(Remote)
+            return tostring(Remote)
+        end
+
+        local function v2s(obj)
+            return obj
+        end
+
+        local http = {}
+        http.JSONEncode = function(data)
+            return game:GetService("HttpService"):JSONEncode(data)
+        end
+        http.GenerateGUID = function()
+            return game:GetService("HttpService"):GenerateGUID(false)
+        end
+
+        local function hookRemote(r)
+            if r:IsA("RemoteEvent") then
+                r.OnClientEvent:Connect(function(...) end)
+            elseif r:IsA("RemoteFunction") then
+                r.OnClientInvoke = function(...) return ... end
+            end
+        end
+
+        -- Hook toàn bộ remotes trong ReplicatedStorage
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        local remotesFolder = ReplicatedStorage:WaitForChild("Remotes")
+        for _, clientFolder in ipairs({"Client", "Server"}) do
+            local folder = remotesFolder:FindFirstChild(clientFolder)
+            if folder then
+                for _, r in ipairs(folder:GetDescendants()) do
+                    if r:IsA("RemoteEvent") or r:IsA("RemoteFunction") then
+                        hookRemote(r)
+                    end
                 end
             end
-        end)
+        end
+
+        -- Giữ nguyên decompile logic nhưng chạy ngầm
+        local function tryDecompile(Source)
+            if decompile then
+                if Source then
+                    local success, result = pcall(function()
+                        local decompiled = decompile(Source):gsub("-- Decompiled with the Synapse X Luau decompiler.", "")
+                        local Sourcev2s = v2s(Source)
+                        if decompiled:find("script") and Sourcev2s then
+                            return ("local script = %s\n%s"):format(Sourcev2s, decompiled)
+                        end
+                    end)
+                    if not success then
+                        return "--[[Decompile Error]]"
+                    end
+                end
+                return "--No Source Found"
+            end
+            return "--Missing function (decompile)"
+        end
+
+        -- Toggles chạy ngầm
+        local function toggleFuncEnabled()
+            configs.funcEnabled = not configs.funcEnabled
+        end
+
+        local function toggleAutoblock()
+            configs.autoblock = not configs.autoblock
+        end
+
+        local function toggleLogcheckcaller()
+            configs.logcheckcaller = not configs.logcheckcaller
+        end
+
+        local function toggleAdvancedInfo()
+            configs.advancedinfo = not configs.advancedinfo
+        end
     end
 })
+
 
 
 MiscSection:AddToggle({
