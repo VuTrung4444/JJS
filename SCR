@@ -1942,3 +1942,6 @@ SpeedAndJump:AddSlider({
     end
 })
 
+for i, v in next, getconnections(Player.Idled) do 
+    v:Disable() 
+end
