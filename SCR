@@ -1814,64 +1814,64 @@ AutoMission:AddToggle({
     end,
 })
 
+if placeId == mainMenuPlaceID then
+	local SelectedTown = nil
 
-local SelectedTown = nil
+	local Towns = {}
 
-local Towns = {}
+	local townNames = {"Town1", "Town2", "Town3", "Town4", "Town5"}
 
-local townNames = {"Town1", "Town2", "Town3", "Town4", "Town5"}
+	for _, name in ipairs(townNames) do
+		local success, townInstance = pcall(function()
+			return workspace:WaitForChild("Objects"):WaitForChild("Locations"):WaitForChild("Towns"):WaitForChild(name)
+		end)
+		if success and townInstance then
+			Towns[name] = townInstance
+		end
+	end
 
-for _, name in ipairs(townNames) do
-    local success, townInstance = pcall(function()
-        return workspace:WaitForChild("Objects"):WaitForChild("Locations"):WaitForChild("Towns"):WaitForChild(name)
-    end)
-    if success and townInstance then
-        Towns[name] = townInstance
-    end
+	for townName, townInstance in pairs(Towns) do
+		Teleports:AddToggle({
+			Name = townName,
+			Default = false,
+			Callback = function(state)
+				if state then
+					SelectedTown = townInstance
+
+					for otherName, _ in pairs(Towns) do
+						if otherName ~= townName then
+							Teleports:UpdateToggle(otherName, false)
+						end
+					end
+				else
+					if SelectedTown == townInstance then
+						SelectedTown = nil
+					end
+				end
+			end
+		})
+	end
+
+	Teleports:AddButton({
+		Name = "Teleport",
+		Callback = function()
+			if SelectedTown then
+				local player = game:GetService("Players").LocalPlayer
+				local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+				if hrp and SelectedTown:IsDescendantOf(workspace) then
+					local pivot = SelectedTown:GetPivot()
+					local offsetY = 10
+					hrp.CFrame = CFrame.new(pivot.Position + Vector3.new(0, offsetY, 0))
+					task.wait(1)
+				else
+					warn("Town chưa load hoặc không tồn tại trong workspace!")
+				end
+			else
+				warn("Chưa chọn Town để dịch chuyển!")
+			end
+		end
+	})
 end
-
-for townName, townInstance in pairs(Towns) do
-    Teleports:AddToggle({
-        Name = townName,
-        Default = false,
-        Callback = function(state)
-            if state then
-                SelectedTown = townInstance
-
-                for otherName, _ in pairs(Towns) do
-                    if otherName ~= townName then
-                        Teleports:UpdateToggle(otherName, false)
-                    end
-                end
-            else
-                if SelectedTown == townInstance then
-                    SelectedTown = nil
-                end
-            end
-        end
-    })
-end
-
-Teleports:AddButton({
-    Name = "Teleport",
-    Callback = function()
-        if SelectedTown then
-            local player = game:GetService("Players").LocalPlayer
-            local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-            if hrp and SelectedTown:IsDescendantOf(workspace) then
-                local pivot = SelectedTown:GetPivot()
-                local offsetY = 10
-                hrp.CFrame = CFrame.new(pivot.Position + Vector3.new(0, offsetY, 0))
-                task.wait(1)
-            else
-                warn("Town chưa load hoặc không tồn tại trong workspace!")
-            end
-        else
-            warn("Chưa chọn Town để dịch chuyển!")
-        end
-    end
-})
-
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -1909,8 +1909,6 @@ end
 
 
 plr.CharacterAdded:Connect(updateHumanoid)
-
-
 updateHumanoid(Character)
 
 -- Khi người dùng thay đổi slider
