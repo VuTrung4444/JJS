@@ -1623,14 +1623,19 @@ AutoMission:AddToggle({
                     end
                 end
 
-                -- Combat mobs
-                if currentTask ~= "Collect all objects" and currentTask ~= "Rescue civilians to the gate" then
-                    for _, mob in ipairs(workspace.Objects.Mobs:GetChildren()) do
-                        if not hrp then break end
-                        if mob:IsDescendantOf(workspace) and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health >= 0 then
-                            local pivot = mob:GetPivot()
-                            task.wait(7)
-                            MoveToPosition(pivot.Position + Vector3.new(0, 2, 0))
+	if currentTask ~= "Collect all objects" and currentTask ~= "Rescue civilians to the gate" then
+				local mobsFolder = workspace:WaitForChild("Objects"):WaitForChild("Mobs")
+				local replicatedStorage = game:GetService("ReplicatedStorage")
+				local playerGui = player:WaitForChild("PlayerGui")
+
+					local mobs = workspace:WaitForChild("Objects"):WaitForChild("Mobs"):GetChildren()
+					for _, mob in ipairs(mobs) do
+						local char = player.Character
+						local hrp = char and char:FindFirstChild("HumanoidRootPart")
+						if hrp and mob:IsDescendantOf(workspace) then
+							local pivot = mob:GetPivot()
+							task.wait(7)
+							MoveToPosition(pivot.Position + Vector3.new(0, 2, 0))
                         end
                     end
                 end
