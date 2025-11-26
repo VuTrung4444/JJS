@@ -1323,7 +1323,7 @@ AutoMission:AddToggle({
 
                     for _, mob in ipairs(mobsFolder:GetChildren()) do
                         local humanoid = mob:FindFirstChild("Humanoid")
-                        local mobRoot = mob.PrimaryPart
+                        local mobRoot = mob:FindFirstChild("HumanoidRootPart") or mob.PrimaryPart
 
                         if humanoid and humanoid.Health > 0 and mobRoot then
 
