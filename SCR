@@ -1515,7 +1515,8 @@ AutoMission:AddToggle({
 
         task.spawn(function()
             while task.wait(1) do
-			 game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Client"):WaitForChild("StorylineDialogueSkip"):FireServer()
+                game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Client"):WaitForChild("StorylineDialogueSkip"):FireServer()
+
                 if not getgenv().AutoMissionEnabled then
                     getgenv().AutoCollect = false
                     getgenv().AutoCivilian = false
@@ -1537,6 +1538,7 @@ AutoMission:AddToggle({
                     lastTaskText = currentTask
                 end
 
+                -- Collect objects
                 if currentTask == "Collect all objects" then
                     if not getgenv().AutoCollect then
                         getgenv().AutoCollect = true
@@ -1563,73 +1565,72 @@ AutoMission:AddToggle({
                     end
                 end
 
-				if currentTask == "Rescue civilians to the gate" then
-					if not getgenv().AutoCivilian then
-						getgenv().AutoCivilian = true
+                -- Rescue civilians
+                if currentTask == "Rescue civilians to the gate" then
+                    if not getgenv().AutoCivilian then
+                        getgenv().AutoCivilian = true
+                        task.spawn(function()
+                            while getgenv().AutoCivilian and task.wait(0.2) do
+                                local char = player.Character
+                                local hrp = char and char:FindFirstChild("HumanoidRootPart")
+                                if not hrp then continue end
 
-						task.spawn(function()
-							while getgenv().AutoCivilian and task.wait(0.2) do
-								local char = player.Character
-								local hrp = char and char:FindFirstChild("HumanoidRootPart")
-								if not hrp then continue end
+                                local civilians = {}
+                                for _, obj in ipairs(workspace.Objects.MissionItems:GetChildren()) do
+                                    if obj.Name == "Civilian" and obj:IsDescendantOf(workspace) then
+                                        table.insert(civilians, obj)
+                                    end
+                                end
 
-								local civilians = {}
-								for _, obj in ipairs(workspace.Objects.MissionItems:GetChildren()) do
-									if obj.Name == "Civilian" and obj:IsDescendantOf(workspace) then
-										table.insert(civilians, obj)
-									end
-								end
+                                if #civilians == 0 then
+                                    getgenv().AutoCivilian = false
+                                    break
+                                end
 
-								if #civilians == 0 then
-									getgenv().AutoCivilian = false
-									break
-								end
+                                for _, civ in ipairs(civilians) do
+                                    if not getgenv().AutoCivilian then break end
+                                    if not civ:IsDescendantOf(workspace) then continue end
 
-								for _, civ in ipairs(civilians) do
-									if not getgenv().AutoCivilian then break end
-									if not civ:IsDescendantOf(workspace) then continue end
+                                    local ok = pcall(function()
+                                        local pivot = civ:GetPivot()
+                                        MoveToPosition(pivot.Position + Vector3.new(0, 2, 0))
+                                        task.wait(0.5)
 
-									local ok = pcall(function()
-										local pivot = civ:GetPivot()
-										MoveToPosition(pivot.Position + Vector3.new(0, 2, 0))
-										task.wait(0.5)
+                                        local prompt = civ:FindFirstChild("PickUp")
+                                        if prompt then
+                                            fireproximityprompt(prompt)
+                                        end
 
-										local prompt = civ:FindFirstChild("PickUp")
-										if prompt then
-											fireproximityprompt(prompt)
-										end
+                                        local t = time()
+                                        while civ:FindFirstChild("PickUp") and time() - t < 1 do
+                                            task.wait()
+                                        end
 
-										local t = time()
-										while civ:FindFirstChild("PickUp") and time() - t < 1 do
-											task.wait()
-										end
+                                        local spawn = workspace.Map.Parts:FindFirstChild("SpawnLocation")
+                                        if spawn then
+                                            MoveToPosition(spawn.Position + Vector3.new(0, 3, 0))
+                                        end
 
-										local spawn = workspace.Map.Parts:FindFirstChild("SpawnLocation")
-										if spawn then
-											MoveToPosition(spawn.Position + Vector3.new(0, 3, 0))
-										end
+                                        task.wait(1)
+                                    end)
 
-										task.wait(1)
-									end)
+                                    if not ok then
+                                        task.wait(0.2)
+                                    end
+                                end
+                            end
+                        end)
+                    end
+                end
 
-									if not ok then
-										task.wait(0.2)
-									end
-								end
-							end
-						end)
-					end
-				end
-
-
-
+                -- Combat mobs
                 if currentTask ~= "Collect all objects" and currentTask ~= "Rescue civilians to the gate" then
                     for _, mob in ipairs(workspace.Objects.Mobs:GetChildren()) do
                         if not hrp then break end
                         if mob:IsDescendantOf(workspace) and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health >= 0 then
-task.wait(7)
-                                MoveToPosition(pivot.Position + Vector3.new(0, 2, 0))
-                            end
+                            local pivot = mob:GetPivot()
+                            task.wait(7)
+                            MoveToPosition(pivot.Position + Vector3.new(0, 2, 0))
                         end
                     end
                 end
@@ -1637,6 +1638,7 @@ task.wait(7)
         end)
     end
 })
+
 
 getgenv().AutoBoss = false
 
