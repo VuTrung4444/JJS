@@ -1393,9 +1393,6 @@ MiscSection:AddButton({
 	end
 })
 
-
-
-
 AutoMission:AddToggle({
     Name = "InstantKill",
     Default = false,
@@ -1405,7 +1402,6 @@ AutoMission:AddToggle({
         if state then
             spawn(function()
                 while getgenv().InsBoss do
-
                     local player = game:GetService("Players").LocalPlayer
                     local char = player.Character
                     local hrp = char and char:FindFirstChild("HumanoidRootPart")
@@ -1417,20 +1413,23 @@ AutoMission:AddToggle({
                         local mobRoot = mob.PrimaryPart
 
                         if humanoid and humanoid.Health > 0 and mobRoot then
-                            
-                            if getgenv().AutoBoss then
-                                if humanoid.Health <= 2800 then
-                                    humanoid.Health = 0
-                                    task.wait(0.2)
-                                end
 
-                            else
-                                if hrp then
-                                    local dist = (mobRoot.Position - hrp.Position).Magnitude
-                                    if dist <= 400 then
-                                        humanoid.Health = 0
-                                        task.wait(0.1)
-                                    end
+                            if placeId == BossPlaceID and humanoid.Health <= 2800 then
+                                humanoid.Health = 0
+                                task.wait(0.1)
+                            end
+
+
+                            if placeId == InvestPlaceID and hrp then
+                                humanoid.Health = 0
+                                task.wait(0.1)
+                            end
+
+                            if placeId == mainMenuPlaceID and hrp then
+                                local dist = (mobRoot.Position - hrp.Position).Magnitude
+                                if dist <= 400 then
+                                    humanoid.Health = 0
+                                    task.wait(0.1)
                                 end
                             end
                         end
