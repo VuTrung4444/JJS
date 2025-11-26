@@ -1332,14 +1332,14 @@ AutoMission:AddToggle({
                                 task.wait(0.1)
                             end
 
-                            if placeId == mainMenuPlaceID and hrp then
+                            if placeId == mainMenuPlaceID then
                                 local dist = (mobRoot.Position - hrp.Position).Magnitude
                                 if dist <= 400 then
                                     humanoid.Health = 0
                                     task.wait(0.1)
                                 end
 							else
-								if placeId != BossPlaceID and placeId != mainMenuPlaceID then
+								if placeId ~= BossPlaceID and placeId ~= mainMenuPlaceID then
 									humanoid.Health = 0
 									task.wait(0.1)
 								end
