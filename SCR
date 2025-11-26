@@ -1243,7 +1243,7 @@ MiscSection:AddToggle({
                 for _, drop in ipairs(dropsFolder:GetChildren()) do
 
                     if not drop.Name:match("^" .. player.Name .. "|") then continue end
-
+print(player.Name)
                     local chest = drop:FindFirstChild("Chest")
                     if not chest then continue end
 
@@ -1332,18 +1332,17 @@ AutoMission:AddToggle({
                                 task.wait(0.1)
                             end
 
-
-                            if placeId == InvestPlaceID and hrp then
-                                humanoid.Health = 0
-                                task.wait(0.1)
-                            end
-
                             if placeId == mainMenuPlaceID and hrp then
                                 local dist = (mobRoot.Position - hrp.Position).Magnitude
                                 if dist <= 400 then
                                     humanoid.Health = 0
                                     task.wait(0.1)
                                 end
+							else
+								if hrp then
+									humanoid.Health = 0
+									task.wait(0.1)
+								end
                             end
                         end
                     end
