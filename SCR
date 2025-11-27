@@ -1430,7 +1430,7 @@ AutoMission:AddToggle({
                                     task.wait(0.1)
                                 end
 							else
-								if not getgenv().AutoBoss and placeId ~= mainMenuPlaceID then
+								if not getgenv().AutoBoss then
 									humanoid.Health = 0
 									task.wait(0.1)
 								end
