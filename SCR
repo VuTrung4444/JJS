@@ -502,16 +502,14 @@ local function FollowPlayer(targetPlayer)
             :WaitForChild("Frame")
             :WaitForChild("Dialogue")
             :WaitForChild("Response")
-        local danger1 = "The Calamity is charging up powerful a Red beam. Use the blue [Rush Points] on the edges of the map to avoid it!"
-        local danger2 = "It's shielding itself in a Veil to charge up a powerful attack. The Veil is being channeled throu"
+        local danger = "The Calamity is charging up powerful a Red beam. Use the blue [Rush Points] on the edges of the map to avoid it!"
 
-        -- Nếu xuất hiện danger -> thoát vòng bám theo
-        if path.ContentText == danger1 or path.ContentText == danger2 then
+        if path.ContentText == danger then
             break
         end
 
         if bp then
-            bp.Position = targetHRP.Position + Vector3.new(0, 5, 0)
+            bp.Position = targetHRP.Position + Vector3.new(0, -1, 0)
         end
         task.wait(0.1)
     end
