@@ -435,9 +435,11 @@ UIS.InputBegan:Connect(function(input, gameProcessed)
 end)
 
 
+
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 local hrp = nil
+
 
 local function UpdateHRP(char)
     task.wait(1)
@@ -447,11 +449,10 @@ end
 if player.Character then UpdateHRP(player.Character) end
 player.CharacterAdded:Connect(UpdateHRP)
 
--- Hover helpers
 local function EnableHover(hrp)
     if not hrp:FindFirstChild("BodyPosition") then
         local bp = Instance.new("BodyPosition")
-        bp.MaxForce = Vector3.new(9e9,9e9,9e9)
+        bp.MaxForce = Vector3.new(9e9, 9e9, 9e9)
         bp.P = 5e4
         bp.D = 1000
         bp.Name = "BodyPosition"
@@ -459,7 +460,7 @@ local function EnableHover(hrp)
     end
     if not hrp:FindFirstChild("BodyGyro") then
         local bg = Instance.new("BodyGyro")
-        bg.MaxTorque = Vector3.new(9e9,9e9,9e9)
+        bg.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
         bg.P = 5e4
         bg.D = 1000
         bg.CFrame = CFrame.new(hrp.Position)
@@ -475,17 +476,7 @@ local function DisableHover(hrp)
     if bg then bg:Destroy() end
 end
 
--- Teleport + Hover
-local SafePos = Vector3.new(127, 234, 1494)
-local function TeleportHover()
-    if not hrp then return end
-    EnableHover(hrp)
-    hrp.CFrame = CFrame.new(SafePos)
-    local bp = hrp:FindFirstChild("BodyPosition")
-    if bp then bp.Position = SafePos end
-end
 
--- Follow Player
 local function FollowPlayer(targetPlayer)
     if not hrp or not targetPlayer then return end
     local char = targetPlayer.Character
@@ -497,17 +488,6 @@ local function FollowPlayer(targetPlayer)
     local bp = hrp:FindFirstChild("BodyPosition")
 
     while getgenv().AutoCalamity and targetPlayer and targetHRP and hrp do
-        local gui = player:WaitForChild("PlayerGui")
-        local path = gui:WaitForChild("StorylineDialogue")
-            :WaitForChild("Frame")
-            :WaitForChild("Dialogue")
-            :WaitForChild("Response")
-        local danger = "The Calamity is charging up powerful a Red beam. Use the blue [Rush Points] on the edges of the map to avoid it!"
-
-        if path.ContentText == danger then
-            break
-        end
-
         if bp then
             bp.Position = targetHRP.Position + Vector3.new(0, -1, 0)
         end
@@ -515,41 +495,24 @@ local function FollowPlayer(targetPlayer)
     end
 end
 
--- Main logic
-local function CheckDanger()
-    local gui = player:WaitForChild("PlayerGui")
-    local path = gui:WaitForChild("StorylineDialogue")
-        :WaitForChild("Frame")
-        :WaitForChild("Dialogue")
-        :WaitForChild("Response")
 
-    local danger = "The Calamity is charging up powerful a Red beam. Use the blue [Rush Points] on the edges of the map to avoid it!"
-
-    while getgenv().AutoCalamity do
-        if path.ContentText == danger then
-            TeleportHover()
-        else
-            local targetPlayer = Players:FindFirstChild("anhlongxelan")
-            if targetPlayer then
-                FollowPlayer(targetPlayer)
-            end
-        end
-        task.wait(0.2)
-    end
-end
-
--- Toggle Button
 Calamity:AddButton({
     Name = "Auto Calamity",
     Callback = function()
         getgenv().AutoCalamity = not getgenv().AutoCalamity
         if getgenv().AutoCalamity then
-            task.spawn(CheckDanger)
+            local targetPlayer = Players:FindFirstChild("anhlongxelan")
+            if targetPlayer then
+                task.spawn(function()
+                    FollowPlayer(targetPlayer)
+                end)
+            end
         else
             if hrp then DisableHover(hrp) end
         end
     end
 })
+
 
 
 
