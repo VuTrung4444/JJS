@@ -435,11 +435,8 @@ UIS.InputBegan:Connect(function(input, gameProcessed)
 end)
 
 
--- LocalScript
-
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
-
 local hrp = nil
 
 local function UpdateHRP(char)
@@ -447,10 +444,7 @@ local function UpdateHRP(char)
     hrp = char:WaitForChild("HumanoidRootPart")
 end
 
-if player.Character then
-    UpdateHRP(player.Character)
-end
-
+if player.Character then UpdateHRP(player.Character) end
 player.CharacterAdded:Connect(UpdateHRP)
 
 -- Hover helpers
@@ -492,10 +486,8 @@ local function TeleportHover()
 end
 
 -- Follow Player
-local function FollowPlayer()
-    if not hrp then return end
-    local targetPlayer = Players:FindFirstChild("anhlongxelan")
-    if not targetPlayer then return end
+local function FollowPlayer(targetPlayer)
+    if not hrp or not targetPlayer then return end
     local char = targetPlayer.Character
     if not char then return end
     local targetHRP = char:FindFirstChild("HumanoidRootPart")
@@ -504,7 +496,20 @@ local function FollowPlayer()
     EnableHover(hrp)
     local bp = hrp:FindFirstChild("BodyPosition")
 
-    while getgenv().AutoCalamity do
+    while getgenv().AutoCalamity and targetPlayer and targetHRP and hrp do
+        local gui = player:WaitForChild("PlayerGui")
+        local path = gui:WaitForChild("StorylineDialogue")
+            :WaitForChild("Frame")
+            :WaitForChild("Dialogue")
+            :WaitForChild("Response")
+        local danger1 = "The Calamity is charging up powerful a Red beam. Use the blue [Rush Points] on the edges of the map to avoid it!"
+        local danger2 = "It's shielding itself in a Veil to charge up a powerful attack. The Veil is being channeled throu"
+
+        -- Nếu xuất hiện danger -> thoát vòng bám theo
+        if path.ContentText == danger1 or path.ContentText == danger2 then
+            break
+        end
+
         if bp then
             bp.Position = targetHRP.Position + Vector3.new(0, 5, 0)
         end
@@ -512,7 +517,7 @@ local function FollowPlayer()
     end
 end
 
--- Check Dialogue
+-- Main logic
 local function CheckDanger()
     local gui = player:WaitForChild("PlayerGui")
     local path = gui:WaitForChild("StorylineDialogue")
@@ -520,21 +525,22 @@ local function CheckDanger()
         :WaitForChild("Dialogue")
         :WaitForChild("Response")
 
-    local danger1 = "The Calamity is charging up powerful a Red beam. Use the blue [Rush Points] on the edges of the map to avoid it!"
-    local danger2 = "It's shielding itself in a Veil to charge up a powerful attack. The Veil is being channeled throu"
+    local danger = "The Calamity is charging up powerful a Red beam. Use the blue [Rush Points] on the edges of the map to avoid it!"
 
     while getgenv().AutoCalamity do
-        local txt = path.ContentText
-        if txt == danger1 or txt == danger2 then
+        if path.ContentText == danger then
             TeleportHover()
         else
-            FollowPlayer()
+            local targetPlayer = Players:FindFirstChild("anhlongxelan")
+            if targetPlayer then
+                FollowPlayer(targetPlayer)
+            end
         end
         task.wait(0.2)
     end
 end
 
-
+-- Toggle Button
 Calamity:AddButton({
     Name = "Auto Calamity",
     Callback = function()
