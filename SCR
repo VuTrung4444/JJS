@@ -434,29 +434,119 @@ UIS.InputBegan:Connect(function(input, gameProcessed)
     end
 end)
 
-Calamity:AddButton({
-    Name = "Bypass Clash",
-    Callback = function()
-        local player = game:GetService("Players").LocalPlayer
-        local targets = {
-            player.PlayerGui:WaitForChild("Main"):WaitForChild("Frame"):WaitForChild("BottomMiddle"):WaitForChild("DomainClash"),
-            game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Client"):WaitForChild("PromptOneTimeQTE"),
-			game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Client"):WaitForChild("PromptQTE")
-        }
 
-        local function hook(r)
-            if r:IsA("RemoteEvent") then
-                r.OnClientEvent:Connect(function(...) end)
-            elseif r:IsA("RemoteFunction") then
-                r.OnClientInvoke = function(...) return ... end
-            end
+-- LocalScript
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+local hrp = nil
+
+local function UpdateHRP(char)
+    task.wait(1)
+    hrp = char:WaitForChild("HumanoidRootPart")
+end
+
+if player.Character then
+    UpdateHRP(player.Character)
+end
+
+player.CharacterAdded:Connect(UpdateHRP)
+
+-- Hover helpers
+local function EnableHover(hrp)
+    if not hrp:FindFirstChild("BodyPosition") then
+        local bp = Instance.new("BodyPosition")
+        bp.MaxForce = Vector3.new(9e9,9e9,9e9)
+        bp.P = 5e4
+        bp.D = 1000
+        bp.Name = "BodyPosition"
+        bp.Parent = hrp
+    end
+    if not hrp:FindFirstChild("BodyGyro") then
+        local bg = Instance.new("BodyGyro")
+        bg.MaxTorque = Vector3.new(9e9,9e9,9e9)
+        bg.P = 5e4
+        bg.D = 1000
+        bg.CFrame = CFrame.new(hrp.Position)
+        bg.Name = "BodyGyro"
+        bg.Parent = hrp
+    end
+end
+
+local function DisableHover(hrp)
+    local bp = hrp:FindFirstChild("BodyPosition")
+    if bp then bp:Destroy() end
+    local bg = hrp:FindFirstChild("BodyGyro")
+    if bg then bg:Destroy() end
+end
+
+-- Teleport + Hover
+local SafePos = Vector3.new(127, 234, 1494)
+local function TeleportHover()
+    if not hrp then return end
+    EnableHover(hrp)
+    hrp.CFrame = CFrame.new(SafePos)
+    local bp = hrp:FindFirstChild("BodyPosition")
+    if bp then bp.Position = SafePos end
+end
+
+-- Follow Player
+local function FollowPlayer()
+    if not hrp then return end
+    local targetPlayer = Players:FindFirstChild("anhlongxelan")
+    if not targetPlayer then return end
+    local char = targetPlayer.Character
+    if not char then return end
+    local targetHRP = char:FindFirstChild("HumanoidRootPart")
+    if not targetHRP then return end
+
+    EnableHover(hrp)
+    local bp = hrp:FindFirstChild("BodyPosition")
+
+    while getgenv().AutoCalamity do
+        if bp then
+            bp.Position = targetHRP.Position + Vector3.new(0, 5, 0)
         end
+        task.wait(0.1)
+    end
+end
 
-        for _, r in ipairs(targets) do
-            hook(r)
+-- Check Dialogue
+local function CheckDanger()
+    local gui = player:WaitForChild("PlayerGui")
+    local path = gui:WaitForChild("StorylineDialogue")
+        :WaitForChild("Frame")
+        :WaitForChild("Dialogue")
+        :WaitForChild("Response")
+
+    local danger1 = "The Calamity is charging up powerful a Red beam. Use the blue [Rush Points] on the edges of the map to avoid it!"
+    local danger2 = "It's shielding itself in a Veil to charge up a powerful attack. The Veil is being channeled throu"
+
+    while getgenv().AutoCalamity do
+        local txt = path.ContentText
+        if txt == danger1 or txt == danger2 then
+            TeleportHover()
+        else
+            FollowPlayer()
+        end
+        task.wait(0.2)
+    end
+end
+
+
+Calamity:AddButton({
+    Name = "Auto Calamity",
+    Callback = function()
+        getgenv().AutoCalamity = not getgenv().AutoCalamity
+        if getgenv().AutoCalamity then
+            task.spawn(CheckDanger)
+        else
+            if hrp then DisableHover(hrp) end
         end
     end
 })
+
 
 
 local Players = game:GetService("Players")
@@ -1227,6 +1317,31 @@ Ect:AddButton({
 	Callback = function()
 		CastSwitch()
 	end
+})
+
+
+Calamity:AddButton({
+    Name = "Bypass Clash",
+    Callback = function()
+        local player = game:GetService("Players").LocalPlayer
+        local targets = {
+            player.PlayerGui:WaitForChild("Main"):WaitForChild("Frame"):WaitForChild("BottomMiddle"):WaitForChild("DomainClash"),
+            game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Client"):WaitForChild("PromptOneTimeQTE"),
+			game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Client"):WaitForChild("PromptQTE")
+        }
+
+        local function hook(r)
+            if r:IsA("RemoteEvent") then
+                r.OnClientEvent:Connect(function(...) end)
+            elseif r:IsA("RemoteFunction") then
+                r.OnClientInvoke = function(...) return ... end
+            end
+        end
+
+        for _, r in ipairs(targets) do
+            hook(r)
+        end
+    end
 })
 
 MiscSection:AddToggle({
