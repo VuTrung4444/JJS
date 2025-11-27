@@ -1455,7 +1455,7 @@ AutoMission:AddToggle({
 
                         if humanoid and humanoid.Health > 0 and mobRoot then
 
-                            if placeId == BossPlaceID and humanoid.Health <= 2800 then
+                            if getgenv().AutoBoss and humanoid.Health <= 2800 then
                                 humanoid.Health = 0
                                 task.wait(0.1)
                             end
@@ -1467,7 +1467,7 @@ AutoMission:AddToggle({
                                     task.wait(0.1)
                                 end
 							else
-								if placeId ~= BossPlaceID and placeId ~= mainMenuPlaceID then
+								if placeId ~= mainMenuPlaceID then
 									humanoid.Health = 0
 									task.wait(0.1)
 								end
