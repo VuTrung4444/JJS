@@ -187,60 +187,72 @@ local function GetNearestMobInRange(range)
     return nil
 end
 
+getgenv().ToggleBF = false
+
+local function StartBlackFlashLoop()
+    if getgenv().ToggleBF then return end
+    getgenv().ToggleBF = true
+
+    task.spawn(function()
+        while getgenv().ToggleBF do
+
+            local hrp = game.Players.LocalPlayer.Character 
+                and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+
+            local mob = GetNearestMobInRange(100)
+
+            local calamity = workspace.Objects.Mobs:FindFirstChild("Six Eyed Calamity")
+
+            local isCalamityStunned = false
+            if calamity
+                and calamity:FindFirstChild("Humanoid")
+                and calamity.Humanoid:FindFirstChild("CombatAgent")
+                and calamity.Humanoid.CombatAgent:FindFirstChild("Statuses")
+                and calamity.Humanoid.CombatAgent.Statuses:FindFirstChild("Stunned") then
+                isCalamityStunned = true
+            end
+
+            local destructFolder = workspace.Objects:FindFirstChild("Destructibles")
+            local hasNonCrystalDestructible = false
+
+            if destructFolder then
+                for _, item in ipairs(destructFolder:GetChildren()) do
+                    if item.Name ~= "SEC Infinity Crystal" then
+                        hasNonCrystalDestructible = true
+                    end
+                end
+            end
+
+            if mob or isCalamityStunned or hasNonCrystalDestructible then
+                local args = {1.123}
+                local rs = game:GetService("ReplicatedStorage").Remotes.Server.Combat
+
+                rs.ApplyBlackFlashToNextHitbox:FireServer(unpack(args))
+                rs.M2:FireServer()
+            end
+
+            task.wait(0.5)
+        end
+    end)
+end
+
+local function StopBlackFlashLoop()
+    getgenv().ToggleBF = false
+end
+
+
 KA:AddToggle({
     Name = "BlackFlash Loop",
     Default = false,
     Callback = function(v)
-        ToggleBF = v
-
         if v then
-            task.spawn(function()
-                while ToggleBF do
-
-                    local hrp = game.Players.LocalPlayer.Character 
-                        and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-
-                    local mob = GetNearestMobInRange(100)
-
-                    local calamity = workspace.Objects.Mobs:FindFirstChild("Six Eyed Calamity")
-
-                    local isCalamityStunned = false
-                    if calamity
-                        and calamity:FindFirstChild("Humanoid")
-                        and calamity.Humanoid:FindFirstChild("CombatAgent")
-                        and calamity.Humanoid.CombatAgent:FindFirstChild("Statuses")
-                        and calamity.Humanoid.CombatAgent.Statuses:FindFirstChild("Stunned") then
-                        isCalamityStunned = true
-                    end
-
-
-                    local destructFolder = workspace.Objects:FindFirstChild("Destructibles")
-                    local hasNonCrystalDestructible = false
-
-                    if destructFolder then
-                        for _, item in ipairs(destructFolder:GetChildren()) do
-
-                            if item.Name ~= "SEC Infinity Crystal" then
-                                hasNonCrystalDestructible = true
-                            end
-                        end
-                    end
-
-
-                    if mob or isCalamityStunned or hasNonCrystalDestructible then
-                        local args = {1.123}
-                        local rs = game:GetService("ReplicatedStorage").Remotes.Server.Combat
-
-                        rs.ApplyBlackFlashToNextHitbox:FireServer(unpack(args))
-                        rs.M2:FireServer()
-                    end
-
-                    task.wait(0.5)
-                end
-            end)
+            StartBlackFlashLoop()
+        else
+            StopBlackFlashLoop()
         end
     end
 })
+
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -433,86 +445,6 @@ UIS.InputBegan:Connect(function(input, gameProcessed)
         dodgeCalamity()
     end
 end)
-
-
-
-local Players = game:GetService("Players")
-local player = Players.LocalPlayer
-local hrp = nil
-
-
-local function UpdateHRP(char)
-    task.wait(1)
-    hrp = char:WaitForChild("HumanoidRootPart")
-end
-
-if player.Character then UpdateHRP(player.Character) end
-player.CharacterAdded:Connect(UpdateHRP)
-
-local function EnableHover(hrp)
-    if not hrp:FindFirstChild("BodyPosition") then
-        local bp = Instance.new("BodyPosition")
-        bp.MaxForce = Vector3.new(9e9, 9e9, 9e9)
-        bp.P = 5e4
-        bp.D = 1000
-        bp.Name = "BodyPosition"
-        bp.Parent = hrp
-    end
-    if not hrp:FindFirstChild("BodyGyro") then
-        local bg = Instance.new("BodyGyro")
-        bg.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
-        bg.P = 5e4
-        bg.D = 1000
-        bg.CFrame = CFrame.new(hrp.Position)
-        bg.Name = "BodyGyro"
-        bg.Parent = hrp
-    end
-end
-
-local function DisableHover(hrp)
-    local bp = hrp:FindFirstChild("BodyPosition")
-    if bp then bp:Destroy() end
-    local bg = hrp:FindFirstChild("BodyGyro")
-    if bg then bg:Destroy() end
-end
-
-
-local function FollowPlayer(targetPlayer)
-    if not hrp or not targetPlayer then return end
-    local char = targetPlayer.Character
-    if not char then return end
-    local targetHRP = char:FindFirstChild("HumanoidRootPart")
-    if not targetHRP then return end
-
-    EnableHover(hrp)
-    local bp = hrp:FindFirstChild("BodyPosition")
-
-    while getgenv().AutoCalamity and targetPlayer and targetHRP and hrp do
-        if bp then
-            bp.Position = targetHRP.Position + Vector3.new(0, -1, 0)
-        end
-        task.wait(0.1)
-    end
-end
-
-
-Calamity:AddButton({
-    Name = "Auto Calamity",
-    Callback = function()
-        getgenv().AutoCalamity = not getgenv().AutoCalamity
-        if getgenv().AutoCalamity then
-            local targetPlayer = Players:FindFirstChild("anhlongxelan")
-            if targetPlayer then
-                task.spawn(function()
-                    FollowPlayer(targetPlayer)
-                end)
-            end
-        else
-            if hrp then DisableHover(hrp) end
-        end
-    end
-})
-
 
 
 
@@ -1287,29 +1219,127 @@ Ect:AddButton({
 })
 
 
+getgenv().CalamityBypass = false
+
+local function RunCalamityBypass()
+    if getgenv().CalamityBypass then return end
+    getgenv().CalamityBypass = true
+
+    local player = game:GetService("Players").LocalPlayer
+    local targets = {
+        player.PlayerGui:WaitForChild("Main"):WaitForChild("Frame"):WaitForChild("BottomMiddle"):WaitForChild("DomainClash"),
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Client"):WaitForChild("PromptOneTimeQTE"),
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Client"):WaitForChild("PromptQTE")
+    }
+
+    local function hook(r)
+        if r:IsA("RemoteEvent") then
+            r.OnClientEvent:Connect(function(...) end)
+        elseif r:IsA("RemoteFunction") then
+            r.OnClientInvoke = function(...) return ... end
+        end
+    end
+
+    for _, r in ipairs(targets) do
+        hook(r)
+    end
+end
+
 Calamity:AddButton({
     Name = "Bypass Clash",
     Callback = function()
-        local player = game:GetService("Players").LocalPlayer
-        local targets = {
-            player.PlayerGui:WaitForChild("Main"):WaitForChild("Frame"):WaitForChild("BottomMiddle"):WaitForChild("DomainClash"),
-            game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Client"):WaitForChild("PromptOneTimeQTE"),
-			game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Client"):WaitForChild("PromptQTE")
-        }
+        RunCalamityBypass()
+    end
+})
 
-        local function hook(r)
-            if r:IsA("RemoteEvent") then
-                r.OnClientEvent:Connect(function(...) end)
-            elseif r:IsA("RemoteFunction") then
-                r.OnClientInvoke = function(...) return ... end
-            end
+
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local hrp = nil
+
+
+local function UpdateHRP(char)
+    task.wait(1)
+    hrp = char:WaitForChild("HumanoidRootPart")
+end
+
+if player.Character then UpdateHRP(player.Character) end
+player.CharacterAdded:Connect(UpdateHRP)
+
+local function EnableHover(hrp)
+    if not hrp:FindFirstChild("BodyPosition") then
+        local bp = Instance.new("BodyPosition")
+        bp.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+        bp.P = 5e4
+        bp.D = 1000
+        bp.Name = "BodyPosition"
+        bp.Parent = hrp
+    end
+    if not hrp:FindFirstChild("BodyGyro") then
+        local bg = Instance.new("BodyGyro")
+        bg.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+        bg.P = 5e4
+        bg.D = 1000
+        bg.CFrame = CFrame.new(hrp.Position)
+        bg.Name = "BodyGyro"
+        bg.Parent = hrp
+    end
+end
+
+local function DisableHover(hrp)
+    local bp = hrp:FindFirstChild("BodyPosition")
+    if bp then bp:Destroy() end
+    local bg = hrp:FindFirstChild("BodyGyro")
+    if bg then bg:Destroy() end
+end
+
+
+local function FollowPlayer(targetPlayer)
+    if not hrp or not targetPlayer then return end
+    local char = targetPlayer.Character
+    if not char then return end
+    local targetHRP = char:FindFirstChild("HumanoidRootPart")
+    if not targetHRP then return end
+
+    EnableHover(hrp)
+    local bp = hrp:FindFirstChild("BodyPosition")
+
+    while getgenv().AutoCalamity and targetPlayer and targetHRP and hrp do
+        if bp then
+            bp.Position = targetHRP.Position + Vector3.new(0, -1, 0)
         end
+        task.wait(0.1)
+    end
+end
 
-        for _, r in ipairs(targets) do
-            hook(r)
+
+Calamity:AddButton({
+    Name = "Auto Calamity",
+    Callback = function()
+        getgenv().AutoCalamity = not getgenv().AutoCalamity
+
+        if getgenv().AutoCalamity then
+
+            RunCalamityBypass()
+            StartBlackFlashLoop()
+            noclip()
+
+            local targetPlayer = Players:FindFirstChild("anhlongxelan")
+            if targetPlayer then
+                task.spawn(function()
+                    FollowPlayer(targetPlayer)
+                end)
+            end
+
+        else
+            clip()
+            StopBlackFlashLoop()
+            if hrp then DisableHover(hrp) end
         end
     end
 })
+
 
 MiscSection:AddToggle({
     Name = "Auto Chest",
@@ -1334,7 +1364,6 @@ MiscSection:AddToggle({
                 for _, drop in ipairs(dropsFolder:GetChildren()) do
 
                     if not drop.Name:match("^" .. player.Name .. "|") then continue end
-print(player.Name)
                     local chest = drop:FindFirstChild("Chest")
                     if not chest then continue end
 
