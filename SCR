@@ -1305,10 +1305,37 @@ local function FollowPlayer(targetPlayer)
     EnableHover(hrp)
     local bp = hrp:FindFirstChild("BodyPosition")
 
+    -- cooldown 1 giây
+    local lastDrop = 0  
+
     while getgenv().AutoCalamity and targetPlayer and targetHRP and hrp do
+        
+        -- FOLLOW TARGET (0.1s)
         if bp then
             bp.Position = targetHRP.Position + Vector3.new(0, -1, 0)
         end
+
+        -- AUTO DROP SHARD (song song - cooldown 1s)
+        do
+            local now = tick()
+            if now - lastDrop >= 1 then
+                lastDrop = now
+
+                local chars = workspace:FindFirstChild("Objects")
+                    and workspace.Objects:FindFirstChild("Characters")
+
+                if chars then
+                    local myChar = chars:FindFirstChild(player.Name)
+                    if myChar and myChar:FindFirstChild("Infinity Shard") then
+                        -- fire drop shard
+                        local args = {"Drop Shard"}
+                        game:GetService("ReplicatedStorage")
+                            .Remotes.Server.Combat.Skill:FireServer(unpack(args))
+                    end
+                end
+            end
+        end
+
         task.wait(0.1)
     end
 end
