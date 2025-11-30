@@ -59,8 +59,8 @@ local function autoSpinInnate()
             if slot1Enabled then
                 spinRemote:InvokeServer(1)
                 local val1 = innates["1"] and innates["1"].Value or ""
-                print("Slot 1 Innate:", val1)
                 if table.find(targetInnates, val1) then
+					print("Slot 1 Innate:", val1)
                     InnateSpinEnabled = false
                     break
                 end
@@ -71,8 +71,8 @@ local function autoSpinInnate()
                 if slot1Enabled then task.wait(0.5) end -- Slot 2 quay chậm hơn nếu slot 1 cũng spin
                 spinRemote:InvokeServer(2)
                 local val2 = innates["2"] and innates["2"].Value or ""
-                print("Slot 2 Innate:", val2)
                 if table.find(targetInnates, val2) then
+				    print("Slot 2 Innate:", val2)
                     InnateSpinEnabled = false
                     break
                 end
