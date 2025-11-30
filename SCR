@@ -162,6 +162,32 @@ end
         end
     })
 
+local function CastSwitch()
+	local args = {
+		"Demon Vessel: Switch"
+	}
+	game:GetService("ReplicatedStorage")
+		:WaitForChild("Remotes")
+		:WaitForChild("Server")
+		:WaitForChild("Combat")
+		:WaitForChild("Skill")
+		:FireServer(unpack(args))
+
+local args = {
+	"Damage Vial"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Data"):WaitForChild("EquipItem"):InvokeServer(unpack(args))
+local args = {
+	"Damage Gourd"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Data"):WaitForChild("EquipItem"):InvokeServer(unpack(args))
+local args = {
+	"Rage Gourd"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Data"):WaitForChild("EquipItem"):InvokeServer(unpack(args))
+end
+
+
 local ToggleBF = false
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
@@ -188,7 +214,7 @@ local function GetNearestMobInRange(range)
 end
 
 getgenv().ToggleBF = false
-
+local cast = false
 local function StartBlackFlashLoop()
     if getgenv().ToggleBF then return end
     getgenv().ToggleBF = true
@@ -213,6 +239,17 @@ local function StartBlackFlashLoop()
                 isCalamityStunned = true
             end
 
+			if isCalamityStunned and cast == false then
+				local args = {
+					"Infinity Piercing Vial"
+				}
+				game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Data"):WaitForChild("EquipItem"):InvokeServer(unpack(args))
+                CastSwitch()
+				cast = true
+			elseif not isCalamityStunned then
+				cast = false
+			end
+
             -- Detect destructibles except crystal
             local destructFolder = workspace.Objects:FindFirstChild("Destructibles")
             local hasNonCrystalDestructible = false
@@ -229,12 +266,6 @@ local function StartBlackFlashLoop()
             local args = {1.123}
 
             if isCalamityStunned then
-				local args = {
-					"Infinity Piercing Vial"
-				}
-				game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Data"):WaitForChild("EquipItem"):InvokeServer(unpack(args))
-                CastSwitch()
-
                 rs.ApplyBlackFlashToNextHitbox:FireServer(unpack(args))
                 rs.M2:FireServer()
 
@@ -1196,31 +1227,6 @@ Ect:AddButton({
     end
 })
 
-
-local function CastSwitch()
-	local args = {
-		"Demon Vessel: Switch"
-	}
-	game:GetService("ReplicatedStorage")
-		:WaitForChild("Remotes")
-		:WaitForChild("Server")
-		:WaitForChild("Combat")
-		:WaitForChild("Skill")
-		:FireServer(unpack(args))
-
-local args = {
-	"Damage Vial"
-}
-game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Data"):WaitForChild("EquipItem"):InvokeServer(unpack(args))
-local args = {
-	"Damage Gourd"
-}
-game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Data"):WaitForChild("EquipItem"):InvokeServer(unpack(args))
-local args = {
-	"Rage Gourd"
-}
-game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Data"):WaitForChild("EquipItem"):InvokeServer(unpack(args))
-end
 
 
 Ect:AddButton({
