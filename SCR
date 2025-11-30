@@ -193,59 +193,64 @@ local function StartBlackFlashLoop()
     if getgenv().ToggleBF then return end
     getgenv().ToggleBF = true
 
-task.spawn(function()
-    while getgenv().ToggleBF do
+    task.spawn(function()
+        while getgenv().ToggleBF do
 
-        local hrp = game.Players.LocalPlayer.Character 
-            and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+            local hrp = game.Players.LocalPlayer.Character 
+                and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
 
-        local mob = GetNearestMobInRange(100)
+            local mob = GetNearestMobInRange(100)
 
-        local calamity = workspace.Objects.Mobs:FindFirstChild("Six Eyed Calamity")
 
-        local isCalamityStunned = false
-        if calamity
-            and calamity:FindFirstChild("Humanoid")
-            and calamity.Humanoid:FindFirstChild("CombatAgent")
-            and calamity.Humanoid.CombatAgent:FindFirstChild("Statuses")
-            and calamity.Humanoid.CombatAgent.Statuses:FindFirstChild("Stunned") then
-            isCalamityStunned = true
-        end
+            local calamity = workspace.Objects.Mobs:FindFirstChild("Six Eyed Calamity")
 
-        local destructFolder = workspace.Objects:FindFirstChild("Destructibles")
-        local hasNonCrystalDestructible = false
+            local isCalamityStunned = false
+            if calamity
+                and calamity:FindFirstChild("Humanoid")
+                and calamity.Humanoid:FindFirstChild("CombatAgent")
+                and calamity.Humanoid.CombatAgent:FindFirstChild("Statuses")
+                and calamity.Humanoid.CombatAgent.Statuses:FindFirstChild("Stunned") then
+                isCalamityStunned = true
+            end
 
-        if destructFolder then
-            for _, item in ipairs(destructFolder:GetChildren()) do
-                if item.Name ~= "SEC Infinity Crystal" then
-                    hasNonCrystalDestructible = true
+            -- Detect destructibles except crystal
+            local destructFolder = workspace.Objects:FindFirstChild("Destructibles")
+            local hasNonCrystalDestructible = false
+
+            if destructFolder then
+                for _, item in ipairs(destructFolder:GetChildren()) do
+                    if item.Name ~= "SEC Infinity Crystal" then
+                        hasNonCrystalDestructible = true
+                    end
                 end
             end
-        end
 
-        if isCalamityStunned then
-            CastSwitch()
-
-            local args = {1.123}
             local rs = game:GetService("ReplicatedStorage").Remotes.Server.Combat
-            rs.ApplyBlackFlashToNextHitbox:FireServer(unpack(args))
-            rs.M2:FireServer()
-
-        elseif mob or hasNonCrystalDestructible then
             local args = {1.123}
-            local rs = game:GetService("ReplicatedStorage").Remotes.Server.Combat
-            rs.ApplyBlackFlashToNextHitbox:FireServer(unpack(args))
-            rs.M2:FireServer()
-        end
 
-        task.wait(0.5)
-    end
-end)
+            if isCalamityStunned then
+				local args = {
+					"Infinity Piercing Vial"
+				}
+				game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Data"):WaitForChild("EquipItem"):InvokeServer(unpack(args))
+                CastSwitch()
+
+                rs.ApplyBlackFlashToNextHitbox:FireServer(unpack(args))
+                rs.M2:FireServer()
+
+            elseif mob or hasNonCrystalDestructible then
+                rs.ApplyBlackFlashToNextHitbox:FireServer(unpack(args))
+                rs.M2:FireServer()
+            end
+
+            task.wait(0.5)
+        end
+    end)
+end
 
 local function StopBlackFlashLoop()
     getgenv().ToggleBF = false
 end
-
 
 KA:AddToggle({
     Name = "BlackFlash Loop",
@@ -258,6 +263,7 @@ KA:AddToggle({
         end
     end
 })
+
 
 
 local Players = game:GetService("Players")
