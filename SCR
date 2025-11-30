@@ -490,19 +490,14 @@ UIS.InputBegan:Connect(function(input, gameProcessed)
 end)
 
 
-
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 
---// Biến điều khiển ESP \\--
 getgenv().ESPenabled = false
 local ESPDistance = true
 local ESPTextSize = 18
 
----------------------------------------------------------
--- HÀM TẠO ESP CHUNG (Áp dụng cho Player và Mob)
----------------------------------------------------------
 local function createBillboard(adornee, text, parent)
     local billboard = Instance.new("BillboardGui")
     billboard.Name = "ESP"
@@ -526,9 +521,6 @@ local function createBillboard(adornee, text, parent)
     return billboard, label
 end
 
----------------------------------------------------------
--- ESP CHO NGƯỜI CHƠI
----------------------------------------------------------
 local function createESP(player)
     if player == LocalPlayer then return end
     if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return end
@@ -560,18 +552,12 @@ local function createESP(player)
     end)
 end
 
----------------------------------------------------------
--- DANH SÁCH TÊN MOB (KHÔNG GỌI TRỰC TIẾP)
----------------------------------------------------------
 local MobNames = {
     "Egg Jaw",
     "Mantis Curse",
     "Monk of The Lake",
 }
 
----------------------------------------------------------
--- ESP CHO MOBS
----------------------------------------------------------
 local function createMobESP(mob)
     if not mob or not mob:FindFirstChild("HumanoidRootPart") then return end
 
@@ -602,9 +588,6 @@ local function createMobESP(mob)
     end)
 end
 
----------------------------------------------------------
--- CẬP NHẬT ESP TẤT CẢ MOBS (KIỂM TRA TỒN TẠI)
----------------------------------------------------------
 local function updateAllMobsESP()
     for _, mobName in ipairs(MobNames) do
         local mobFolder = workspace:FindFirstChild("Objects")
@@ -617,18 +600,62 @@ local function updateAllMobsESP()
     end
 end
 
----------------------------------------------------------
--- CẬP NHẬT ESP TẤT CẢ NGƯỜI CHƠI
----------------------------------------------------------
 local function updateAllPlayersESP()
     for _, plr in pairs(Players:GetPlayers()) do
         createESP(plr)
     end
 end
 
----------------------------------------------------------
--- TỰ ĐỘNG THÊM ESP KHI PLAYER VÀO GAME
----------------------------------------------------------
+
+
+local function createDropESP(drop)
+    if not drop or not (drop:IsA("Model") or drop:IsA("BasePart")) then return end
+    
+    local name = tostring(drop.Name)
+    if name:find("|ChestGroup") or name:find("Talisman") then
+        return
+    end
+
+    local root = drop:FindFirstChild("HumanoidRootPart") or drop:FindFirstChildWhichIsA("BasePart")
+    if not root then return end
+
+    if drop:FindFirstChild("ESP") then
+        drop.ESP:Destroy()
+    end
+
+    local billboard, textLabel = createBillboard(root, drop.Name, drop)
+
+    task.spawn(function()
+        while getgenv().ESPenabled 
+        and drop
+        and (drop:FindFirstChild("HumanoidRootPart") or drop:FindFirstChildWhichIsA("BasePart")) do
+
+            local pos = root.Position
+            local coord = string.format("(%.1f, %.1f, %.1f)", pos.X, pos.Y, pos.Z)
+
+            textLabel.Text = drop.Name .. " | " .. coord
+
+            task.wait(2)
+        end
+
+        if billboard then billboard:Destroy() end
+    end)
+end
+
+
+local function updateAllDropsESP()
+    local dropFolder = workspace:FindFirstChild("Objects")
+        and workspace.Objects:FindFirstChild("Drops")
+
+    if dropFolder then
+        for _, drop in pairs(dropFolder:GetChildren()) do
+            createDropESP(drop)
+        end
+    end
+end
+
+
+
 Players.PlayerAdded:Connect(function(player)
     if getgenv().ESPenabled then
         player.CharacterAdded:Wait()
@@ -636,9 +663,6 @@ Players.PlayerAdded:Connect(function(player)
     end
 end)
 
----------------------------------------------------------
--- TOGGLE ESP
----------------------------------------------------------
 Ect:AddToggle({
     Name = "ESP",
     Flag = "ESP_Toggle",
@@ -648,15 +672,17 @@ Ect:AddToggle({
         if state then
             updateAllPlayersESP()
             updateAllMobsESP()
+            updateAllDropsESP()
         else
-            -- Xoá ESP người chơi
+
+
             for _, plr in pairs(Players:GetPlayers()) do
                 if plr.Character and plr.Character:FindFirstChild("ESP") then
                     plr.Character.ESP:Destroy()
                 end
             end
 
-            -- Xoá ESP mobs (an toàn)
+
             for _, mobName in ipairs(MobNames) do
                 local mobFolder = workspace:FindFirstChild("Objects")
                     and workspace.Objects:FindFirstChild("Mobs")
@@ -668,10 +694,21 @@ Ect:AddToggle({
                     end
                 end
             end
+
+
+            local dropFolder = workspace:FindFirstChild("Objects")
+                and workspace.Objects:FindFirstChild("Drops")
+
+            if dropFolder then
+                for _, drop in pairs(dropFolder:GetChildren()) do
+                    if drop:FindFirstChild("ESP") then
+                        drop.ESP:Destroy()
+                    end
+                end
+            end
         end
     end
 })
-
 
 
 
