@@ -1542,8 +1542,11 @@ AutoMission:AddToggle({
                                 end
 							else
 								if not getgenv().AutoBoss then
-									humanoid.Health = 0
-									task.wait(0.1)
+									local dist = (mobRoot.Position - hrp.Position).Magnitude
+									if dist <= 1000 then
+										humanoid.Health = 0
+										task.wait(0.1)
+									end
 								end
                             end
                         end
@@ -1627,6 +1630,26 @@ AutoMission:AddToggle({
             end
         end
 
+
+        local function FindMobWithQuestMarker()
+            local mobsFolder = workspace:WaitForChild("Objects"):WaitForChild("Mobs")
+            for _, mob in ipairs(mobsFolder:GetChildren()) do
+                if mob:IsDescendantOf(workspace) then
+                    local questMarker = mob:FindFirstChild("QuestMarker", true)
+                    if questMarker then
+                        local mobHRP = mob:FindFirstChild("HumanoidRootPart")
+                        if mobHRP then
+                            return mob, mobHRP
+                        end
+                        if mob.PrimaryPart then
+                            return mob, mob.PrimaryPart
+                        end
+                    end
+                end
+            end
+            return nil, nil
+        end
+
         task.spawn(function()
             while task.wait(1) do
                 game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Client"):WaitForChild("StorylineDialogueSkip"):FireServer()
@@ -1652,7 +1675,21 @@ AutoMission:AddToggle({
                     lastTaskText = currentTask
                 end
 
-                -- Collect objects
+                 if currentTask ~= "Collect all objects" and currentTask ~= "Rescue civilians to the gate" then
+                    local targetMob, targetPart = FindMobWithQuestMarker()
+                    
+                    if targetMob and targetPart then
+                        local char = player.Character
+                        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+                        local humanoid = targetMob:FindFirstChild("Humanoid")
+                        if hrp and targetMob:IsDescendantOf(workspace) and humanoid and humanoid.Health > 0 then
+                            local targetPos = targetPart.Position + Vector3.new(0, 1, 0)
+                            MoveToPosition(targetPos)
+							task.wait(0.2)
+                        end
+                    end
+                end
+
                 if currentTask == "Collect all objects" then
                     if not getgenv().AutoCollect then
                         getgenv().AutoCollect = true
@@ -1679,7 +1716,7 @@ AutoMission:AddToggle({
                     end
                 end
 
-                -- Rescue civilians
+
                 if currentTask == "Rescue civilians to the gate" then
                     if not getgenv().AutoCivilian then
                         getgenv().AutoCivilian = true
@@ -1737,22 +1774,6 @@ AutoMission:AddToggle({
                     end
                 end
 
-	if currentTask ~= "Collect all objects" and currentTask ~= "Rescue civilians to the gate" then
-				local mobsFolder = workspace:WaitForChild("Objects"):WaitForChild("Mobs")
-				local replicatedStorage = game:GetService("ReplicatedStorage")
-				local playerGui = player:WaitForChild("PlayerGui")
-
-					local mobs = workspace:WaitForChild("Objects"):WaitForChild("Mobs"):GetChildren()
-					for _, mob in ipairs(mobs) do
-						local char = player.Character
-						local hrp = char and char:FindFirstChild("HumanoidRootPart")
-						if hrp and mob:IsDescendantOf(workspace) then
-							task.wait(3)
-							local pivot = mob:GetPivot()
-							MoveToPosition(pivot.Position + Vector3.new(0, 1, 0))
-                        end
-                    end
-                end
             end
         end)
     end
