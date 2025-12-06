@@ -1681,7 +1681,7 @@ AutoMission:AddToggle({
                         local char = player.Character
                         local hrp = char and char:FindFirstChild("HumanoidRootPart")
                         local humanoid = targetMob:FindFirstChild("Humanoid")
-                        if hrp and targetMob:IsDescendantOf(workspace) and humanoid and humanoid.Health > 0 then
+                        if hrp and targetMob:IsDescendantOf(workspace) then
                             local targetPos = targetPart.Position + Vector3.new(0, 1, 0)
                             MoveToPosition(targetPos)
 							task.wait(0.2)
