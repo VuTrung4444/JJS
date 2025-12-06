@@ -1577,7 +1577,7 @@ AutoMission:AddToggle({
         local hrp = nil
 
         local function UpdateHRP(char)
-            task.wait(4)
+            task.wait(1)
             hrp = char:WaitForChild("HumanoidRootPart")
         end
 
@@ -1615,7 +1615,7 @@ AutoMission:AddToggle({
         setFloating(state)
 
         player.CharacterAdded:Connect(function(char)
-            task.wait(4)
+            task.wait(1)
             UpdateHRP(char)
             if getgenv().FloatingEnabled then
                 setFloating(true)
