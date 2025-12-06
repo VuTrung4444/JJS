@@ -1542,11 +1542,10 @@ AutoMission:AddToggle({
                                 end
 							else
 								if not getgenv().AutoBoss then
-									local dist = (mobRoot.Position - hrp.Position).Magnitude
-									if dist <= 1000 then
+									
 										humanoid.Health = 0
 										task.wait(0.1)
-									end
+									
 								end
                             end
                         end
