@@ -1274,19 +1274,14 @@ Ect:AddButton({
 })
 
 
-getgenv().CalamityBypass = false
-
 local function RunCalamityBypass()
-    if getgenv().CalamityBypass then return end
-    getgenv().CalamityBypass = true
-
     local player = game:GetService("Players").LocalPlayer
     local targets = {
         player.PlayerGui:WaitForChild("Main"):WaitForChild("Frame"):WaitForChild("BottomMiddle"):WaitForChild("DomainClash"),
         game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Client"):WaitForChild("PromptOneTimeQTE"),
         game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Client"):WaitForChild("PromptQTE")
     }
-
+    
     local function hook(r)
         if r:IsA("RemoteEvent") then
             r.OnClientEvent:Connect(function(...) end)
@@ -1294,10 +1289,13 @@ local function RunCalamityBypass()
             r.OnClientInvoke = function(...) return ... end
         end
     end
-
+    
     for _, r in ipairs(targets) do
-        hook(r)
+        local success, err = pcall(function()
+            hook(r)
+        end)
     end
+
 end
 
 Calamity:AddButton({
@@ -1306,7 +1304,6 @@ Calamity:AddButton({
         RunCalamityBypass()
     end
 })
-
 
 
 local Players = game:GetService("Players")
