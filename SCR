@@ -1428,20 +1428,40 @@ MiscSection:AddToggle({
 
         local Players = game:GetService("Players")
         local player = Players.LocalPlayer
-        local StarterGui = game:GetService("StarterGui")
         local workspace = game:GetService("Workspace")
 
+        if state then
+            local autochest = {
+                game:GetService("ReplicatedStorage"):WaitForChild("Remotes")
+                    :WaitForChild("Client"):WaitForChild("CollectChest")
+            }
+
+            local function hook(r)
+                if r:IsA("RemoteEvent") then
+                    r.OnClientEvent:Connect(function(...) end)
+                elseif r:IsA("RemoteFunction") then
+                    r.OnClientInvoke = function(...) return ... end
+                end
+            end
+
+            for _, r in ipairs(autochest) do
+                pcall(function()
+                    hook(r)
+                end)
+            end
+        end
 
         task.spawn(function()
             while true do
                 task.wait(1)
-                if not getgenv().AutoChest then continue end
 
-                local dropsFolder = workspace:FindFirstChild("Objects") and workspace.Objects:FindFirstChild("Drops")
+                if not getgenv().AutoChest then break end
+
+                local dropsFolder = workspace:FindFirstChild("Objects") 
+                    and workspace.Objects:FindFirstChild("Drops")
                 if not dropsFolder then continue end
 
                 for _, drop in ipairs(dropsFolder:GetChildren()) do
-
                     if not drop.Name:match("^" .. player.Name .. "|") then continue end
                     local chest = drop:FindFirstChild("Chest")
                     if not chest then continue end
@@ -1450,43 +1470,13 @@ MiscSection:AddToggle({
                     if prompt and prompt:IsA("ProximityPrompt") and prompt.ClickablePrompt and prompt.Enabled then
                         fireproximityprompt(prompt)
                         task.wait(1)
-
-                        local gui = player:WaitForChild("PlayerGui")
-                        local lootGUI = gui:FindFirstChild("Loot")
-                        if lootGUI then
-                            local results = lootGUI:FindFirstChild("Results")
-                            if results then
-                                local mainFrame = results:FindFirstChild("Main")
-                                if mainFrame then
-                                    local scrollingFrame = mainFrame:FindFirstChild("ScrollingFrame")
-                                    if scrollingFrame then
-                                        local frameDetected = false
-                                        for _, itemFrame in ipairs(scrollingFrame:GetChildren()) do
-                                            if itemFrame.ClassName == "Frame" then
-                                                frameDetected = true
-                                                break
-                                            end
-                                        end
-
-                                        if frameDetected then
-                                            task.wait(3)
-                                            lootGUI:Destroy()
-                                            task.wait(1)
-                                            local starterLoot = StarterGui:FindFirstChild("Loot")
-                                            if starterLoot then
-                                                starterLoot:Clone().Parent = gui
-                                            end
-                                        end
-                                    end
-                                end
-                            end
-                        end
                     end
                 end
             end
         end)
     end
 })
+
 
 
 
