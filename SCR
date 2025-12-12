@@ -1973,40 +1973,49 @@ local function HasDrops()
     return #dropsFolder:GetChildren() > 0
 end
 
+local function GetHealth()
+    if not player.Character then return 100 end
+    local humanoid = player.Character:FindFirstChildWhichIsA("Humanoid")
+    return humanoid and humanoid.Health or 100
+end
+
 function StartAutoReplay()
     task.spawn(function()
         while getgenv().AutoReplay do
             local replicatedStorage = game:GetService("ReplicatedStorage")
             local playerGui = player:WaitForChild("PlayerGui")
 
-
             local invResults = playerGui:FindFirstChild("InvestigationResults")
-            if invResults then
-                invResults:Destroy()
-            end
+            if invResults then invResults:Destroy() end
 
-			local CalaResults = playerGui:FindFirstChild("CalamityResults")
-            if CalaResults then
-                CalaResults:Destroy()
-            end
+            local CalaResults = playerGui:FindFirstChild("CalamityResults")
+            if CalaResults then CalaResults:Destroy() end
 
             local readyReplay = replicatedStorage:FindFirstChild("ReadyReplay")
             local dropsExist = HasDrops()
+            local health = GetHealth()
+
+
+            local remote = replicatedStorage
+                :WaitForChild("Remotes")
+                :WaitForChild("Server")
+                :WaitForChild("Misc")
+                :WaitForChild("ReadyReplay")
 
             if readyReplay and readyReplay.Value == 0 then
                 task.wait(4)
                 local dropsExistAfterDelay = HasDrops()
 
-                if not dropsExistAfterDelay then
-                    local remote = replicatedStorage
-                        :WaitForChild("Remotes")
-                        :WaitForChild("Server")
-                        :WaitForChild("Misc")
-                        :WaitForChild("ReadyReplay")
-                    remote:FireServer()
 
+                if not dropsExistAfterDelay then
+                    remote:FireServer()
                 end
             end
+
+            if dropsExist and health <= 0 then
+                remote:FireServer()
+            end
+
             task.wait(1)
         end
     end)
@@ -2022,6 +2031,7 @@ AutoMission:AddToggle({
         end
     end,
 })
+
 
 if placeId == mainMenuPlaceID then
 	local SelectedTown = nil
