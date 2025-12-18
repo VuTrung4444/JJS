@@ -100,6 +100,7 @@ end
 	local Settings = MainTab:CreateSection({Name = "Settings"})
 	local KA = MainTab:CreateSection({Name = "Kill Aura", Side = "Left"})
 	local AutoMission = MainTab:CreateSection({Name = "Auto", Side = "Right"})
+	local Ect = MainTab:CreateSection({Name = "Ect", Side = "Left"})
 	local Calamity = MainTab:CreateSection({Name = "Calamity", Side = "Right"})
 	local DailySection = MainTab:CreateSection({Name = "Spin", Side = "Left"})
 	local Teleports = MainTab:CreateSection({Name = "Teleports", Side = "Right"})
@@ -108,7 +109,6 @@ end
 	--// Misc Tab \\--
 	local MiscTab = Window:CreateTab({Name = "Misc"})
 	local MiscSection = MiscTab:CreateSection({Name = "Misc"})
-	local Ect = MiscTab:CreateSection({Name = "Ect", Side = "Left"})
 	local SpeedAndJump = MiscTab:CreateSection({Name = "Speed&Jump", Side = "Right"})
 
 
