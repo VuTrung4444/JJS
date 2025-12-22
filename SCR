@@ -18,7 +18,7 @@ local huntSg = false
 
 
 local legendaryInnate = {"Volcano", "Hydrokinesis", "Judgeman", "Puppet", "Projection", "Plan Manipulation"}
-local sgInnate = {"Infinity", "Demon Vessel", "Curse Queen", "Soul Manipulation", "Gamble Fever", "Star Rage", "Ancient Construction", "Thunder God"}
+local sgInnate = {"Infinity", "Demon Vessel", "Curse Queen", "Soul Manipulation", "Gambler Fever", "Star Rage", "Ancient Construction", "Thunder God"}
 
 
 local function getFilteredInnate()
