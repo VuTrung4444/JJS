@@ -1273,33 +1273,74 @@ Ect:AddButton({
 })
 
 
-local function RunCalamityBypass()
-    local player = game:GetService("Players").LocalPlayer
-    local targets = {
-        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Client"):WaitForChild("PromptOneTimeQTE"),
-        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Client"):WaitForChild("PromptQTE")
-    }
-    
-    local function hook(r)
-        if r:IsA("RemoteEvent") then
-            r.OnClientEvent:Connect(function(...) end)
-        elseif r:IsA("RemoteFunction") then
-            r.OnClientInvoke = function(...) return ... end
-        end
-    end
-    
-    for _, r in ipairs(targets) do
-        local success, err = pcall(function()
-            hook(r)
-        end)
-    end
+-- LocalScript
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local Players = game:GetService("Players")
 
+local HOLD_TIME = 0.05
+local TARGET_X = 0.5
+local TOLERANCE = 0.05 
+
+local isAutoClickEnabled = false
+local lastClickedX = nil
+
+-- Hàm gửi lệnh nhấn chuột
+local function sendClick()
+
+    VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 0)
+    task.wait(HOLD_TIME)
+
+    VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 0)
 end
 
+
+local function isInTargetRange(x)
+    return x >= (TARGET_X - TOLERANCE) and x <= (TARGET_X + TOLERANCE)
+end
+
+
+local function monitorSlider()
+    local player = Players.LocalPlayer
+    local sliderPath = player.PlayerGui:WaitForChild("Main")
+        :WaitForChild("Frame")
+        :WaitForChild("BottomMiddle")
+        :WaitForChild("QTE")
+        :WaitForChild("Timing")
+        :WaitForChild("Frame")
+        :WaitForChild("Slider")
+    
+    local previousX = sliderPath.Position.X.Scale
+    
+    while isAutoClickEnabled do
+        local currentX = sliderPath.Position.X.Scale
+        
+
+        if currentX ~= previousX then
+
+            if isInTargetRange(currentX) and (lastClickedX == nil or math.abs(currentX - lastClickedX) > 0.01) then
+                sendClick()
+                lastClickedX = currentX
+
+            end
+            
+            previousX = currentX
+        end
+        
+        task.wait(0.01)
+    end
+end
+
+-- Button để bật/tắt auto click
 Calamity:AddButton({
     Name = "Bypass Clash",
     Callback = function()
-        RunCalamityBypass()
+        isAutoClickEnabled = not isAutoClickEnabled
+        
+        if isAutoClickEnabled then
+            lastClickedX = nil  -- Reset giá trị
+            task.spawn(monitorSlider)
+        else
+        end
     end
 })
 
