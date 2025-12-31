@@ -212,8 +212,20 @@ local function GetNearestMobInRange(range)
     return nil
 end
 
+local Players = game:GetService("Players")
+local UIS = game:GetService("UserInputService")
+
 getgenv().ToggleBF = false
 local cast = false
+
+local function BlackFlashQuick()
+	local rs = game:GetService("ReplicatedStorage").Remotes.Server.Combat
+	local args = {1.123}
+		rs.ApplyBlackFlashToNextHitbox:FireServer(unpack(args))
+		rs.M2:FireServer()
+		task.wait(0.5)
+end
+
 local function StartBlackFlashLoop()
     if getgenv().ToggleBF then return end
     getgenv().ToggleBF = true
@@ -281,6 +293,14 @@ end
 local function StopBlackFlashLoop()
     getgenv().ToggleBF = false
 end
+
+UIS.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.R then
+        BlackFlashQuick()
+    end
+end)
+
 
 KA:AddToggle({
     Name = "BlackFlash Loop",
@@ -442,7 +462,7 @@ Calamity:AddButton({
 
 UIS.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
-    if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.R then
+    if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.G then
         moveToFurthestCharge()
     end
 end)
