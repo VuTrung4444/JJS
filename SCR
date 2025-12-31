@@ -226,6 +226,14 @@ local function BlackFlashQuick()
 		task.wait(0.5)
 end
 
+
+UIS.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.R then
+        BlackFlashQuick()
+    end
+end)
+
 local function StartBlackFlashLoop()
     if getgenv().ToggleBF then return end
     getgenv().ToggleBF = true
@@ -294,12 +302,6 @@ local function StopBlackFlashLoop()
     getgenv().ToggleBF = false
 end
 
-UIS.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed then return end
-    if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.R then
-        BlackFlashQuick()
-    end
-end)
 
 
 KA:AddToggle({
@@ -2157,8 +2159,8 @@ local Character = plr.Character or plr.CharacterAdded:Wait()
 local Humanoid = Character:WaitForChild("Humanoid")
 
 -- Giá trị mặc định
-local WalkSpeed = 150
-local JumpPower = 50
+local WalkSpeed = 100
+local JumpPower = 100
 
 -- Hàm cập nhật Humanoid mới khi respawn
 local function updateHumanoid(char)
