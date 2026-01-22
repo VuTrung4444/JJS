@@ -223,7 +223,7 @@ local function BlackFlashQuick()
 	local args = {1.123}
 		rs.ApplyBlackFlashToNextHitbox:FireServer(unpack(args))
 		rs.M2:FireServer()
-		task.wait(0.5)
+
 end
 
 
@@ -231,6 +231,27 @@ UIS.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
     if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.R then
         BlackFlashQuick()
+    end
+end)
+
+
+local function BlackFlashQuickSkill()
+	local args = {
+	1
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("ApplyBlackFlashToNextHitbox"):FireServer(unpack(args))
+
+local args = {
+	"Rising Kick"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("Skill"):FireServer(unpack(args))
+end
+
+
+UIS.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.N then
+        BlackFlashQuickSkill()
     end
 end)
 
