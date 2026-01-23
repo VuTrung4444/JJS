@@ -242,7 +242,7 @@ local function BlackFlashQuickSkill()
 game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("ApplyBlackFlashToNextHitbox"):FireServer(unpack(args))
 
 local args = {
-	"Rising Kick"
+	"Axe Smash"
 }
 game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("Skill"):FireServer(unpack(args))
 end
