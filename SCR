@@ -2285,23 +2285,31 @@ SpeedAndJump:AddSlider({
 })
 
 
-local VirtualUser = game:GetService("VirtualUser")
-	local Players = game:GetService("Players")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local Players = game:GetService("Players")
 
+local HOLD_TIME = 0.05
 
+local function naturalWaitTime()
+    local baseTime = 6
+    local offset = math.random(-1, 2)
+    return math.max(3, baseTime + offset)
+end
 
-	local function naturalWaitTime()
-		local baseTime = 600
-		local offset = math.random(-120, 180)
-		return math.max(300, baseTime + offset)
-	end
+local function sendClick(x, y)
+    VirtualInputManager:SendMouseButtonEvent(x, y, 0, true, game, 0)
+    task.wait(HOLD_TIME)
+    VirtualInputManager:SendMouseButtonEvent(x, y, 0, false, game, 0)
+end
 
-	spawn(function()
-		while true do
-			wait(naturalWaitTime()) 
-			if Players.LocalPlayer and Players.LocalPlayer.Character then
-				VirtualUser:CaptureController()
-				VirtualUser:ClickButton2(Vector2.new(math.random(100, 1820), math.random(100, 980))) 
-			end
-		end
-	end)
+spawn(function()
+    while true do
+        wait(naturalWaitTime()) 
+        if Players.LocalPlayer and Players.LocalPlayer.Character then
+            local randomX = math.random(100, 1820)
+            local randomY = math.random(100, 980)
+            sendClick(randomX, randomY)
+print("Đã click")
+        end
+    end
+end)
