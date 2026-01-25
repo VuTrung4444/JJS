@@ -235,14 +235,15 @@ UIS.InputBegan:Connect(function(input, gameProcessed)
 end)
 
 
-local function BlackFlashQuickSkill()
+local function BlackFlashQuickSkillZ()
 	local args = {
-	1
+	2,
+	true
 }
-game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("ApplyBlackFlashToNextHitbox"):FireServer(unpack(args))
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("ApplyChantToNextHitbox"):FireServer(unpack(args))
 
 local args = {
-	"Axe Smash"
+	"Demon Vessel: Dismantle"
 }
 game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("Skill"):FireServer(unpack(args))
 end
@@ -251,7 +252,49 @@ end
 UIS.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
     if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.N then
-        BlackFlashQuickSkill()
+        BlackFlashQuickSkillZ()
+    end
+end)
+
+local function BlackFlashQuickSkillC()
+	local args = {
+	2,
+	true
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("ApplyChantToNextHitbox"):FireServer(unpack(args))
+
+local args = {
+	"Demon Vessel: Cleave"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("Skill"):FireServer(unpack(args))
+end
+
+
+UIS.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.M then
+        BlackFlashQuickSkillC()
+    end
+end)
+
+local function BlackFlashQuickSkillV()
+	local args = {
+	2,
+	true
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("ApplyChantToNextHitbox"):FireServer(unpack(args))
+
+local args = {
+	"Demon Vessel: Flame Arrow"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("Skill"):FireServer(unpack(args))
+end
+
+
+UIS.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.K then
+        BlackFlashQuickSkillV()
     end
 end)
 
@@ -2241,23 +2284,30 @@ SpeedAndJump:AddSlider({
     end
 })
 
-local VirtualUser = game:GetService("VirtualUser")
-	local Players = game:GetService("Players")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local Players = game:GetService("Players")
 
+local HOLD_TIME = 0.05
 
+local function naturalWaitTime()
+    local baseTime = 600
+    local offset = math.random(-120, 180)
+    return math.max(300, baseTime + offset)
+end
 
-	local function naturalWaitTime()
-		local baseTime = 600
-		local offset = math.random(-120, 180)
-		return math.max(300, baseTime + offset)
-	end
+local function sendClick(x, y)
+    VirtualInputManager:SendMouseButtonEvent(x, y, 0, true, game, 0)
+    task.wait(HOLD_TIME)
+    VirtualInputManager:SendMouseButtonEvent(x, y, 0, false, game, 0)
+end
 
-	spawn(function()
-		while true do
-			wait(naturalWaitTime()) 
-			if Players.LocalPlayer and Players.LocalPlayer.Character then
-				VirtualUser:CaptureController()
-				VirtualUser:ClickButton2(Vector2.new(math.random(100, 1820), math.random(100, 980))) 
-			end
-		end
-	end)
+spawn(function()
+    while true do
+        wait(naturalWaitTime()) 
+        if Players.LocalPlayer and Players.LocalPlayer.Character then
+            local randomX = math.random(100, 1820)
+            local randomY = math.random(100, 980)
+            sendClick(randomX, randomY)
+        end
+    end
+end)
