@@ -2291,9 +2291,9 @@ local Players = game:GetService("Players")
 local HOLD_TIME = 0.05
 
 local function naturalWaitTime()
-    local baseTime = 6
-    local offset = math.random(-1, 2)
-    return math.max(3, baseTime + offset)
+    local baseTime = 600
+    local offset = math.random(-120, 180)
+    return math.max(300, baseTime + offset)
 end
 
 local function sendClick(x, y)
@@ -2309,7 +2309,6 @@ spawn(function()
             local randomX = math.random(100, 1820)
             local randomY = math.random(100, 980)
             sendClick(randomX, randomY)
-print("Đã click")
         end
     end
 end)
