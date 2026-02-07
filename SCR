@@ -327,6 +327,10 @@ local function StartBlackFlashLoop()
 					"Infinity Piercing Vial"
 				}
 				game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Data"):WaitForChild("EquipItem"):InvokeServer(unpack(args))
+				local args = {
+					"Binding Chains"
+				}
+				game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Data"):WaitForChild("EquipItem"):InvokeServer(unpack(args))
                 CastSwitch()
 				cast = true
 			elseif not isCalamityStunned then
