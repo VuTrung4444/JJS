@@ -109,7 +109,7 @@ end
 	--// Misc Tab \\--
 	local MiscTab = Window:CreateTab({Name = "Misc"})
 	local MiscSection = MiscTab:CreateSection({Name = "Misc"})
-	local SpeedAndJump = MiscTab:CreateSection({Name = "Speed&Jump", Side = "Right"})
+	local SpeedAndJump = MiscTab:CreateSection({Name = "Speed&Jump[P]", Side = "Right"})
 
 
     -- Toggle Auto Spin
@@ -243,7 +243,7 @@ local function BlackFlashQuickSkillZ()
 game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("ApplyChantToNextHitbox"):FireServer(unpack(args))
 
 local args = {
-	"Demon Vessel: Dismantle"
+	"Gambler Fever: Closing Curtains"
 }
 game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("Skill"):FireServer(unpack(args))
 end
@@ -251,7 +251,7 @@ end
 
 UIS.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
-    if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.N then
+    if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.M then
         BlackFlashQuickSkillZ()
     end
 end)
@@ -264,7 +264,7 @@ local function BlackFlashQuickSkillC()
 game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("ApplyChantToNextHitbox"):FireServer(unpack(args))
 
 local args = {
-	"Demon Vessel: Cleave"
+	"Cryokinesis: Winter Lotus"
 }
 game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("Skill"):FireServer(unpack(args))
 end
@@ -272,7 +272,7 @@ end
 
 UIS.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
-    if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.M then
+    if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.N then
         BlackFlashQuickSkillC()
     end
 end)
@@ -2221,7 +2221,7 @@ end
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-
+local UserInputService = game:GetService("UserInputService")
 local plr = Players.LocalPlayer
 local Character = plr.Character or plr.CharacterAdded:Wait()
 local Humanoid = Character:WaitForChild("Humanoid")
@@ -2229,33 +2229,78 @@ local Humanoid = Character:WaitForChild("Humanoid")
 -- Giá trị mặc định
 local WalkSpeed = 100
 local JumpPower = 100
+local isEnabled = false -- Trạng thái bật/tắt
+
+-- Các connection để có thể disconnect
+local walkSpeedConnection
+local jumpPowerConnection
 
 -- Hàm cập nhật Humanoid mới khi respawn
 local function updateHumanoid(char)
     Character = char
     Humanoid = char:WaitForChild("Humanoid")
-
-    -- Đặt lại WalkSpeed và JumpPower ngay khi Humanoid xuất hiện
-    Humanoid.WalkSpeed = WalkSpeed
-    Humanoid.JumpPower = JumpPower
-
-    -- Theo dõi khi WalkSpeed hoặc JumpPower bị reset
-    Humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
-        if Humanoid.WalkSpeed ~= WalkSpeed then
-            Humanoid.WalkSpeed = WalkSpeed
-        end
-    end)
-
-    Humanoid:GetPropertyChangedSignal("JumpPower"):Connect(function()
-        if Humanoid.JumpPower ~= JumpPower then
-            Humanoid.JumpPower = JumpPower
-        end
-    end)
+    
+    -- Disconnect các connection cũ nếu có
+    if walkSpeedConnection then walkSpeedConnection:Disconnect() end
+    if jumpPowerConnection then jumpPowerConnection:Disconnect() end
+    
+    -- Áp dụng giá trị nếu đang bật
+    if isEnabled then
+        Humanoid.WalkSpeed = WalkSpeed
+        Humanoid.JumpPower = JumpPower
+        
+        -- Theo dõi khi WalkSpeed hoặc JumpPower bị reset
+        walkSpeedConnection = Humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
+            if Humanoid.WalkSpeed ~= WalkSpeed then
+                Humanoid.WalkSpeed = WalkSpeed
+            end
+        end)
+        
+        jumpPowerConnection = Humanoid:GetPropertyChangedSignal("JumpPower"):Connect(function()
+            if Humanoid.JumpPower ~= JumpPower then
+                Humanoid.JumpPower = JumpPower
+            end
+        end)
+    end
 end
-
 
 plr.CharacterAdded:Connect(updateHumanoid)
 updateHumanoid(Character)
+
+-- Xử lý phím P để bật/tắt
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    
+    if input.KeyCode == Enum.KeyCode.P then
+        isEnabled = not isEnabled
+        
+        if Humanoid then
+            if isEnabled then
+                -- Bật: áp dụng speed và jump tùy chỉnh
+                Humanoid.WalkSpeed = WalkSpeed
+                Humanoid.JumpPower = JumpPower
+                
+                -- Theo dõi khi bị reset
+                walkSpeedConnection = Humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
+                    if Humanoid.WalkSpeed ~= WalkSpeed then
+                        Humanoid.WalkSpeed = WalkSpeed
+                    end
+                end)
+                
+                jumpPowerConnection = Humanoid:GetPropertyChangedSignal("JumpPower"):Connect(function()
+                    if Humanoid.JumpPower ~= JumpPower then
+                        Humanoid.JumpPower = JumpPower
+                    end
+                end)
+            else
+                -- Tắt: ngắt kết nối, để hệ thống tự áp dụng giá trị mặc định
+                if walkSpeedConnection then walkSpeedConnection:Disconnect() end
+                if jumpPowerConnection then jumpPowerConnection:Disconnect() end
+
+            end
+        end
+    end
+end)
 
 -- Khi người dùng thay đổi slider
 SpeedAndJump:AddSlider({
@@ -2267,7 +2312,7 @@ SpeedAndJump:AddSlider({
     Textbox = true,
     Callback = function(state)
         WalkSpeed = state
-        if Humanoid then
+        if Humanoid and isEnabled then
             Humanoid.WalkSpeed = WalkSpeed
         end
     end
@@ -2282,7 +2327,7 @@ SpeedAndJump:AddSlider({
     Textbox = true,
     Callback = function(state)
         JumpPower = state
-        if Humanoid then
+        if Humanoid and isEnabled then
             Humanoid.JumpPower = JumpPower
         end
     end
