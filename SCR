@@ -243,7 +243,7 @@ local function BlackFlashQuickSkillZ()
 game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("ApplyChantToNextHitbox"):FireServer(unpack(args))
 
 local args = {
-	"Gambler Fever: Closing Curtains"
+	"Demon Vessel: Dismantle"
 }
 game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("Skill"):FireServer(unpack(args))
 end
@@ -264,7 +264,7 @@ local function BlackFlashQuickSkillC()
 game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("ApplyChantToNextHitbox"):FireServer(unpack(args))
 
 local args = {
-	"Cryokinesis: Winter Lotus"
+	"Demon Vessel: Cleave"
 }
 game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("Skill"):FireServer(unpack(args))
 end
