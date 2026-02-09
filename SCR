@@ -220,7 +220,7 @@ local cast = false
 
 local function BlackFlashQuick()
 	local rs = game:GetService("ReplicatedStorage").Remotes.Server.Combat
-	local args = {1.123}
+	local args = {1.4}
 		rs.ApplyBlackFlashToNextHitbox:FireServer(unpack(args))
 		rs.M2:FireServer()
 
@@ -236,10 +236,15 @@ end)
 
 
 local function BlackFlashJump()
-	local rs = game:GetService("ReplicatedStorage").Remotes.Server.Combat
-	local args = {1}
-		rs.ApplyBlackFlashToNextHitbox:FireServer(unpack(args))
-		rs.M2:FireServer(unpack(args))
+local args = {
+	1
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("ApplyBlackFlashToNextHitbox"):FireServer(unpack(args))
+
+local args = {
+	0
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("M2"):FireServer(unpack(args))
 
 end
 
@@ -247,7 +252,7 @@ end
 UIS.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
     if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.N then
-        BlackFlashJummp()
+        BlackFlashJump()
     end
 end)
 
