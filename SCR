@@ -235,6 +235,27 @@ UIS.InputBegan:Connect(function(input, gameProcessed)
 end)
 
 
+local function BlackFlashJump()
+local args = {
+	1
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("ApplyBlackFlashToNextHitbox"):FireServer(unpack(args))
+
+local args = {
+	0
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("M2"):FireServer(unpack(args))
+
+end
+
+
+UIS.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.N then
+        BlackFlashJump()
+    end
+end)
+
 local function BlackFlashQuickSkillZ()
 	local args = {
 	2,
@@ -251,7 +272,7 @@ end
 
 UIS.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
-    if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.N then
+    if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.K then
         BlackFlashQuickSkillZ()
     end
 end)
@@ -272,7 +293,7 @@ end
 
 UIS.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
-    if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.M then
+    if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.L then
         BlackFlashQuickSkillC()
     end
 end)
@@ -293,7 +314,7 @@ end
 
 UIS.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
-    if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.K then
+    if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.M then
         BlackFlashQuickSkillV()
     end
 end)
