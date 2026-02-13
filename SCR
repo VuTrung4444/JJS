@@ -1734,13 +1734,7 @@ AutoMission:AddToggle({
             end
 
             if enable then
-                local bg = Instance.new("BodyGyro")
-                bg.P = 5e4
-                bg.D = 1000
-                bg.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
-                bg.CFrame = hrp.CFrame
-                bg.Parent = hrp
-
+                -- Không tạo BodyGyro nữa, chỉ dùng BodyPosition
                 local bp = Instance.new("BodyPosition")
                 bp.P = 5e4
                 bp.D = 1000
@@ -1789,8 +1783,7 @@ AutoMission:AddToggle({
         end
 
         task.spawn(function()
-            while task.wait(1) do
-                game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Client"):WaitForChild("StorylineDialogueSkip"):FireServer()
+            while task.wait(0.01) do
 
                 if not getgenv().AutoMissionEnabled then
                     getgenv().AutoCollect = false
@@ -1821,9 +1814,12 @@ AutoMission:AddToggle({
                         local hrp = char and char:FindFirstChild("HumanoidRootPart")
                         local humanoid = targetMob:FindFirstChild("Humanoid")
                         if hrp and targetMob:IsDescendantOf(workspace) then
-                            local targetPos = targetPart.Position + Vector3.new(0, 1, 0)
+                            local targetPos = targetPart.Position + Vector3.new(0, 4, 0)
                             MoveToPosition(targetPos)
-							task.wait(0.2)
+                            
+                            hrp.CFrame = CFrame.new(hrp.Position, targetPart.Position)
+                            hrp.Velocity = Vector3.zero
+                            hrp.AssemblyLinearVelocity = Vector3.zero
                         end
                     end
                 end
@@ -1911,12 +1907,11 @@ AutoMission:AddToggle({
                         end)
                     end
                 end
-
+				game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Client"):WaitForChild("StorylineDialogueSkip"):FireServer()
             end
         end)
     end
 })
-
 
 getgenv().AutoBoss = false
 
@@ -2056,26 +2051,24 @@ KA:AddToggle({
     Default = false,
     Callback = function(state)
         getgenv().AutoMob = state
-
-        local HoverHeight = 5
+        local HoverHeight = 10
         local Players = game:GetService("Players")
         local workspace = game:GetService("Workspace")
         local player = Players.LocalPlayer
         local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-
+        
         local function UpdateHRP(char)
             task.wait(0.2)
             hrp = char:WaitForChild("HumanoidRootPart")
         end
         player.CharacterAdded:Connect(UpdateHRP)
-
+        
         local function HoverOnNearestMob()
             if not hrp then return end
-
             local mobsFolder = workspace:WaitForChild("Objects"):WaitForChild("Mobs")
             local target, humanoid = nil, nil
             local closestDistance = math.huge
-
+            
             for _, mob in ipairs(mobsFolder:GetChildren()) do
                 local h = mob:FindFirstChild("Humanoid")
                 if h and h.Health > 0 and mob.PrimaryPart then
@@ -2087,29 +2080,39 @@ KA:AddToggle({
                     end
                 end
             end
-
+            
             if not target then
                 DisableHover(hrp)
                 return
             end
-
+            
             EnableHover(hrp)
             local bp = hrp:FindFirstChild("BodyPosition")
-            local bg = hrp:FindFirstChild("BodyGyro")
-
+            
             while humanoid and humanoid.Health > 0 and target.PrimaryPart and getgenv().AutoMob do
                 local distance = (hrp.Position - target.PrimaryPart.Position).Magnitude
                 if distance > 100 then break end -- Dừng hover nếu mob quá xa
-
+                
                 local desiredPos = target.PrimaryPart.Position + Vector3.new(0, HoverHeight, 0)
-                if bp then bp.Position = desiredPos end
-                if bg then bg.CFrame = CFrame.new(hrp.Position) * CFrame.Angles(math.rad(-90), 0, 0) end
-                task.wait(0.5)
-            end
+                
+                if bp then 
+                    bp.Position = desiredPos 
+                end
+                
 
+                if target.PrimaryPart then
+                    local lookAtPos = target.PrimaryPart.Position
+                    hrp.CFrame = CFrame.new(hrp.Position, lookAtPos)
+                    hrp.Velocity = Vector3.zero
+                    hrp.AssemblyLinearVelocity = Vector3.zero
+                end
+                
+
+                task.wait(0.01)
+            end
             DisableHover(hrp)
         end
-
+        
         task.spawn(function()
             while getgenv().AutoMob do
                 if hrp then
