@@ -2124,6 +2124,242 @@ KA:AddToggle({
     end
 })
 
+
+AutoMission:AddToggle({
+    Name = "Auto Quest",
+    Default = false,
+    Callback = function(state)
+        getgenv().AutoRerollQuest = state
+        
+        local Players = game:GetService("Players")
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        local TweenService = game:GetService("TweenService")
+        local VirtualInputManager = game:GetService("VirtualInputManager")
+        local workspace = game:GetService("Workspace")
+        local player = Players.LocalPlayer
+        local username = player.Name
+        
+        local currentTween = nil
+        local targetPosition = Vector3.new(-505.3, 4470.24, -15619.8)
+        local returnCount = 0
+        
+        local function pressJ()
+            VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.J, false, game)
+            task.wait(0.1)
+            VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.J, false, game)
+        end
+        
+        local function tweenToPosition(position)
+            if not getgenv().AutoRerollQuest then return false end
+            
+            local character = player.Character
+            if not character then return false end
+            local hrp = character:FindFirstChild("HumanoidRootPart")
+            if not hrp then return false end
+            
+            local tweenInfo = TweenInfo.new(
+                (hrp.Position - position).Magnitude / 100,
+                Enum.EasingStyle.Linear
+            )
+            
+            currentTween = TweenService:Create(hrp, tweenInfo, {CFrame = CFrame.new(position)})
+            currentTween:Play()
+            
+            local completed = false
+            local connection
+            connection = currentTween.Completed:Connect(function()
+                completed = true
+                connection:Disconnect()
+            end)
+            
+            while not completed and getgenv().AutoRerollQuest do
+                task.wait(0.1)
+            end
+            
+            if not getgenv().AutoRerollQuest then
+                if currentTween then
+                    currentTween:Cancel()
+                end
+                if connection then
+                    connection:Disconnect()
+                end
+                return false
+            end
+            
+            return true
+        end
+        
+        local function getMob()
+            local mobsFolder = workspace:WaitForChild("Objects"):WaitForChild("Mobs")
+            for _, mob in ipairs(mobsFolder:GetChildren()) do
+                if mob:IsDescendantOf(workspace) then
+                    local mobHRP = mob:FindFirstChild("HumanoidRootPart")
+                    if mobHRP then
+                        return mob, mobHRP.Position
+                    end
+                    if mob.PrimaryPart then
+                        return mob, mob.PrimaryPart.Position
+                    end
+                end
+            end
+            return nil, nil
+        end
+        
+        local function waitUntilAllMobsGone()
+            local mobsFolder = workspace:WaitForChild("Objects"):WaitForChild("Mobs")
+            local currentTargetMob = nil
+            
+            while getgenv().AutoRerollQuest do
+                local mobCount = 0
+                for _, mob in ipairs(mobsFolder:GetChildren()) do
+                    if mob:IsDescendantOf(workspace) then
+                        mobCount = mobCount + 1
+                    end
+                end
+                
+                if mobCount == 0 then
+                    return true
+                end
+                
+                if currentTargetMob and not currentTargetMob:IsDescendantOf(workspace) then
+                    currentTargetMob = nil
+                end
+                
+                if not currentTargetMob then
+                    local mob, mobPos = getMob()
+                    if mob and mobPos then
+                        currentTargetMob = mob
+                        local success = tweenToPosition(mobPos + Vector3.new(0, 5, 0))
+                        if not success then
+                            return false
+                        end
+                    end
+                end
+                
+                task.wait(0.5)
+            end
+            
+            return false
+        end
+        
+        local function checkQuestValid()
+            local missionsFolder = ReplicatedStorage:WaitForChild("Missions")
+            local userMissions = missionsFolder:FindFirstChild(username)
+            if not userMissions then return false, nil end
+            
+            local shijoSet = userMissions:FindFirstChild("Shijo Town Set")
+            if not shijoSet then return false, nil end
+            
+            for _, questName in ipairs({"Quest1", "Quest2", "Quest3"}) do
+                local quest = shijoSet:FindFirstChild(questName)
+                if quest then
+                    local difficulty = quest:FindFirstChild("difficulty")
+                    local title = quest:FindFirstChild("title")
+                    
+                    if difficulty and difficulty.Value == 3 and title then
+                        if title.Value == "Exorcise" or title.Value == "Defeat" then
+                            return true, quest
+                        end
+                    end
+                end
+            end
+            
+            return false, nil
+        end
+        
+        local function claimQuest(questObject)
+            local args = {questObject}
+            ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Data"):WaitForChild("ClaimQuest"):InvokeServer(unpack(args))
+        end
+        
+        local function isNearTargetPosition(targetPos, maxDistance)
+            local character = player.Character
+            if not character then return false end
+            local hrp = character:FindFirstChild("HumanoidRootPart")
+            if not hrp then return false end
+            
+            return (hrp.Position - targetPos).Magnitude <= maxDistance
+        end
+        
+        local function returnToTargetPosition()
+            if not getgenv().AutoRerollQuest then return false end
+            
+            while not isNearTargetPosition(targetPosition, 1000) and getgenv().AutoRerollQuest do
+                pressJ()
+                task.wait(4)
+            end
+            
+            if not getgenv().AutoRerollQuest then return false end
+            
+
+            local tweenSuccess = tweenToPosition(targetPosition)
+            return tweenSuccess
+        end
+        
+        task.spawn(function()
+            while getgenv().AutoRerollQuest do
+                local isValid, validQuest = checkQuestValid()
+                
+                while not isValid and getgenv().AutoRerollQuest do
+                    local rerollArgs = {"Shijo Town Set"}
+                    ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Data"):WaitForChild("RerollMissions"):InvokeServer(unpack(rerollArgs))
+                    task.wait(1)
+                    isValid, validQuest = checkQuestValid()
+                end
+                
+                if not getgenv().AutoRerollQuest then break end
+                
+                if validQuest then
+                    claimQuest(validQuest)
+                    task.wait(0.5)
+                    
+                    if not getgenv().AutoRerollQuest then break end
+                    
+                    pressJ()
+                    task.wait(1)
+                    
+                    if not getgenv().AutoRerollQuest then break end
+                    
+                    local allMobsGone = waitUntilAllMobsGone()
+                    
+                    if not allMobsGone then
+                        break 
+                    end
+                    
+                    if not getgenv().AutoRerollQuest then break end
+                    
+                    local returnSuccess = returnToTargetPosition()
+                    
+                    if not returnSuccess then
+                        break
+                    end
+                    
+
+                    returnCount = returnCount + 1
+                    
+
+                    if returnCount >= 10 then
+
+                        local rerollArgs = {"Shijo Town Set"}
+                        ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Data"):WaitForChild("RerollMissions"):InvokeServer(unpack(rerollArgs))
+                        task.wait(1)
+                        
+
+                        returnCount = 0
+                    end
+                    
+                    task.wait(8)
+                end
+            end
+            
+            if currentTween then
+                currentTween:Cancel()
+                currentTween = nil
+            end
+        end)
+    end
+})
+
 getgenv().AutoReplay = false
 local player = game.Players.LocalPlayer
 
