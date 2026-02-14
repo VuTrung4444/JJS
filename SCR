@@ -1,3 +1,4 @@
+
 repeat task.wait() until game:IsLoaded()
 
 local Library = loadstring(game:GetObjects("rbxassetid://7657867786")[1].Source)()
@@ -269,7 +270,7 @@ local function BlackFlashQuickSkillZ()
 game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("ApplyChantToNextHitbox"):FireServer(unpack(args))
 
 local args = {
-	"Demon Vessel: Dismantle"
+	"Infinity: Lapse Blue"
 }
 game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("Skill"):FireServer(unpack(args))
 end
@@ -290,7 +291,7 @@ local function BlackFlashQuickSkillC()
 game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("ApplyChantToNextHitbox"):FireServer(unpack(args))
 
 local args = {
-	"Demon Vessel: Cleave"
+	"Infinity: Reversal Red"
 }
 game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("Skill"):FireServer(unpack(args))
 end
