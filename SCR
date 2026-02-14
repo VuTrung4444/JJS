@@ -304,27 +304,6 @@ UIS.InputBegan:Connect(function(input, gameProcessed)
     end
 end)
 
-local function BlackFlashQuickSkillV()
-	local args = {
-	2,
-	true
-}
-game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("ApplyChantToNextHitbox"):FireServer(unpack(args))
-
-local args = {
-	"Puppet: Aerial Reinforcements"
-}
-game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("Skill"):FireServer(unpack(args))
-end
-
-
-UIS.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed then return end
-    if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.M then
-        BlackFlashQuickSkillV()
-    end
-end)
-
 local function StartBlackFlashLoop()
     if getgenv().ToggleBF then return end
     getgenv().ToggleBF = true
