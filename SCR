@@ -437,7 +437,7 @@ local function attack(target)
     local distance = (rootPart.Position - playerRoot.Position).Magnitude
     if distance > MAX_DISTANCE then return end
 
-    local args = {5, {humanoid}}
+    local args = {1, {humanoid}}
     ReplicatedStorage
         :WaitForChild("Remotes")
         :WaitForChild("Server")
