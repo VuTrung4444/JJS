@@ -399,7 +399,7 @@ local plr = Players.LocalPlayer
 
 local MAX_DISTANCE = 100
 local ATTACK_COUNT = 5
-local WAIT_AFTER_ATTACK = 2
+local WAIT_AFTER_ATTACK = 0.8
 
 --// Hàm lấy mob gần nhất trong phạm vi MAX_DISTANCE \\--
 local function getClosestMob()
@@ -424,7 +424,7 @@ local function getClosestMob()
     return closestMob
 end
 
---// Hàm gửi lệnh tấn công đến server \\--
+
 local function attack(target)
     if not target then return end
     local humanoid = target:FindFirstChild("Humanoid")
@@ -437,7 +437,7 @@ local function attack(target)
     local distance = (rootPart.Position - playerRoot.Position).Magnitude
     if distance > MAX_DISTANCE then return end
 
-    local args = {1, {humanoid}}
+    local args = {5, {humanoid}}
     ReplicatedStorage
         :WaitForChild("Remotes")
         :WaitForChild("Server")
@@ -2042,7 +2042,7 @@ KA:AddToggle({
     Default = false,
     Callback = function(state)
         getgenv().AutoMob = state
-        local HoverHeight = 10
+        local HoverHeight = 15
         local Players = game:GetService("Players")
         local workspace = game:GetService("Workspace")
         local player = Players.LocalPlayer
