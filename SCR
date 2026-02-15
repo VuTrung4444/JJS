@@ -366,7 +366,7 @@ local function StartBlackFlashLoop()
                 rs.M2:FireServer()
             end
 
-            task.wait(1.5)
+            task.wait(2)
         end
     end)
 end
@@ -399,7 +399,7 @@ local plr = Players.LocalPlayer
 
 local MAX_DISTANCE = 100
 local ATTACK_COUNT = 5
-local WAIT_AFTER_ATTACK = 0.8
+local WAIT_AFTER_ATTACK = 1
 
 --// Hàm lấy mob gần nhất trong phạm vi MAX_DISTANCE \\--
 local function getClosestMob()
@@ -437,7 +437,7 @@ local function attack(target)
     local distance = (rootPart.Position - playerRoot.Position).Magnitude
     if distance > MAX_DISTANCE then return end
 
-    local args = {2, {humanoid}}
+    local args = {5, {humanoid}}
     ReplicatedStorage
         :WaitForChild("Remotes")
         :WaitForChild("Server")
