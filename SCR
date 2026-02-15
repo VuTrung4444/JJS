@@ -233,35 +233,6 @@ local function BlackFlashQuick()
 end
 
 
-UIS.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed then return end
-    if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.R then
-        BlackFlashQuick()
-    end
-end)
-
-
-local function BlackFlashPunch()
-local args = {
-	1
-}
-game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("ApplyBlackFlashToNextHitbox"):FireServer(unpack(args))
-
-local args = {
-	1
-}
-game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("M2"):FireServer(unpack(args))
-
-end
-
-
-UIS.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed then return end
-    if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.N then
-        BlackFlashPunch()
-    end
-end)
-
 local function BlackFlashQuickSkillZ()
 	local args = {
 	2,
@@ -278,7 +249,7 @@ end
 
 UIS.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
-    if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.K then
+    if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.N then
         BlackFlashQuickSkillZ()
     end
 end)
@@ -299,7 +270,7 @@ end
 
 UIS.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
-    if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.L then
+    if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.M then
         BlackFlashQuickSkillC()
     end
 end)
@@ -2115,7 +2086,6 @@ KA:AddToggle({
     end
 })
 
-
 AutoMission:AddToggle({
     Name = "Auto Quest",
     Default = false,
@@ -2194,6 +2164,45 @@ AutoMission:AddToggle({
                 end
             end
             return nil, nil
+        end
+        
+        -- Hàm mới: Kiểm tra khoảng cách đến mob gần nhất
+        local function getDistanceToNearestMob()
+            local character = player.Character
+            if not character then return math.huge end
+            local hrp = character:FindFirstChild("HumanoidRootPart")
+            if not hrp then return math.huge end
+            
+            local _, mobPos = getMob()
+            if mobPos then
+                return (hrp.Position - mobPos).Magnitude
+            end
+            return math.huge
+        end
+        
+        -- Hàm mới: Gọi J và kiểm tra khoảng cách mob
+        local function pressJAndCheckDistance()
+            if not getgenv().AutoRerollQuest then return false end
+            
+            pressJ()
+            task.wait(2) -- Đợi teleport hoàn tất
+            
+            if not getgenv().AutoRerollQuest then return false end
+            
+            -- Kiểm tra khoảng cách đến mob
+            local distance = getDistanceToNearestMob()
+            
+            -- Nếu mob xa hơn 1000 đơn vị, gọi lại J
+            while distance > 1000 and getgenv().AutoRerollQuest do
+                pressJ()
+                task.wait(2)
+                
+                if not getgenv().AutoRerollQuest then return false end
+                
+                distance = getDistanceToNearestMob()
+            end
+            
+            return true
         end
         
         local function waitUntilAllMobsGone()
@@ -2282,7 +2291,6 @@ AutoMission:AddToggle({
             
             if not getgenv().AutoRerollQuest then return false end
             
-
             local tweenSuccess = tweenToPosition(targetPosition)
             return tweenSuccess
         end
@@ -2306,8 +2314,9 @@ AutoMission:AddToggle({
                     
                     if not getgenv().AutoRerollQuest then break end
                     
-                    pressJ()
-                    task.wait(1)
+                    -- Sử dụng hàm mới với kiểm tra khoảng cách
+                    local pressJSuccess = pressJAndCheckDistance()
+                    if not pressJSuccess then break end
                     
                     if not getgenv().AutoRerollQuest then break end
                     
@@ -2325,17 +2334,12 @@ AutoMission:AddToggle({
                         break
                     end
                     
-
                     returnCount = returnCount + 1
                     
-
                     if returnCount >= 10 then
-
                         local rerollArgs = {"Shijo Town Set"}
                         ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Data"):WaitForChild("RerollMissions"):InvokeServer(unpack(rerollArgs))
                         task.wait(1)
-                        
-
                         returnCount = 0
                     end
                     
