@@ -162,35 +162,27 @@ end
         end
     })
 
+
 local function CastSwitch()
-
-local args = {
-	"Damage Vial"
-}
-game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Data"):WaitForChild("EquipItem"):InvokeServer(unpack(args))
-local args = {
-	"Damage Gourd"
-}
-game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Data"):WaitForChild("EquipItem"):InvokeServer(unpack(args))
-local args = {
-	"Rage Gourd"
-}
-game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Data"):WaitForChild("EquipItem"):InvokeServer(unpack(args))
-local args = {
-	"Fortune Gourd"
-}
-game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Data"):WaitForChild("EquipItem"):InvokeServer(unpack(args))
-
-local args = {
-	"Focus Vial"
-}
-game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Data"):WaitForChild("EquipItem"):InvokeServer(unpack(args))
-
-local args = {
-	"Focus Gourd"
-}
-game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Data"):WaitForChild("EquipItem"):InvokeServer(unpack(args))
-
+    local inventory = game:GetService("Players").LocalPlayer.ReplicatedData.inventory
+    local replicatedStorage = game:GetService("ReplicatedStorage")
+    local equipRemote = replicatedStorage:WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Data"):WaitForChild("EquipItem")
+    
+    local itemsToEquip = {
+        "Damage Vial",
+        "Damage Gourd",
+        "Rage Gourd",
+        "Fortune Gourd",
+        "Focus Vial",
+        "Focus Gourd"
+    }
+    
+    for _, itemName in ipairs(itemsToEquip) do
+        if inventory:FindFirstChild(itemName) then
+            local args = {itemName}
+            equipRemote:InvokeServer(unpack(args))
+        end
+    end
 end
 
 
