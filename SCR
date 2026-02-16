@@ -163,15 +163,6 @@ end
     })
 
 local function CastSwitch()
-	local args = {
-		"Demon Vessel: Switch"
-	}
-	game:GetService("ReplicatedStorage")
-		:WaitForChild("Remotes")
-		:WaitForChild("Server")
-		:WaitForChild("Combat")
-		:WaitForChild("Skill")
-		:FireServer(unpack(args))
 
 local args = {
 	"Damage Vial"
@@ -187,6 +178,16 @@ local args = {
 game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Data"):WaitForChild("EquipItem"):InvokeServer(unpack(args))
 local args = {
 	"Fortune Gourd"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Data"):WaitForChild("EquipItem"):InvokeServer(unpack(args))
+
+local args = {
+	"Focus Vial"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Data"):WaitForChild("EquipItem"):InvokeServer(unpack(args))
+
+local args = {
+	"Focus Gourd"
 }
 game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Data"):WaitForChild("EquipItem"):InvokeServer(unpack(args))
 
@@ -1909,9 +1910,9 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local workspace = game:GetService("Workspace")
 local player = Players.LocalPlayer
 
-local HoverHeight = 15
+local HoverHeight = 16
 local IframeHeight = 20
-local OffsetY = 15
+local OffsetY = 16
 
 local hrp = nil
 local function UpdateHRP(char)
@@ -1954,6 +1955,12 @@ local function MoveToBoss()
         local pivot = bossSpawn:GetPivot()
         if pivot then
 		CastSwitch()
+		local VirtualInputManager = game:GetService("VirtualInputManager")
+
+            VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Three, false, game)
+            task.wait(0.05)
+            VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Three, false, game)
+
             local targetPos = pivot.Position + Vector3.new(0, OffsetY, 0)
 
             hrp.CFrame = CFrame.new(targetPos, pivot.Position)
@@ -2040,7 +2047,7 @@ KA:AddToggle({
     Default = false,
     Callback = function(state)
         getgenv().AutoMob = state
-        local HoverHeight = 15
+        local HoverHeight = 16
         local Players = game:GetService("Players")
         local workspace = game:GetService("Workspace")
         local player = Players.LocalPlayer
@@ -2075,12 +2082,17 @@ KA:AddToggle({
                 return
             end
             
+			local VirtualInputManager = game:GetService("VirtualInputManager")
+            VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Three, false, game)
+            task.wait(0.05)
+            VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Three, false, game)
+
             EnableHover(hrp)
             local bp = hrp:FindFirstChild("BodyPosition")
             
             while humanoid and humanoid.Health > 0 and target.PrimaryPart and getgenv().AutoMob do
                 local distance = (hrp.Position - target.PrimaryPart.Position).Magnitude
-                if distance > 100 then break end -- Dừng hover nếu mob quá xa
+                if distance > 100 then break end
                 
                 local desiredPos = target.PrimaryPart.Position + Vector3.new(0, HoverHeight, 0)
                 
