@@ -1904,9 +1904,9 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local workspace = game:GetService("Workspace")
 local player = Players.LocalPlayer
 
-local HoverHeight = 16
+local HoverHeight = 12
 local IframeHeight = 20
-local OffsetY = 16
+local OffsetY = 12
 
 local hrp = nil
 local function UpdateHRP(char)
@@ -2041,7 +2041,7 @@ KA:AddToggle({
     Default = false,
     Callback = function(state)
         getgenv().AutoMob = state
-        local HoverHeight = 16
+        local HoverHeight = 12
         local Players = game:GetService("Players")
         local workspace = game:GetService("Workspace")
         local player = Players.LocalPlayer
