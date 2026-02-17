@@ -1524,6 +1524,7 @@ Calamity:AddButton({
 
             RunCalamityBypass()
             StartBlackFlashLoop()
+			getgenv().KillAura = true
             noclip()
 
             local targetPlayer = Players:FindFirstChild("anhlongxelan")
@@ -1534,6 +1535,7 @@ Calamity:AddButton({
             end
 
         else
+			getgenv().KillAura = false
             clip()
             StopBlackFlashLoop()
             if hrp then DisableHover(hrp) end
