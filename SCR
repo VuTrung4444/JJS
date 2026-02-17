@@ -1966,11 +1966,9 @@ end
 
 local function HoverOnMob()
     if not hrp then return end
-
     local mobsFolder = workspace:WaitForChild("Objects"):WaitForChild("Mobs")
-    local dropsFolder = workspace:WaitForChild("Objects"):WaitForChild("Drops")
-
     local target, humanoid = nil, nil
+
     for _, mob in ipairs(mobsFolder:GetChildren()) do
         local h = mob:FindFirstChild("Humanoid")
         if h and h.Health > 0 and mob.PrimaryPart then
@@ -1980,39 +1978,43 @@ local function HoverOnMob()
         end
     end
 
+    -- Không có mob → tắt noclip, dừng hover
     if not target then
+        clip()
         DisableHover(hrp)
         return
     end
 
+    -- Có mob → bật noclip
+    noclip()
     EnableHover(hrp)
+
     local bp = hrp:FindFirstChild("BodyPosition")
 
     while humanoid and humanoid.Health > 0 and target.PrimaryPart and getgenv().AutoBoss do
         local combatAgent = humanoid:FindFirstChild("CombatAgent")
         local iframes = combatAgent and combatAgent:FindFirstChild("Statuses")
             and combatAgent.Statuses:FindFirstChild("Iframes")
-
         local desiredPos =
             (iframes and iframes.Value)
                 and (hrp.Position + Vector3.new(0, IframeHeight, 0))
                 or (target.PrimaryPart.Position + Vector3.new(0, HoverHeight, 0))
 
-        if bp then 
-            bp.Position = desiredPos 
+        if bp then
+            bp.Position = desiredPos
         end
-        
 
         if target.PrimaryPart then
-            local lookAtPos = target.PrimaryPart.Position
-
-            hrp.CFrame = CFrame.new(hrp.Position, lookAtPos)
+            hrp.CFrame = CFrame.new(hrp.Position, target.PrimaryPart.Position)
             hrp.Velocity = Vector3.zero
             hrp.AssemblyLinearVelocity = Vector3.zero
         end
-        
+
         task.wait(0.01)
     end
+
+    -- Mob chết hoặc AutoBoss tắt → tắt noclip
+    clip()
     DisableHover(hrp)
 end
 
@@ -2021,7 +2023,10 @@ AutoMission:AddToggle({
     Default = false,
     Callback = function(state)
         getgenv().AutoBoss = state
-
+        if not state then
+            clip()
+            DisableHover(hrp)
+        end
         task.spawn(function()
             while getgenv().AutoBoss do
                 if hrp then
