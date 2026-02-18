@@ -14,7 +14,6 @@ local placeId = game.PlaceId
 local InnateSpinEnabled = false
 local slot1Enabled = false
 local slot2Enabled = false
-local slot3Enabled = false
 local huntRare = false 
 local huntLegendary = false 
 local huntSg = false
@@ -87,17 +86,6 @@ local function autoSpinInnate()
                 end
             end
 
-			if slot3Enabled then
-                if slot1Enabled then task.wait(0.5) end
-                spinRemote:InvokeServer(3)
-                local val3 = innates["3"] and innates["3"].Value or ""
-                if table.find(targetInnates, val3) then
-				    print("Slot 3 Innate:", val3)
-                    InnateSpinEnabled = false
-                    break
-                end
-            end
-
             task.wait(0.3)
         end
     end)
@@ -159,15 +147,6 @@ end
         State = false,
         Callback = function(state)
             slot2Enabled = state
-        end
-    })
-
-	    DailySection:AddToggle({
-        Name = "Spin Thanh Lưu 3",
-        Flag = "Slot3",
-        State = false,
-        Callback = function(state)
-            slot3Enabled = state
         end
     })
 
@@ -276,7 +255,7 @@ local function BlackFlashQuickSkillZ()
 game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("ApplyChantToNextHitbox"):FireServer(unpack(args))
 
 local args = {
-	"Demon Vessel: Dismantle"
+	"Cryokinesis: Winter Lotus"
 }
 game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("Skill"):FireServer(unpack(args))
 end
@@ -297,7 +276,7 @@ local function BlackFlashQuickSkillC()
 game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("ApplyChantToNextHitbox"):FireServer(unpack(args))
 
 local args = {
-	"Demon Vessel: Cleave"
+	"Cryokinesis: Ice Age"
 }
 game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("Skill"):FireServer(unpack(args))
 end
