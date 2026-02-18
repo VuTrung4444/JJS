@@ -14,6 +14,7 @@ local placeId = game.PlaceId
 local InnateSpinEnabled = false
 local slot1Enabled = false
 local slot2Enabled = false
+local slot3Enabled = false
 local huntRare = false 
 local huntLegendary = false 
 local huntSg = false
@@ -86,6 +87,17 @@ local function autoSpinInnate()
                 end
             end
 
+			if slot3Enabled then
+                if slot1Enabled then task.wait(0.5) end
+                spinRemote:InvokeServer(2)
+                local val3 = innates["3"] and innates["3"].Value or ""
+                if table.find(targetInnates, val3) then
+				    print("Slot 3 Innate:", val3)
+                    InnateSpinEnabled = false
+                    break
+                end
+            end
+
             task.wait(0.3)
         end
     end)
@@ -147,6 +159,15 @@ end
         State = false,
         Callback = function(state)
             slot2Enabled = state
+        end
+    })
+
+	    DailySection:AddToggle({
+        Name = "Spin Thanh Lưu 3",
+        Flag = "Slot3",
+        State = false,
+        Callback = function(state)
+            slot3Enabled = state
         end
     })
 
@@ -878,7 +899,7 @@ local AutoPromote = false
 local PromoteLoop
 
 Ect:AddToggle({
-    Name = "Auto Promote",
+    Name = "Auto Promote Clan Head",
     Default = false,
     Callback = function(state)
         AutoPromote = state
