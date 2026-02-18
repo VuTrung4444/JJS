@@ -14,16 +14,23 @@ local placeId = game.PlaceId
 local InnateSpinEnabled = false
 local slot1Enabled = false
 local slot2Enabled = false
-local huntLegendary = false  
+local huntRare = false 
+local huntLegendary = false 
 local huntSg = false
 
-
-local legendaryInnate = {"Volcano", "Hydrokinesis", "Judgeman", "Puppet", "Projection", "Plan Manipulation"}
-local sgInnate = {"Infinity", "Demon Vessel", "Curse Queen", "Soul Manipulation", "Gambler Fever", "Star Rage", "Ancient Construction", "Thunder God"}
+local RareInnate = {"Ratio", "Cursed Speech", "Blood Manipulation", "Straw Doll", "Cryokinesis"}
+local legendaryInnate = {"Volcano", "Hydrokinesis", "Judgeman", "Puppet", "Projection", "Plant Manipulation"}
+local sgInnate = {"Infinity", "Demon Vessel", "Curse Queen", "Soul Manipulation", "Soul King", "Gambler Fever", "Star Rage", "Ancient Construction", "Thunder God"}
 
 
 local function getFilteredInnate()
     local targetInnate = {}
+
+	 if huntRare then
+        for _, innate in ipairs(RareInnate) do
+            table.insert(targetInnate, innate)
+        end
+    end
     if huntLegendary then
         for _, innate in ipairs(legendaryInnate) do
             table.insert(targetInnate, innate)
@@ -145,6 +152,14 @@ end
 
     -- Hunt Legendary / SG Innate
     local ClanChooseSection = MainTab:CreateSection({Name = "TròChơiNhânPhẩm", Side = "Right"})
+
+    ClanChooseSection:AddToggle({
+        Name = "Săn Rare Innate",
+        Flag = "HuntRare",
+        Callback = function(state)
+            huntRare = state
+        end
+    })
 
     ClanChooseSection:AddToggle({
         Name = "Săn Legendary Innate",
@@ -857,6 +872,49 @@ Ect:AddToggle({
     end
 })
 
+local LevelValues = {60, 120, 180, 240, 300}
+
+local AutoPromote = false
+local PromoteLoop
+
+Ect:AddToggle({
+    Name = "Auto Promote Clan Head",
+    Default = false,
+    Callback = function(state)
+        AutoPromote = state
+
+        if AutoPromote then
+            PromoteLoop = task.spawn(function()
+                while AutoPromote do
+                    local level = game:GetService("Players").LocalPlayer.ReplicatedData:FindFirstChild("level")
+                    if level then
+                        for _, v in ipairs(LevelValues) do
+                            if level.Value == v then
+                                local args = {
+                                    "Clan Head Jujutsu High",
+                                    "Promote"
+                                }
+                                game:GetService("ReplicatedStorage")
+                                    :WaitForChild("Remotes")
+                                    :WaitForChild("Server")
+                                    :WaitForChild("Dialogue")
+                                    :WaitForChild("GetResponse")
+                                    :InvokeServer(unpack(args))
+                                break
+                            end
+                        end
+                    end
+                    task.wait(10)
+                end
+            end)
+        else
+            if PromoteLoop then
+                task.cancel(PromoteLoop)
+                PromoteLoop = nil
+            end
+        end
+    end
+})
 
 Ect:AddButton({
     Name = "Bypass LVL",
