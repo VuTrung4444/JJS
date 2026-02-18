@@ -89,7 +89,7 @@ local function autoSpinInnate()
 
 			if slot3Enabled then
                 if slot1Enabled then task.wait(0.5) end
-                spinRemote:InvokeServer(2)
+                spinRemote:InvokeServer(3)
                 local val3 = innates["3"] and innates["3"].Value or ""
                 if table.find(targetInnates, val3) then
 				    print("Slot 3 Innate:", val3)
