@@ -878,7 +878,7 @@ local AutoPromote = false
 local PromoteLoop
 
 Ect:AddToggle({
-    Name = "Auto Promote Clan Head",
+    Name = "Auto Promote",
     Default = false,
     Callback = function(state)
         AutoPromote = state
