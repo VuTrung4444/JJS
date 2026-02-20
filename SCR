@@ -120,6 +120,113 @@ end
 	local SpeedAndJump = MiscTab:CreateSection({Name = "Speed&Jump[P]", Side = "Right"})
 
 
+Ect:AddToggle({
+    Name = "CoolDown",
+    Flag = "AutoSkill",
+    Callback = function(state)
+        enabled = state
+    end
+})
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+local enabled = false
+
+local function getSkillBars()
+    local ok, result = pcall(function()
+        return Players.LocalPlayer.PlayerGui.Main.Frame.BottomRight.SkillBars
+    end)
+    if ok then return result end
+    return nil
+end
+
+local function fireSkill(skillName)
+    pcall(function()
+        local args = { skillName }
+        ReplicatedStorage
+            :WaitForChild("Remotes")
+            :WaitForChild("Server")
+            :WaitForChild("Combat")
+            :WaitForChild("Skill")
+            :FireServer(unpack(args))
+    end)
+end
+
+local function getKeyCode(keyText)
+    local ok, kc = pcall(function()
+        return Enum.KeyCode[keyText]
+    end)
+    if ok and kc then return kc end
+    return nil
+end
+
+local currentSkillMap = {}
+
+local function updateSkillMap(skillBars)
+    local newMap = {}
+    for _, child in ipairs(skillBars:GetChildren()) do
+        local keybindObj = child:FindFirstChild("Keybind")
+        if keybindObj then
+            local ok, keyText = pcall(function() return keybindObj.Text end)
+            if ok and keyText and keyText ~= "" then
+                local keyCode = getKeyCode(keyText)
+                if keyCode then
+                    newMap[keyCode] = child.Name
+                end
+            end
+        end
+    end
+    currentSkillMap = newMap
+end
+
+local childConnections = {}
+
+local function connectSkillBarsEvents(skillBars)
+    for _, conn in ipairs(childConnections) do
+        conn:Disconnect()
+    end
+    childConnections = {}
+
+    updateSkillMap(skillBars)
+
+    table.insert(childConnections, skillBars.ChildAdded:Connect(function()
+        updateSkillMap(skillBars)
+    end))
+    table.insert(childConnections, skillBars.ChildRemoved:Connect(function()
+        updateSkillMap(skillBars)
+    end))
+end
+
+local lastFired = {}
+local COOLDOWN = 0.3
+local lastSkillBars = nil
+
+RunService.Heartbeat:Connect(function()
+    if not enabled then return end
+
+    local skillBars = getSkillBars()
+    if not skillBars then return end
+
+    if skillBars ~= lastSkillBars then
+        lastSkillBars = skillBars
+        connectSkillBarsEvents(skillBars)
+    end
+
+    local now = tick()
+    for keyCode, skillName in pairs(currentSkillMap) do
+        if UserInputService:IsKeyDown(keyCode) then
+            local last = lastFired[skillName] or 0
+            if (now - last) >= COOLDOWN then
+                lastFired[skillName] = now
+                fireSkill(skillName)
+            end
+        end
+    end
+end)
+
     -- Toggle Auto Spin
     DailySection:AddToggle({
         Name = "Auto Spin Innate",
