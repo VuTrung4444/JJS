@@ -120,13 +120,7 @@ end
 	local SpeedAndJump = MiscTab:CreateSection({Name = "Speed&Jump[P]", Side = "Right"})
 
 
-Ect:AddToggle({
-    Name = "CoolDown",
-    Flag = "AutoSkill",
-    Callback = function(state)
-        enabled = state
-    end
-})
+
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -134,6 +128,15 @@ local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 
 local enabled = false
+
+
+Ect:AddToggle({
+    Name = "CoolDown",
+    Flag = "AutoSkill",
+    Callback = function(state)
+        enabled = state
+    end
+})
 
 local function getSkillBars()
     local ok, result = pcall(function()
