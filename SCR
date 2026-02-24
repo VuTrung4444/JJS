@@ -302,6 +302,16 @@ local function CastSwitch()
         "Focus Gourd"
     }
     
+	local args = {
+		"Demon Vessel: Switch"
+	}
+	game:GetService("ReplicatedStorage")
+		:WaitForChild("Remotes")
+		:WaitForChild("Server")
+		:WaitForChild("Combat")
+		:WaitForChild("Skill")
+		:FireServer(unpack(args))
+
     for _, itemName in ipairs(itemsToEquip) do
         if inventory:FindFirstChild(itemName) then
             local args = {itemName}
