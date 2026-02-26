@@ -433,18 +433,12 @@ end)
 local function StartBlackFlashLoop()
     if getgenv().ToggleBF then return end
     getgenv().ToggleBF = true
-
     task.spawn(function()
         while getgenv().ToggleBF do
-
             local hrp = game.Players.LocalPlayer.Character 
                 and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-
             local mob = GetNearestMobInRange(100)
-
-
             local calamity = workspace.Objects.Mobs:FindFirstChild("Six Eyed Calamity")
-
             local isCalamityStunned = false
             if calamity
                 and calamity:FindFirstChild("Humanoid")
@@ -453,25 +447,22 @@ local function StartBlackFlashLoop()
                 and calamity.Humanoid.CombatAgent.Statuses:FindFirstChild("Stunned") then
                 isCalamityStunned = true
             end
-
-			if isCalamityStunned and cast == false then
-				local args = {
-					"Infinity Piercing Vial"
-				}
-				game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Data"):WaitForChild("EquipItem"):InvokeServer(unpack(args))
-				local args = {
-					"Binding Chains"
-				}
-				game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Data"):WaitForChild("EquipItem"):InvokeServer(unpack(args))
+            if isCalamityStunned and cast == false then
+                local args = {
+                    "Infinity Piercing Vial"
+                }
+                game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Data"):WaitForChild("EquipItem"):InvokeServer(unpack(args))
+                local args = {
+                    "Binding Chains"
+                }
+                game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Data"):WaitForChild("EquipItem"):InvokeServer(unpack(args))
                 CastSwitch()
-				cast = true
-			elseif not isCalamityStunned then
-				cast = false
-			end
-
+                cast = true
+            elseif not isCalamityStunned then
+                cast = false
+            end
             local destructFolder = workspace.Objects:FindFirstChild("Destructibles")
             local hasNonCrystalDestructible = false
-
             if destructFolder then
                 for _, item in ipairs(destructFolder:GetChildren()) do
                     if item.Name ~= "SEC Infinity Crystal" then
@@ -479,19 +470,25 @@ local function StartBlackFlashLoop()
                     end
                 end
             end
-
             local rs = game:GetService("ReplicatedStorage").Remotes.Server.Combat
             local args = {1.123}
-
             if isCalamityStunned then
                 rs.ApplyBlackFlashToNextHitbox:FireServer(unpack(args))
                 rs.M2:FireServer()
-
             elseif mob or hasNonCrystalDestructible then
-                rs.ApplyBlackFlashToNextHitbox:FireServer(unpack(args))
-                rs.M2:FireServer()
+                -- Kiểm tra mob có đang Iframes không
+                local mobIframes = false
+                if mob then
+                    local h = mob:FindFirstChild("Humanoid")
+                    local ca = h and h:FindFirstChild("CombatAgent")
+                    local iframes = ca and ca:FindFirstChild("Statuses") and ca.Statuses:FindFirstChild("Iframes")
+                    mobIframes = iframes and iframes.Value or false
+                end
+                if not mobIframes then
+                    rs.ApplyBlackFlashToNextHitbox:FireServer(unpack(args))
+                    rs.M2:FireServer()
+                end
             end
-
             task.wait(2)
         end
     end)
