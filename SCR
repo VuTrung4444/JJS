@@ -2171,12 +2171,13 @@ local function HoverOnMob()
 
     while humanoid and humanoid.Health > 0 and target.PrimaryPart and getgenv().AutoBoss do
         local combatAgent = humanoid:FindFirstChild("CombatAgent")
-        local iframes = combatAgent and combatAgent:FindFirstChild("Statuses")
-            and combatAgent.Statuses:FindFirstChild("Iframes")
-        local desiredPos =
-            (iframes and iframes.Value)
-                and (hrp.Position + Vector3.new(0, IframeHeight, 0))
-                or (target.PrimaryPart.Position + Vector3.new(0, HoverHeight, 0))
+        local iframes = combatAgent and combatAgent:FindFirstChild("Statuses") and combatAgent.Statuses:FindFirstChild("Iframes")
+        local comboing = combatAgent and combatAgent:FindFirstChild("Statuses") and combatAgent.Statuses:FindFirstChild("Comboing")
+		local shouldLift = (iframes and iframes.Value) or (comboing and comboing.Value)
+		local desiredPos =
+			shouldLift
+				and (hrp.Position + Vector3.new(0, IframeHeight, 0))
+				or (target.PrimaryPart.Position + Vector3.new(0, HoverHeight, 0))
 
         if bp then
             bp.Position = desiredPos
