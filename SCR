@@ -489,7 +489,7 @@ local function StartBlackFlashLoop()
                     rs.M2:FireServer()
                 end
             end
-            task.wait(1)
+            task.wait(3)
         end
     end)
 end
@@ -2079,9 +2079,9 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local workspace = game:GetService("Workspace")
 local player = Players.LocalPlayer
 
-local HoverHeight = 14
+local HoverHeight = 16
 local IframeHeight = 20
-local OffsetY = 14
+local OffsetY = 16
 
 local hrp = nil
 local function UpdateHRP(char)
