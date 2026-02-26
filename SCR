@@ -489,7 +489,7 @@ local function StartBlackFlashLoop()
                     rs.M2:FireServer()
                 end
             end
-            task.wait(3)
+            task.wait(1.5)
         end
     end)
 end
