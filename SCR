@@ -478,11 +478,12 @@ local function StartBlackFlashLoop()
             elseif mob or hasNonCrystalDestructible then
                 -- Kiểm tra mob có đang Iframes không
                 local mobIframes = false
-                if mob then
-                    local h = mob:FindFirstChild("Humanoid")
-                    local ca = h and h:FindFirstChild("CombatAgent")
-                    local iframes = ca and ca:FindFirstChild("Statuses") and ca.Statuses:FindFirstChild("Iframes")
-                    mobIframes = iframes and iframes.Value or false
+                if mob
+                and mob:FindFirstChild("Humanoid")
+                and mob.Humanoid:FindFirstChild("CombatAgent")
+                and mon.Humanoid.CombatAgent:FindFirstChild("Statuses")
+                and mob.Humanoid.CombatAgent.Statuses:FindFirstChild("Iframes") then
+                mobIframes = true
                 end
                 if not mobIframes then
                     rs.ApplyBlackFlashToNextHitbox:FireServer(unpack(args))
