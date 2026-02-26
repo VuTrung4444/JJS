@@ -481,7 +481,7 @@ local function StartBlackFlashLoop()
                 if mob
                 and mob:FindFirstChild("Humanoid")
                 and mob.Humanoid:FindFirstChild("CombatAgent")
-                and mon.Humanoid.CombatAgent:FindFirstChild("Statuses")
+                and mob.Humanoid.CombatAgent:FindFirstChild("Statuses")
                 and mob.Humanoid.CombatAgent.Statuses:FindFirstChild("Iframes") then
                 mobIframes = true
                 end
