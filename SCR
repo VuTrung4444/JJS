@@ -489,7 +489,7 @@ local function StartBlackFlashLoop()
                     rs.M2:FireServer()
                 end
             end
-            task.wait(1.5)
+            task.wait(1)
         end
     end)
 end
@@ -1826,7 +1826,7 @@ AutoMission:AddToggle({
 
                         if humanoid and humanoid.Health > 0 and mobRoot then
 
-                            if getgenv().AutoBoss and humanoid.Health <= 4000 then
+                            if getgenv().AutoBoss and humanoid.Health <= 6000 then
                                 humanoid.Health = 0
                                 task.wait(0.1)
                             end
