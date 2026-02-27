@@ -118,117 +118,8 @@ end
 	local MiscTab = Window:CreateTab({Name = "Misc"})
 	local MiscSection = MiscTab:CreateSection({Name = "Misc"})
 	local SpeedAndJump = MiscTab:CreateSection({Name = "Speed&Jump[P]", Side = "Right"})
+	local Shop = MiscTab:CreateSection({Name = "Đổi item", Side = "Left"})
 
-
-
-
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
-
-local enabled = false
-
-
-Ect:AddToggle({
-    Name = "CoolDown",
-    Flag = "AutoSkill",
-    Callback = function(state)
-        enabled = state
-    end
-})
-
-local function getSkillBars()
-    local ok, result = pcall(function()
-        return Players.LocalPlayer.PlayerGui.Main.Frame.BottomRight.SkillBars
-    end)
-    if ok then return result end
-    return nil
-end
-
-local function fireSkill(skillName)
-    pcall(function()
-        local args = { skillName }
-        ReplicatedStorage
-            :WaitForChild("Remotes")
-            :WaitForChild("Server")
-            :WaitForChild("Combat")
-            :WaitForChild("Skill")
-            :FireServer(unpack(args))
-    end)
-end
-
-local function getKeyCode(keyText)
-    local ok, kc = pcall(function()
-        return Enum.KeyCode[keyText]
-    end)
-    if ok and kc then return kc end
-    return nil
-end
-
-local currentSkillMap = {}
-
-local function updateSkillMap(skillBars)
-    local newMap = {}
-    for _, child in ipairs(skillBars:GetChildren()) do
-        local keybindObj = child:FindFirstChild("Keybind")
-        if keybindObj then
-            local ok, keyText = pcall(function() return keybindObj.Text end)
-            if ok and keyText and keyText ~= "" then
-                local keyCode = getKeyCode(keyText)
-                if keyCode then
-                    newMap[keyCode] = child.Name
-                end
-            end
-        end
-    end
-    currentSkillMap = newMap
-end
-
-local childConnections = {}
-
-local function connectSkillBarsEvents(skillBars)
-    for _, conn in ipairs(childConnections) do
-        conn:Disconnect()
-    end
-    childConnections = {}
-
-    updateSkillMap(skillBars)
-
-    table.insert(childConnections, skillBars.ChildAdded:Connect(function()
-        updateSkillMap(skillBars)
-    end))
-    table.insert(childConnections, skillBars.ChildRemoved:Connect(function()
-        updateSkillMap(skillBars)
-    end))
-end
-
-local lastFired = {}
-local COOLDOWN = 0.3
-local lastSkillBars = nil
-
-RunService.Heartbeat:Connect(function()
-    if not enabled then return end
-
-    local skillBars = getSkillBars()
-    if not skillBars then return end
-
-    if skillBars ~= lastSkillBars then
-        lastSkillBars = skillBars
-        connectSkillBarsEvents(skillBars)
-    end
-
-    local now = tick()
-    for keyCode, skillName in pairs(currentSkillMap) do
-        if UserInputService:IsKeyDown(keyCode) then
-            local last = lastFired[skillName] or 0
-            if (now - last) >= COOLDOWN then
-                lastFired[skillName] = now
-                fireSkill(skillName)
-            end
-        end
-    end
-end)
 
     -- Toggle Auto Spin
     DailySection:AddToggle({
@@ -1806,6 +1697,94 @@ MiscSection:AddButton({
 	end
 })
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local CurseMarket = ReplicatedStorage:WaitForChild("CurseMarket")
+local MarketExchange = ReplicatedStorage
+	:WaitForChild("Remotes")
+	:WaitForChild("Server")
+	:WaitForChild("Data")
+	:WaitForChild("MarketExchange")
+
+
+local selectedX = nil
+local exchangeRunning = false
+
+
+Shop:AddButton({
+	Name = "Shop",
+	Callback = function()
+		for _, child in pairs(CurseMarket:GetChildren()) do
+			if child:IsA("ValueBase") then
+				print("Name:", child.Name, "| Value:", tostring(child.Value))
+			end
+		end
+	end
+})
+
+
+local toggleObjects = {}
+
+for i = 1, 8 do
+	toggleObjects[i] = Shop:AddToggle({
+		Name = tostring(i),
+		Default = false,
+		Callback = function(state)
+			if state then
+				selectedX = i
+				print("Đã chọn:", selectedX)
+				
+
+				for j = 1, 8 do
+					if j ~= i then
+						toggleObjects[j]:Set(false)
+					end
+				end
+			end
+		end
+	})
+end
+
+
+local function startExchange()
+	if not selectedX then
+		warn("Chưa chọn 1-8!")
+		return
+	end
+	
+	exchangeRunning = true
+	
+	task.spawn(function()
+		while exchangeRunning do
+			
+			local args = {
+				CurseMarket:WaitForChild(tostring(selectedX))
+			}
+			
+			MarketExchange:InvokeServer(unpack(args))
+			
+			task.wait(1)
+		end
+	end)
+end
+
+local function stopExchange()
+	exchangeRunning = false
+end
+
+
+Shop:AddToggle({
+	Name = "Đổi",
+	Default = false,
+	Callback = function(state)
+		if state then
+			startExchange()
+		else
+			stopExchange()
+		end
+	end
+})
+
 AutoMission:AddToggle({
     Name = "InstantKill",
     Default = false,
@@ -1827,8 +1806,8 @@ AutoMission:AddToggle({
 
                         if humanoid and humanoid.Health > 0 and mobRoot then
 
-                            if getgenv().AutoBoss and humanoid.Health <= 6000 then
-                                humanoid.Health = 0
+                            if getgenv().AutoBoss and humanoid.Health <= 7000 then
+                                humanoid.Health = -10
                                 task.wait(0.1)
                             end
 
@@ -2174,7 +2153,7 @@ local function HoverOnMob()
 		local shouldLift = (iframes and iframes.Value) or (comboing and comboing.Value)
 		local desiredPos =
 			shouldLift
-				and (hrp.Position + Vector3.new(5 + (tick()%3) * 10, IframeHeight, 10))
+				and (hrp.Position + Vector3.new(10 , IframeHeight, 10 + (tick()%3) * 10))
 				or (target.PrimaryPart.Position + Vector3.new(0, HoverHeight, 0))
 
         if bp then
