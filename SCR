@@ -2176,7 +2176,7 @@ local function HoverOnMob()
     local bp = hrp:FindFirstChild("BodyPosition")
 
     while humanoid and humanoid.Health > 0 and target.PrimaryPart and getgenv().AutoBoss do
-local IframeHeight = math.random(0,1) == 0 and 10 or 20
+local IframeHeight = math.random(0,1) == 0 and 20 or 40
         local combatAgent = humanoid:FindFirstChild("CombatAgent")
         local iframes = combatAgent and combatAgent:FindFirstChild("Statuses") and combatAgent.Statuses:FindFirstChild("Iframes")
         local comboing = combatAgent and combatAgent:FindFirstChild("Statuses") and combatAgent.Statuses:FindFirstChild("Comboing")
