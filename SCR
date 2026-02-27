@@ -1610,6 +1610,7 @@ Calamity:AddButton({
     end
 })
 
+
 MiscSection:AddToggle({
     Name = "Auto Chest",
     Default = false,
@@ -1647,7 +1648,6 @@ MiscSection:AddToggle({
                     end
                 end
 
-
                 local lootGUI = player.PlayerGui:FindFirstChild("Loot")
                 if not lootGUI then continue end
 
@@ -1677,8 +1677,26 @@ MiscSection:AddToggle({
                     local absPos = textLabel.AbsolutePosition
                     local absSize = textLabel.AbsoluteSize
 
-                    local clickX = absPos.X + (absSize.X / 2)
-                    local clickY = absPos.Y + (absSize.Y * 2)
+                    -- Hàm kiểm tra xấp xỉ với sai số 0.5
+                    local function approx(a, b)
+                        return math.abs(a - b) <= 0.5
+                    end
+
+                    local useFixedClick =
+                        approx(absPos.X, 388.255) and
+                        approx(absPos.Y, 255.579) and
+                        approx(absSize.X, 48.201) and
+                        approx(absSize.Y, 22.128)
+
+                    local clickX, clickY
+
+                    if useFixedClick then
+                        clickX = 417
+                        clickY = 255
+                    else
+                        clickX = absPos.X + (absSize.X / 2)
+                        clickY = absPos.Y + (absSize.Y * 2)
+                    end
 
                     clickX = math.floor(clickX)
                     clickY = math.floor(clickY)
@@ -1693,7 +1711,6 @@ MiscSection:AddToggle({
         end)
     end
 })
-
 
 MiscSection:AddButton({
 	Name = "No Fog",
@@ -2166,7 +2183,7 @@ local function HoverOnMob()
 		local shouldLift = (iframes and iframes.Value) or (comboing and comboing.Value)
 		local desiredPos =
 			shouldLift
-				and (hrp.Position + Vector3.new(10 , IframeHeight, 10 + (tick()%3) * 10))
+				and (hrp.Position + Vector3.new(10 , IframeHeight, 2 + (tick()%3) * 10))
 				or (target.PrimaryPart.Position + Vector3.new(0, HoverHeight, 0))
 
         if bp then
