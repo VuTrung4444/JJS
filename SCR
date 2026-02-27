@@ -1610,7 +1610,6 @@ Calamity:AddButton({
     end
 })
 
-
 MiscSection:AddToggle({
     Name = "Auto Chest",
     Default = false,
@@ -1623,70 +1622,72 @@ MiscSection:AddToggle({
         local VirtualInputManager = game:GetService("VirtualInputManager")
 
         task.spawn(function()
-            while true do
+            while getgenv().AutoChest do
                 task.wait(1)
-                if not getgenv().AutoChest then continue end
 
-                local dropsFolder = workspace:FindFirstChild("Objects") and workspace.Objects:FindFirstChild("Drops")
+                local dropsFolder = workspace:FindFirstChild("Objects")
+                    and workspace.Objects:FindFirstChild("Drops")
                 if not dropsFolder then continue end
 
                 for _, drop in ipairs(dropsFolder:GetChildren()) do
-
+                    if not getgenv().AutoChest then break end
                     if not drop.Name:match("^" .. player.Name .. "|") then continue end
+
                     local chest = drop:FindFirstChild("Chest")
                     if not chest then continue end
 
                     local prompt = chest:FindFirstChild("Collect")
-                    if prompt and prompt:IsA("ProximityPrompt") and prompt.ClickablePrompt and prompt.Enabled then
+                    if prompt
+                        and prompt:IsA("ProximityPrompt")
+                        and prompt.ClickablePrompt
+                        and prompt.Enabled then
+
                         fireproximityprompt(prompt)
-                        task.wait(2)
-
-                        local gui = player:WaitForChild("PlayerGui")
-                        local lootGUI = gui:FindFirstChild("Loot")
-                        if lootGUI then
-                            local results = lootGUI:FindFirstChild("Results")
-                            if results then
-                                local mainFrame = results:FindFirstChild("Main")
-                                if mainFrame then
-                                    local scrollingFrame = mainFrame:FindFirstChild("ScrollingFrame")
-                                    if scrollingFrame then
-                                        local frameDetected = false
-                                        for _, itemFrame in ipairs(scrollingFrame:GetChildren()) do
-                                            if itemFrame.ClassName == "Frame" then
-                                                frameDetected = true
-                                                break
-                                            end
-                                        end
-
-                                        if frameDetected then
-                                            local textLabel = lootGUI
-                                                :WaitForChild("Results")
-                                                :WaitForChild("Main")
-                                                :WaitForChild("Continue")
-                                                :WaitForChild("TextLabel")
-
-                                            task.wait()
-
-                                            local absPos = textLabel.AbsolutePosition
-                                            local absSize = textLabel.AbsoluteSize
-
-                                            local clickX = absPos.X + (absSize.X / 2)
-                                            local clickY = absPos.Y + (absSize.Y * 2)
-
-                                            clickX = math.floor(clickX)
-                                            clickY = math.floor(clickY)
-
-                                            VirtualInputManager:SendMouseMoveEvent(clickX, clickY, game)
-                                            task.wait(0.5)
-                                            VirtualInputManager:SendMouseButtonEvent(clickX, clickY, 0, true, game, 0)
-                                            task.wait(0.5)
-                                            VirtualInputManager:SendMouseButtonEvent(clickX, clickY, 0, false, game, 0)
-                                        end
-                                    end
-                                end
-                            end
-                        end
+                        task.wait(1)
                     end
+                end
+
+
+                local lootGUI = player.PlayerGui:FindFirstChild("Loot")
+                if not lootGUI then continue end
+
+                local results = lootGUI:FindFirstChild("Results")
+                if not results then continue end
+
+                local mainFrame = results:FindFirstChild("Main")
+                if not mainFrame then continue end
+
+                local scrollingFrame = mainFrame:FindFirstChild("ScrollingFrame")
+                if not scrollingFrame then continue end
+
+                local frameDetected = false
+                for _, itemFrame in ipairs(scrollingFrame:GetChildren()) do
+                    if itemFrame:IsA("Frame") then
+                        frameDetected = true
+                        break
+                    end
+                end
+
+                if frameDetected then
+                    local textLabel = results
+                        :WaitForChild("Main")
+                        :WaitForChild("Continue")
+                        :WaitForChild("TextLabel")
+
+                    local absPos = textLabel.AbsolutePosition
+                    local absSize = textLabel.AbsoluteSize
+
+                    local clickX = absPos.X + (absSize.X / 2)
+                    local clickY = absPos.Y + (absSize.Y * 2)
+
+                    clickX = math.floor(clickX)
+                    clickY = math.floor(clickY)
+
+                    VirtualInputManager:SendMouseMoveEvent(clickX, clickY, game)
+                    task.wait(0.1)
+                    VirtualInputManager:SendMouseButtonEvent(clickX, clickY, 0, true, game, 0)
+                    task.wait(0.1)
+                    VirtualInputManager:SendMouseButtonEvent(clickX, clickY, 0, false, game, 0)
                 end
             end
         end)
