@@ -2090,7 +2090,7 @@ local workspace = game:GetService("Workspace")
 local player = Players.LocalPlayer
 
 local HoverHeight = 15
-local IframeHeight = 10
+local IframeHeight = 15
 local OffsetY = 15
 
 local hrp = nil
@@ -2183,7 +2183,7 @@ local function HoverOnMob()
 		local shouldLift = (iframes and iframes.Value) or (comboing and comboing.Value)
 		local desiredPos =
 			shouldLift
-				and (hrp.Position + Vector3.new(10 , IframeHeight, 0))
+				and (hrp.Position + Vector3.new(15 , IframeHeight, 0))
 				or (target.PrimaryPart.Position + Vector3.new(0, HoverHeight, 0))
 
         if bp then
