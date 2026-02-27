@@ -2184,9 +2184,9 @@ local function HoverOnMob()
 		local desiredPos =
 			shouldLift
 				and (hrp.Position + Vector3.new(
-    (math.random(0,1) == 0 and 20 or -20),
+    (math.random(0,1) == 0 and 20 or 40),
     IframeHeight,
-    (math.random(0,1) == 0 and 20 or -20)
+    (math.random(0,1) == 0 and 20 or 40)
 ))
 				or (target.PrimaryPart.Position + Vector3.new(0, HoverHeight, 0))
 
