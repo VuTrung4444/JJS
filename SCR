@@ -1691,8 +1691,8 @@ MiscSection:AddToggle({
                     local clickX, clickY
 
                     if useFixedClick then
-                        clickX = 417
-                        clickY = 255
+                        clickX = 450
+                        clickY = 315
                     else
                         clickX = absPos.X + (absSize.X / 2)
                         clickY = absPos.Y + (absSize.Y * 2)
