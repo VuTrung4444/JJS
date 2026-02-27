@@ -2200,7 +2200,7 @@ local function HoverOnMob()
             hrp.AssemblyLinearVelocity = Vector3.zero
         end
 
-        task.wait(0.1)
+        task.wait(0.01)
     end
 
     -- Mob chết hoặc AutoBoss tắt → tắt noclip
