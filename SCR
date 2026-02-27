@@ -1631,8 +1631,8 @@ MiscSection:AddToggle({
                 if not dropsFolder then continue end
 
                 for _, drop in ipairs(dropsFolder:GetChildren()) do
-                    if not drop.Name:match("^" .. player.Name .. "|") then continue end
 
+                    if not drop.Name:match("^" .. player.Name .. "|") then continue end
                     local chest = drop:FindFirstChild("Chest")
                     if not chest then continue end
 
@@ -1643,49 +1643,48 @@ MiscSection:AddToggle({
 
                         local gui = player:WaitForChild("PlayerGui")
                         local lootGUI = gui:FindFirstChild("Loot")
-                        if not lootGUI then continue end
+                        if lootGUI then
+                            local results = lootGUI:FindFirstChild("Results")
+                            if results then
+                                local mainFrame = results:FindFirstChild("Main")
+                                if mainFrame then
+                                    local scrollingFrame = mainFrame:FindFirstChild("ScrollingFrame")
+                                    if scrollingFrame then
+                                        local frameDetected = false
+                                        for _, itemFrame in ipairs(scrollingFrame:GetChildren()) do
+                                            if itemFrame.ClassName == "Frame" then
+                                                frameDetected = true
+                                                break
+                                            end
+                                        end
 
-                        local results = lootGUI:FindFirstChild("Results")
-                        local mainFrame = results and results:FindFirstChild("Main")
-                        local scrollingFrame = mainFrame and mainFrame:FindFirstChild("ScrollingFrame")
-                        if not scrollingFrame then continue end
+                                        if frameDetected then
+                                            local textLabel = lootGUI
+                                                :WaitForChild("Results")
+                                                :WaitForChild("Main")
+                                                :WaitForChild("Continue")
+                                                :WaitForChild("TextLabel")
 
+                                            task.wait()
 
-                        while getgenv().AutoChest do
-                            local frameDetected = false
+                                            local absPos = textLabel.AbsolutePosition
+                                            local absSize = textLabel.AbsoluteSize
 
-                            for _, itemFrame in ipairs(scrollingFrame:GetChildren()) do
-                                if itemFrame:IsA("Frame") then
-                                    frameDetected = true
-                                    break
+                                            local clickX = absPos.X + (absSize.X / 2)
+                                            local clickY = absPos.Y + (absSize.Y * 2)
+
+                                            clickX = math.floor(clickX)
+                                            clickY = math.floor(clickY)
+
+                                            VirtualInputManager:SendMouseMoveEvent(clickX, clickY, game)
+                                            task.wait(0.5)
+                                            VirtualInputManager:SendMouseButtonEvent(clickX, clickY, 0, true, game, 0)
+                                            task.wait(0.5)
+                                            VirtualInputManager:SendMouseButtonEvent(clickX, clickY, 0, false, game, 0)
+                                        end
+                                    end
                                 end
                             end
-
-                            if not frameDetected then
-                                break
-                            end
-
-                            local textLabel = lootGUI
-                                :WaitForChild("Results")
-                                :WaitForChild("Main")
-                                :WaitForChild("Continue")
-                                :WaitForChild("TextLabel")
-
-                            task.wait()
-
-                            local absPos = textLabel.AbsolutePosition
-                            local absSize = textLabel.AbsoluteSize
-
-                            local clickX = math.floor(absPos.X + (absSize.X / 2))
-                            local clickY = math.floor(absPos.Y + (absSize.Y * 2))
-
-                            VirtualInputManager:SendMouseMoveEvent(clickX, clickY, game)
-                            task.wait(0.05)
-                            VirtualInputManager:SendMouseButtonEvent(clickX, clickY, 0, true, game, 0)
-                            task.wait(0.05)
-                            VirtualInputManager:SendMouseButtonEvent(clickX, clickY, 0, false, game, 0)
-
-                            task.wait(1) -- lặp lại sau 1 giây
                         end
                     end
                 end
