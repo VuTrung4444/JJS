@@ -1836,8 +1836,8 @@ AutoMission:AddToggle({
 
                         if humanoid and humanoid.Health > 0 and mobRoot then
 
-                            if getgenv().AutoBoss and humanoid.Health <= 7000 then
-                                humanoid.Health = -10
+                            if getgenv().AutoBoss and humanoid.Health <= 10000 then
+                                humanoid.Health = 0
                                 task.wait(0.1)
                             end
 
