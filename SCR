@@ -2090,6 +2090,7 @@ local workspace = game:GetService("Workspace")
 local player = Players.LocalPlayer
 
 local HoverHeight = 15
+local IframeHeight = 10
 local OffsetY = 15
 
 local hrp = nil
@@ -2176,14 +2177,14 @@ local function HoverOnMob()
     local bp = hrp:FindFirstChild("BodyPosition")
 
     while humanoid and humanoid.Health > 0 and target.PrimaryPart and getgenv().AutoBoss do
-local IframeHeight = math.random(0,1) == 0 and 20 or 40
+
         local combatAgent = humanoid:FindFirstChild("CombatAgent")
         local iframes = combatAgent and combatAgent:FindFirstChild("Statuses") and combatAgent.Statuses:FindFirstChild("Iframes")
         local comboing = combatAgent and combatAgent:FindFirstChild("Statuses") and combatAgent.Statuses:FindFirstChild("Comboing")
 		local shouldLift = (iframes and iframes.Value) or (comboing and comboing.Value)
 		local desiredPos =
 			shouldLift
-				and (hrp.Position + Vector3.new(10, IframeHeight, 0))
+				and (hrp.Position + Vector3.new(math.random(0,1) == 0 and 10 or 50, IframeHeight, math.random(0,1) == 0 and 10 or 50))
 				or (target.PrimaryPart.Position + Vector3.new(0, HoverHeight, 0))
 
         if bp then
