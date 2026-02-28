@@ -2082,7 +2082,6 @@ AutoMission:AddToggle({
     end
 })
 
-
 getgenv().AutoBoss = false
 
 local Players = game:GetService("Players")
@@ -2091,9 +2090,8 @@ local workspace = game:GetService("Workspace")
 local player = Players.LocalPlayer
 
 local HoverHeight = 15
-local IframeHeight = 15
+local IframeHeight = 5
 local OffsetY = 15
-local OrbitSpeed = 1.5
 
 local hrp = nil
 local function UpdateHRP(char)
@@ -2175,22 +2173,13 @@ local function HoverOnMob()
 
     local bp = hrp:FindFirstChild("BodyPosition")
 
+    local orbitAngle = 0
+    local orbitRadius = 5
+
     getgenv()._wasLifted = false
     getgenv()._liftEndTime = nil
 
-
-    local orbitAngle = 0
-    do
-        local diff = hrp.Position - target.PrimaryPart.Position
-        orbitAngle = math.atan2(diff.Z, diff.X)
-    end
-
-    local lastTime = tick()
-
     while humanoid and humanoid.Health > 0 and target.PrimaryPart and getgenv().AutoBoss do
-
-        local dt = tick() - lastTime
-        lastTime = tick()
 
         local combatAgent = humanoid:FindFirstChild("CombatAgent")
         local iframes = combatAgent and combatAgent:FindFirstChild("Statuses") and combatAgent.Statuses:FindFirstChild("Iframes")
@@ -2200,43 +2189,29 @@ local function HoverOnMob()
         if shouldLift and not getgenv()._wasLifted then
             getgenv()._wasLifted = true
             getgenv()._liftEndTime = nil
-
-
-            local diff = hrp.Position - target.PrimaryPart.Position
-            getgenv()._orbitRadius = math.sqrt(diff.X^2 + diff.Z^2)
-            if getgenv()._orbitRadius < 5 then
-                getgenv()._orbitRadius = 5 
-            end
-
-
-            orbitAngle = math.atan2(diff.Z, diff.X)
-
         elseif not shouldLift and getgenv()._wasLifted then
             getgenv()._wasLifted = false
-            getgenv()._liftEndTime = tick() + 1
+            getgenv()._liftEndTime = tick() + 0.5
         end
 
         local isCoolingDown = getgenv()._liftEndTime and tick() < getgenv()._liftEndTime
 
-        local desiredPos
-
         if shouldLift or isCoolingDown then
-            orbitAngle = orbitAngle + OrbitSpeed * dt
+            orbitAngle = orbitAngle + 2.5 * 0.01
+            orbitRadius = orbitRadius + 2
 
-            local radius = getgenv()._orbitRadius or 40
             local bossPos = target.PrimaryPart.Position
-
-            desiredPos = Vector3.new(
-                bossPos.X + math.cos(orbitAngle) * radius,
-                bossPos.Y + IframeHeight,
-                bossPos.Z + math.sin(orbitAngle) * radius
+            local desiredPos = Vector3.new(
+                bossPos.X + math.cos(orbitAngle) * orbitRadius,
+                hrp.Position.Y + IframeHeight,
+                bossPos.Z + math.sin(orbitAngle) * orbitRadius
             )
-        else
-            desiredPos = target.PrimaryPart.Position + Vector3.new(0, HoverHeight, 0)
-        end
 
-        if bp then
-            bp.Position = desiredPos
+            if bp then bp.Position = desiredPos end
+        else
+            orbitAngle = 0
+            orbitRadius = 5
+            if bp then bp.Position = target.PrimaryPart.Position + Vector3.new(0, HoverHeight, 0) end
         end
 
         if target.PrimaryPart then
