@@ -367,19 +367,9 @@ local function StartBlackFlashLoop()
                 rs.ApplyBlackFlashToNextHitbox:FireServer(unpack(args))
                 rs.M2:FireServer()
             elseif mob or hasNonCrystalDestructible then
-                -- Kiểm tra mob có đang Iframes không
-                local mobIframes = false
-                if mob
-                and mob:FindFirstChild("Humanoid")
-                and mob.Humanoid:FindFirstChild("CombatAgent")
-                and mob.Humanoid.CombatAgent:FindFirstChild("Statuses")
-                and mob.Humanoid.CombatAgent.Statuses:FindFirstChild("Iframes") then
-                mobIframes = true
-                end
-                if not mobIframes then
+
                     rs.ApplyBlackFlashToNextHitbox:FireServer(unpack(args))
                     rs.M2:FireServer()
-                end
             end
             task.wait(1)
         end
@@ -416,7 +406,6 @@ local MAX_DISTANCE = 100
 local ATTACK_COUNT = 5
 local WAIT_AFTER_ATTACK = 1
 
---// Hàm lấy mob gần nhất trong phạm vi MAX_DISTANCE \\--
 local function getClosestMob()
     local mobsFolder = Workspace:WaitForChild("Objects"):WaitForChild("Mobs")
     local closestMob = nil
@@ -2182,9 +2171,10 @@ local function HoverOnMob()
     while humanoid and humanoid.Health > 0 and target.PrimaryPart and getgenv().AutoBoss do
 
         local combatAgent = humanoid:FindFirstChild("CombatAgent")
-        local iframes = combatAgent and combatAgent:FindFirstChild("Statuses") and combatAgent.Statuses:FindFirstChild("Iframes")
-        local comboing = combatAgent and combatAgent:FindFirstChild("Statuses") and combatAgent.Statuses:FindFirstChild("Comboing")
-        local shouldLift = (iframes and iframes.Value) or (comboing and comboing.Value)
+		local iframes = combatAgent and combatAgent:FindFirstChild("Statuses") and combatAgent.Statuses:FindFirstChild("Iframes")
+		local comboing = combatAgent and combatAgent:FindFirstChild("Statuses") and combatAgent.Statuses:FindFirstChild("Comboing")
+		local cantbring = combatAgent and combatAgent:FindFirstChild("Statuses") and combatAgent.Statuses:FindFirstChild("CantBring")
+		local shouldLift = (iframes and iframes.Value) or (comboing and comboing.Value) or (cantbring and cantbring.Value)
 
         if shouldLift and not getgenv()._wasLifted then
             getgenv()._wasLifted = true
@@ -2197,8 +2187,8 @@ local function HoverOnMob()
         local isCoolingDown = getgenv()._liftEndTime and tick() < getgenv()._liftEndTime
 
         if shouldLift or isCoolingDown then
-            orbitAngle = orbitAngle + 2.5 * 0.01
-            orbitRadius = orbitRadius + 2
+            orbitAngle = orbitAngle + 3 * 0.01
+            orbitRadius = orbitRadius + 0.5
 
             local bossPos = target.PrimaryPart.Position
             local desiredPos = Vector3.new(
@@ -2225,19 +2215,7 @@ local function HoverOnMob()
 
     clip()
     DisableHover(hrp)
-    task.wait(5)
 
-    local spawnLocation = workspace:FindFirstChild("Map")
-        and workspace.Map:FindFirstChild("Parts")
-        and workspace.Map.Parts:FindFirstChild("SpawnLocation")
-    if spawnLocation and hrp then
-        local spawnPos = spawnLocation:IsA("Model")
-            and spawnLocation:GetPivot().Position
-            or spawnLocation.Position
-        hrp.CFrame = CFrame.new(spawnPos + Vector3.new(0, 5, 0))
-        hrp.Velocity = Vector3.zero
-        hrp.AssemblyLinearVelocity = Vector3.zero
-    end
 end
 
 AutoMission:AddToggle({
