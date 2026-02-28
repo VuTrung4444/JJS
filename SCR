@@ -2114,7 +2114,6 @@ local function EnableHover(hrp)
         bp.Name = "BodyPosition"
         bp.Parent = hrp
     end
-
 end
 
 local function DisableHover(hrp)
@@ -2133,8 +2132,8 @@ local function MoveToBoss()
     if bossSpawn and bossSpawn:FindFirstChild("QuestMarker") then
         local pivot = bossSpawn:GetPivot()
         if pivot then
-		CastSwitch()
-		local VirtualInputManager = game:GetService("VirtualInputManager")
+            CastSwitch()
+            local VirtualInputManager = game:GetService("VirtualInputManager")
 
             VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Three, false, game)
             task.wait(0.05)
@@ -2163,29 +2162,51 @@ local function HoverOnMob()
         end
     end
 
-    -- Không có mob → tắt noclip, dừng hover
     if not target then
         clip()
         DisableHover(hrp)
         return
     end
 
-    -- Có mob → bật noclip
     noclip()
     EnableHover(hrp)
 
     local bp = hrp:FindFirstChild("BodyPosition")
+
+    -- Reset trạng thái cooldown mỗi lần vào HoverOnMob
+    getgenv()._wasLifted = false
+    getgenv()._liftEndTime = nil
 
     while humanoid and humanoid.Health > 0 and target.PrimaryPart and getgenv().AutoBoss do
 
         local combatAgent = humanoid:FindFirstChild("CombatAgent")
         local iframes = combatAgent and combatAgent:FindFirstChild("Statuses") and combatAgent.Statuses:FindFirstChild("Iframes")
         local comboing = combatAgent and combatAgent:FindFirstChild("Statuses") and combatAgent.Statuses:FindFirstChild("Comboing")
-		local shouldLift = (iframes and iframes.Value) or (comboing and comboing.Value)
-		local desiredPos =
-			shouldLift
-				and (hrp.Position + Vector3.new(math.random(0,1) == 0 and -50 or 50, IframeHeight, math.random(0,1) == 0 and -50 or 50))
-				or (target.PrimaryPart.Position + Vector3.new(0, HoverHeight, 0))
+        local shouldLift = (iframes and iframes.Value) or (comboing and comboing.Value)
+
+        if shouldLift and not getgenv()._wasLifted then
+            getgenv()._wasLifted = true
+            getgenv()._liftEndTime = nil
+        elseif not shouldLift and getgenv()._wasLifted then
+            getgenv()._wasLifted = false
+            getgenv()._liftEndTime = tick() + 2
+        end
+
+        local isCoolingDown = getgenv()._liftEndTime and tick() < getgenv()._liftEndTime
+
+        local offsetX = 50
+        local offsetZ = 50
+
+        local candidatePos = hrp.Position + Vector3.new(offsetX, IframeHeight, offsetZ)
+        local distFromTarget = (candidatePos - target.PrimaryPart.Position).Magnitude
+        if distFromTarget > 2000 then
+            candidatePos = hrp.Position
+        end
+
+        local desiredPos =
+            (shouldLift or isCoolingDown)
+                and candidatePos
+                or (target.PrimaryPart.Position + Vector3.new(0, HoverHeight, 0))
 
         if bp then
             bp.Position = desiredPos
@@ -2199,7 +2220,6 @@ local function HoverOnMob()
 
         task.wait(0.01)
     end
-
 
     clip()
     DisableHover(hrp)
@@ -2225,8 +2245,6 @@ AutoMission:AddToggle({
         end)
     end
 })
-
-
 
 KA:AddToggle({
     Name = "Auto Mob",
