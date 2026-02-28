@@ -2199,7 +2199,7 @@ local function HoverOnMob()
 
         local candidatePos = hrp.Position + Vector3.new(offsetX, IframeHeight, offsetZ)
         local distFromTarget = (candidatePos - target.PrimaryPart.Position).Magnitude
-        if distFromTarget > 2000 then
+        if distFromTarget > 4000 then
             candidatePos = hrp.Position
         end
 
