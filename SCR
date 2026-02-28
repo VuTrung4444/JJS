@@ -2082,6 +2082,7 @@ AutoMission:AddToggle({
     end
 })
 
+
 getgenv().AutoBoss = false
 
 local Players = game:GetService("Players")
@@ -2090,7 +2091,7 @@ local workspace = game:GetService("Workspace")
 local player = Players.LocalPlayer
 
 local HoverHeight = 15
-local IframeHeight = 10
+local IframeHeight = 15
 local OffsetY = 15
 
 local hrp = nil
@@ -2194,18 +2195,9 @@ local function HoverOnMob()
 
         local isCoolingDown = getgenv()._liftEndTime and tick() < getgenv()._liftEndTime
 
-        local offsetX = 50
-        local offsetZ = 50
-
-        local candidatePos = hrp.Position + Vector3.new(offsetX, IframeHeight, offsetZ)
-        local distFromTarget = (candidatePos - target.PrimaryPart.Position).Magnitude
-        if distFromTarget > 4000 then
-            candidatePos = hrp.Position
-        end
-
         local desiredPos =
             (shouldLift or isCoolingDown)
-                and candidatePos
+                and (hrp.Position + Vector3.new(40, IframeHeight, 40))
                 or (target.PrimaryPart.Position + Vector3.new(0, HoverHeight, 0))
 
         if bp then
@@ -2223,6 +2215,20 @@ local function HoverOnMob()
 
     clip()
     DisableHover(hrp)
+	task.wait(2)
+
+    -- Di chuyển về SpawnLocation sau khi boss biến mất
+    local spawnLocation = workspace:FindFirstChild("Map")
+        and workspace.Map:FindFirstChild("Parts")
+        and workspace.Map.Parts:FindFirstChild("SpawnLocation")
+    if spawnLocation and hrp then
+        local spawnPos = spawnLocation:IsA("Model")
+            and spawnLocation:GetPivot().Position
+            or spawnLocation.Position
+        hrp.CFrame = CFrame.new(spawnPos + Vector3.new(0, 5, 0))
+        hrp.Velocity = Vector3.zero
+        hrp.AssemblyLinearVelocity = Vector3.zero
+    end
 end
 
 AutoMission:AddToggle({
@@ -2245,6 +2251,8 @@ AutoMission:AddToggle({
         end)
     end
 })
+
+
 
 KA:AddToggle({
     Name = "Auto Mob",
