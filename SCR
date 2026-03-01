@@ -328,7 +328,7 @@ local function StartBlackFlashLoop()
         while getgenv().ToggleBF do
             local hrp = game.Players.LocalPlayer.Character 
                 and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-            local mob = GetNearestMobInRange(50)
+            local mob = GetNearestMobInRange(30)
             local calamity = workspace.Objects.Mobs:FindFirstChild("Six Eyed Calamity")
             local isCalamityStunned = false
             if calamity
@@ -403,7 +403,7 @@ local plr = Players.LocalPlayer
 
 
 local MAX_DISTANCE = 100
-local ATTACK_COUNT = 5
+local ATTACK_COUNT = 3
 local WAIT_AFTER_ATTACK = 1
 
 local function getClosestMob()
