@@ -14,6 +14,7 @@ local placeId = game.PlaceId
 local InnateSpinEnabled = false
 local slot1Enabled = false
 local slot2Enabled = false
+local slot3Enabled = false  -- Thêm slot 3
 local huntRare = false 
 local huntLegendary = false 
 local huntSg = false
@@ -26,7 +27,7 @@ local sgInnate = {"Infinity", "Demon Vessel", "Curse Queen", "Soul Manipulation"
 local function getFilteredInnate()
     local targetInnate = {}
 
-	 if huntRare then
+    if huntRare then
         for _, innate in ipairs(RareInnate) do
             table.insert(targetInnate, innate)
         end
@@ -51,36 +52,57 @@ local function autoSpinInnate()
         local ReplicatedStorage = game:GetService("ReplicatedStorage")
         local localPlayer = Players.LocalPlayer
 
-
         local spinRemote = ReplicatedStorage:WaitForChild("Remotes")
             :WaitForChild("Server")
             :WaitForChild("Data")
             :WaitForChild("InnateSpin")
-
 
         local innates = localPlayer:WaitForChild("ReplicatedData"):WaitForChild("innates")
 
         while InnateSpinEnabled do
             local targetInnates = getFilteredInnate()
 
+            if #targetInnates == 0 then
+                warn("Chưa chọn loại innate cần săn!")
+                InnateSpinEnabled = false
+                break
+            end
 
+            -- Slot 1
             if slot1Enabled then
                 spinRemote:InvokeServer(1)
+                task.wait(0.5)
                 local val1 = innates["1"] and innates["1"].Value or ""
                 if table.find(targetInnates, val1) then
-					print("Slot 1 Innate:", val1)
+                    print("Slot 1 Innate:", val1)
                     InnateSpinEnabled = false
                     break
                 end
             end
 
+            if not InnateSpinEnabled then break end
 
+            -- Slot 2
             if slot2Enabled then
-                if slot1Enabled then task.wait(0.5) end -- Slot 2 quay chậm hơn nếu slot 1 cũng spin
                 spinRemote:InvokeServer(2)
+                task.wait(0.5)
                 local val2 = innates["2"] and innates["2"].Value or ""
                 if table.find(targetInnates, val2) then
-				    print("Slot 2 Innate:", val2)
+                    print("Slot 2 Innate:", val2)
+                    InnateSpinEnabled = false
+                    break
+                end
+            end
+
+            if not InnateSpinEnabled then break end
+
+            -- Slot 3
+            if slot3Enabled then
+                spinRemote:InvokeServer(3)
+                task.wait(0.5)
+                local val3 = innates["3"] and innates["3"].Value or ""
+                if table.find(targetInnates, val3) then
+                    print("Slot 3 Innate:", val3)
                     InnateSpinEnabled = false
                     break
                 end
@@ -151,6 +173,16 @@ end
         end
     })
 
+    -- Toggle slot 3
+    DailySection:AddToggle({
+        Name = "Spin Thanh Lưu 3",
+        Flag = "Slot3",
+        State = false,
+        Callback = function(state)
+            slot3Enabled = state
+        end
+    })
+
     -- Hunt Legendary / SG Innate
     local ClanChooseSection = MainTab:CreateSection({Name = "TròChơiNhânPhẩm", Side = "Right"})
 
@@ -177,6 +209,7 @@ end
             huntSg = state
         end
     })
+
 
 
 local function CastSwitch()
