@@ -141,7 +141,7 @@ end
 	local MiscSection = MiscTab:CreateSection({Name = "Misc"})
 	local SpeedAndJump = MiscTab:CreateSection({Name = "Speed&Jump[P]", Side = "Right"})
 	local Shop = MiscTab:CreateSection({Name = "Đổi item", Side = "Left"})
-
+	local Craft = MiscTab:CreateSection({Name = "Craft item", Side = "Right"})
 
 
 local Players = game:GetService("Players")
@@ -1945,6 +1945,104 @@ Shop:AddToggle({
 		end
 	end
 })
+
+
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local player = Players.LocalPlayer
+local replicatedData = player:WaitForChild("ReplicatedData")
+local inventory = replicatedData:WaitForChild("inventory")
+
+local craftRemote = ReplicatedStorage:WaitForChild("Remotes")
+	:WaitForChild("Server")
+	:WaitForChild("Data")
+	:WaitForChild("Craft")
+
+local function getValue(name)
+	local item = inventory:FindFirstChild(name)
+	return item and item.Value or 0
+end
+
+local function craft(itemName)
+	craftRemote:InvokeServer(itemName)
+end
+
+
+local craftingEnabled = false
+
+Craft:AddToggle({
+	Name = "Auto Craft",
+	Default = false,
+	Callback = function(state)
+		craftingEnabled = state
+
+		if state then
+			task.spawn(function()
+				while craftingEnabled do
+					task.wait(1)
+
+					-- ===== LẤY GIÁ TRỊ =====
+					local white = getValue("White Lotus")
+					local sapphire = getValue("Sapphire Lotus")
+					local jade = getValue("Jade Lotus")
+
+					local withered = getValue("Withered Beckoning Cat")
+					local wooden = getValue("Wooden Beckoning Cat")
+					local polished = getValue("Polished Beckoning Cat")
+					local golden = getValue("Golden Beckoning Cat")
+
+					local luckVial = getValue("Luck Vial")
+					local fortuneGourd = getValue("Fortune Gourd")
+
+					local didCraft = false
+
+
+					if sapphire > 5 and jade < 25 then
+						craft("Jade Lotus")
+						didCraft = true
+
+					elseif polished > 5 and golden < 25 then
+						craft("Golden Beckoning Cat")
+						didCraft = true
+
+
+					elseif sapphire < 25 and white > 5 then
+						craft("Sapphire Lotus")
+						didCraft = true
+
+
+					elseif polished < 25 then
+						if wooden > 5 then
+							craft("Polished Beckoning Cat")
+							didCraft = true
+						elseif withered > 5 then
+							craft("Wooden Beckoning Cat")
+							didCraft = true
+						end
+					end
+
+
+					if not didCraft then
+						local lotusDead = white < 5 and sapphire < 5
+						local catDead = withered < 5 and wooden < 5 and polished < 5
+						local maxReached = jade == 25 and golden == 25
+
+						if (lotusDead and catDead) or maxReached then
+							if luckVial > 25 and fortuneGourd < 15 then
+								craft("Fortune Gourd")
+							end
+							craftingEnabled = false
+							break
+						end
+					end
+				end
+			end)
+		end
+	end
+})
+
 
 AutoMission:AddToggle({
     Name = "InstantKill",
