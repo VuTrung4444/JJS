@@ -1947,7 +1947,6 @@ Shop:AddToggle({
 })
 
 
-
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -1966,21 +1965,21 @@ local function getValue(name)
 end
 
 local function craft(itemName)
+
 	craftRemote:InvokeServer(itemName)
 end
 
-
-local craftingEnabled = false
+local autoCraft = false
 
 Craft:AddToggle({
 	Name = "Auto Craft",
 	Default = false,
 	Callback = function(state)
-		craftingEnabled = state
+		autoCraft = state
 
 		if state then
 			task.spawn(function()
-				while craftingEnabled do
+				while autoCraft do
 					task.wait(1)
 
 					-- ===== LẤY GIÁ TRỊ =====
@@ -1995,10 +1994,11 @@ Craft:AddToggle({
 
 					local luckVial = getValue("Luck Vial")
 					local fortuneGourd = getValue("Fortune Gourd")
+					local rageGourd = getValue("Rage Gourd")
 
 					local didCraft = false
 
-
+					-- 🔥 1. ƯU TIÊN CAO
 					if sapphire > 5 and jade < 25 then
 						craft("Jade Lotus")
 						didCraft = true
@@ -2007,12 +2007,12 @@ Craft:AddToggle({
 						craft("Golden Beckoning Cat")
 						didCraft = true
 
-
+					-- ⬇ 2. LOTUS
 					elseif sapphire < 25 and white > 5 then
 						craft("Sapphire Lotus")
 						didCraft = true
 
-
+					-- ⬇ 3. CAT
 					elseif polished < 25 then
 						if wooden > 5 then
 							craft("Polished Beckoning Cat")
@@ -2030,11 +2030,25 @@ Craft:AddToggle({
 						local maxReached = jade == 25 and golden == 25
 
 						if (lotusDead and catDead) or maxReached then
-							if luckVial > 25 and fortuneGourd < 15 then
+							
+
+							if luckVial >= 25 and fortuneGourd < 15 then
 								craft("Fortune Gourd")
+								didCraft = true
+
+
+							elseif luckVial < 25 or fortuneGourd == 15 then
+								
+
+								if rageGourd < 25 then
+									craft("Rage Gourd")
+									didCraft = true
+								else
+
+									autoCraft = false
+									break
+								end
 							end
-							craftingEnabled = false
-							break
 						end
 					end
 				end
