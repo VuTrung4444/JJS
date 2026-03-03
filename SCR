@@ -1999,25 +1999,25 @@ Craft:AddToggle({
 					local didCraft = false
 
 					-- 🔥 1. ƯU TIÊN CAO
-					if sapphire > 5 and jade < 25 then
+					if sapphire >= 5 and jade < 25 then
 						craft("Jade Lotus")
 						didCraft = true
 
-					elseif polished > 5 and golden < 25 then
+					elseif polished >= 5 and golden < 25 then
 						craft("Golden Beckoning Cat")
 						didCraft = true
 
 					-- ⬇ 2. LOTUS
-					elseif sapphire < 25 and white > 5 then
+					elseif sapphire < 25 and white >= 5 then
 						craft("Sapphire Lotus")
 						didCraft = true
 
 					-- ⬇ 3. CAT
 					elseif polished < 25 then
-						if wooden > 5 then
+						if wooden >= 5 then
 							craft("Polished Beckoning Cat")
 							didCraft = true
-						elseif withered > 5 then
+						elseif withered >= 5 then
 							craft("Wooden Beckoning Cat")
 							didCraft = true
 						end
@@ -2031,20 +2031,16 @@ Craft:AddToggle({
 
 						if (lotusDead and catDead) or maxReached then
 							
-
 							if luckVial >= 25 and fortuneGourd < 15 then
 								craft("Fortune Gourd")
 								didCraft = true
 
-
 							elseif luckVial < 25 or fortuneGourd == 15 then
-								
 
 								if rageGourd < 25 then
 									craft("Rage Gourd")
 									didCraft = true
 								else
-
 									autoCraft = false
 									break
 								end
