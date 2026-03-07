@@ -387,7 +387,7 @@ local cast = false
 
 local function BlackFlashQuick()
 	local rs = game:GetService("ReplicatedStorage").Remotes.Server.Combat
-	local args = {1.4}
+	local args = {2.4}
 		rs.ApplyBlackFlashToNextHitbox:FireServer(unpack(args))
 		rs.M2:FireServer()
 
@@ -470,7 +470,7 @@ local function StartBlackFlashLoop()
         while getgenv().ToggleBF do
             local hrp = game.Players.LocalPlayer.Character 
                 and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-            local mob = GetNearestMobInRange(30)
+            local mob = GetNearestMobInRange(25)
             local calamity = workspace.Objects.Mobs:FindFirstChild("Six Eyed Calamity")
             local isCalamityStunned = false
             if calamity
