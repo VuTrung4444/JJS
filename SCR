@@ -15,6 +15,7 @@ local InnateSpinEnabled = false
 local slot1Enabled = false
 local slot2Enabled = false
 local slot3Enabled = false  -- Thêm slot 3
+local slot4Enabled = false  -- Thêm slot 4
 local huntRare = false 
 local huntLegendary = false 
 local huntSg = false
@@ -103,6 +104,18 @@ local function autoSpinInnate()
                 local val3 = innates["3"] and innates["3"].Value or ""
                 if table.find(targetInnates, val3) then
                     print("Slot 3 Innate:", val3)
+                    InnateSpinEnabled = false
+                    break
+                end
+            end
+
+			 -- Slot 4
+            if slot4Enabled then
+                spinRemote:InvokeServer(4)
+                task.wait(0.5)
+                local val4 = innates["4"] and innates["4"].Value or ""
+                if table.find(targetInnates, val4) then
+                    print("Slot 4 Innate:", val4)
                     InnateSpinEnabled = false
                     break
                 end
@@ -289,6 +302,16 @@ end)
         State = false,
         Callback = function(state)
             slot3Enabled = state
+        end
+    })
+
+	    -- Toggle slot 4
+    DailySection:AddToggle({
+        Name = "Spin Thanh Lưu 4",
+        Flag = "Slot4",
+        State = false,
+        Callback = function(state)
+            slot4Enabled = state
         end
     })
 
