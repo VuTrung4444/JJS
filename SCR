@@ -431,7 +431,7 @@ local function BlackFlashQuickSkillZ()
 game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("ApplyChantToNextHitbox"):FireServer(unpack(args))
 
 local args = {
-	"Demon Vessel: Cleave"
+	"Infinity: Reversal Red"
 }
 game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("Skill"):FireServer(unpack(args))
 end
@@ -452,7 +452,7 @@ local function BlackFlashQuickSkillC()
 game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("ApplyChantToNextHitbox"):FireServer(unpack(args))
 
 local args = {
-	"Demon Vessel: Dismantle"
+	"Infinity: Lapse Blue"
 }
 game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("Skill"):FireServer(unpack(args))
 end
@@ -472,7 +472,10 @@ local function BlackFlashQuickSkillV()
 }
 game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("ApplyChantToNextHitbox"):FireServer(unpack(args))
 
-local args = {
+-----------------FUGA----------------------
+
+--[[
+	local args = {
 	"Demon Vessel: Flame Arrow"
 }
 game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("Skill"):FireServer(unpack(args))
@@ -485,6 +488,7 @@ UIS.InputBegan:Connect(function(input, gameProcessed)
         BlackFlashQuickSkillV()
     end
 end)
+]]
 
 local function StartBlackFlashLoop()
     if getgenv().ToggleBF then return end
