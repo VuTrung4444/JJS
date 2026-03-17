@@ -413,7 +413,6 @@ local function BlackFlashQuick()
 	local args = {2.4}
 		rs.ApplyBlackFlashToNextHitbox:FireServer(unpack(args))
 		rs.M2:FireServer()
-
 end
 
 UIS.InputBegan:Connect(function(input, gameProcessed)
@@ -465,17 +464,18 @@ UIS.InputBegan:Connect(function(input, gameProcessed)
     end
 end)
 
-local function BlackFlashQuickSkillV()
+-------------FUGA-----------------
+
+--[[
+	
+	local function BlackFlashQuickSkillV()
 	local args = {
 	2,
 	true
 }
 game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("ApplyChantToNextHitbox"):FireServer(unpack(args))
 
------------------FUGA----------------------
-
---[[
-	local args = {
+local args = {
 	"Demon Vessel: Flame Arrow"
 }
 game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("Skill"):FireServer(unpack(args))
@@ -488,7 +488,9 @@ UIS.InputBegan:Connect(function(input, gameProcessed)
         BlackFlashQuickSkillV()
     end
 end)
+
 ]]
+
 
 local function StartBlackFlashLoop()
     if getgenv().ToggleBF then return end
