@@ -357,7 +357,12 @@ local function CastSwitch()
         "Focus Vial",
         "Focus Gourd"
     }
-    
+
+local args = {
+	"Divergent Fist"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("Skill"):FireServer(unpack(args))
+
 	local args = {
 		"Demon Vessel: Switch"
 	}
