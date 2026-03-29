@@ -2516,7 +2516,7 @@ local function HoverOnMob()
             getgenv()._liftEndTime = nil
         elseif not shouldLift and getgenv()._wasLifted then
             getgenv()._wasLifted = false
-            getgenv()._liftEndTime = tick() + 0.5
+            getgenv()._liftEndTime = tick() + 0.1
         end
 
         local isCoolingDown = getgenv()._liftEndTime and tick() < getgenv()._liftEndTime
