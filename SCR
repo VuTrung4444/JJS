@@ -2340,7 +2340,7 @@ task.spawn(function()
                     getgenv().YSkillUsed = true
                     task.wait(2)
                     break
-                elseif targetHealthPercent >= 0.7 then
+                elseif targetHealthPercent >= 0.8 then
                     getgenv().YSkillUsed = false
                 end
             end
@@ -2414,7 +2414,7 @@ AutoSkill:AddToggle({
 })
 
 AutoSkill:AddToggle({
-    Name = "Skill Y (< 70% HP)",
+    Name = "Skill Y (< 80% HP)",
     Default = false,
     Callback = function(value)
         getgenv().UseY = value
