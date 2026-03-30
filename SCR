@@ -2153,8 +2153,6 @@ getgenv().UseZ = false
 getgenv().UseX = false
 getgenv().UseC = false
 getgenv().UseV = false
-getgenv().UseF = false
-getgenv().UseJ = false
 getgenv().UseB = false
 getgenv().UseG = false
 getgenv().SkillRange = getgenv().SkillRange or 50
@@ -2199,8 +2197,6 @@ local function GetActiveKeys()
     if getgenv().UseX then table.insert(keys, Enum.KeyCode.X) end
     if getgenv().UseC then table.insert(keys, Enum.KeyCode.C) end
     if getgenv().UseV then table.insert(keys, Enum.KeyCode.V) end
-    if getgenv().UseF then table.insert(keys, Enum.KeyCode.F) end
-    if getgenv().UseJ then table.insert(keys, Enum.KeyCode.J) end
     if getgenv().UseB then table.insert(keys, Enum.KeyCode.B) end
     if getgenv().UseG then table.insert(keys, Enum.KeyCode.G) end
     return keys
@@ -2362,22 +2358,11 @@ AutoSkill:AddToggle({
 })
 
 AutoSkill:AddToggle({
-    Name = "Skill F",
-    Default = false,
-    Callback = function(value) getgenv().UseF = value end
-})
-
-AutoSkill:AddToggle({
-    Name = "Skill J",
-    Default = false,
-    Callback = function(value) getgenv().UseJ = value end
-})
-
-AutoSkill:AddToggle({
     Name = "Skill B",
     Default = false,
     Callback = function(value) getgenv().UseB = value end
 })
+
 
 AutoSkill:AddToggle({
     Name = "Skill G",
