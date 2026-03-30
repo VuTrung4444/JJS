@@ -2155,14 +2155,19 @@ getgenv().UseC = false
 getgenv().UseV = false
 getgenv().UseB = false
 getgenv().UseG = false
+getgenv().UseT = false
+getgenv().UseY = false
 getgenv().SkillRange = getgenv().SkillRange or 50
+getgenv().YSkillUsed = false
 
-local VirtualInputManager = game:GetService("VirtualInputManager")
+local SkillRemote = game:GetService("ReplicatedStorage")
+    :WaitForChild("Remotes")
+    :WaitForChild("Server")
+    :WaitForChild("Combat")
+    :WaitForChild("Skill")
 
-local function SendKey(keyCode)
-    VirtualInputManager:SendKeyEvent(true, keyCode, false, game)
-    task.wait(0.05)
-    VirtualInputManager:SendKeyEvent(false, keyCode, false, game)
+local function FireSkill(skillName)
+    SkillRemote:FireServer(skillName)
 end
 
 local function GetNearestMob(maxDistance)
@@ -2191,18 +2196,7 @@ local function GetNearestMob(maxDistance)
     return nearest
 end
 
-local function GetActiveKeys()
-    local keys = {}
-    if getgenv().UseZ then table.insert(keys, Enum.KeyCode.Z) end
-    if getgenv().UseX then table.insert(keys, Enum.KeyCode.X) end
-    if getgenv().UseC then table.insert(keys, Enum.KeyCode.C) end
-    if getgenv().UseV then table.insert(keys, Enum.KeyCode.V) end
-    if getgenv().UseB then table.insert(keys, Enum.KeyCode.B) end
-    if getgenv().UseG then table.insert(keys, Enum.KeyCode.G) end
-    return keys
-end
-
--- Lấy bảng ánh xạ KeyCode -> SkillBar dựa theo Keybind text
+-- Quét SkillBars, trả về map: KeyString -> { label = SkillName label, skillName = tên skill }
 local function GetSkillBarMap()
     local map = {}
     local skillBars = game:GetService("Players").LocalPlayer.PlayerGui
@@ -2221,30 +2215,44 @@ local function GetSkillBarMap()
         local skillNameLabel = bar:FindFirstChild("SkillName")
         if keybindLabel and skillNameLabel then
             local key = keybindLabel.Text:upper():match("^%s*(.-)%s*$")
-            map[key] = skillNameLabel
+            -- Lấy tên skill gốc (bỏ phần cooldown "(7.8)" nếu có)
+            local rawName = skillNameLabel.Text:match("^(.-)%s*%(.-%)")
+                or skillNameLabel.Text
+            map[key] = {
+                label = skillNameLabel,
+                skillName = rawName:match("^%s*(.-)%s*$")
+            }
         end
     end
 
     return map
 end
 
--- Kiểm tra skill có đang cooldown không dựa theo SkillName label
-local function IsSkillReady(skillNameLabel)
-    if not skillNameLabel then return true end
-    -- Nếu text có dạng "Tên (7.8)" thì đang cooldown
-    return not skillNameLabel.Text:match("%(.-%)$")
+local function IsSkillReady(entry)
+    if not entry or not entry.label then return true end
+    return not entry.label.Text:match("%(.-%)$")
 end
 
--- Chuyển KeyCode sang chuỗi để so khớp với Keybind text
 local function KeyCodeToString(keyCode)
     local name = keyCode.Name
-    -- Enum.KeyCode.Z -> "Z", Enum.KeyCode.One -> "1", v.v.
     local numMap = {
         One = "1", Two = "2", Three = "3", Four = "4",
         Five = "5", Six = "6", Seven = "7", Eight = "8",
         Nine = "9", Zero = "0"
     }
     return numMap[name] or name
+end
+
+local function GetActiveKeyCodes()
+    local keys = {}
+    if getgenv().UseZ then table.insert(keys, Enum.KeyCode.Z) end
+    if getgenv().UseX then table.insert(keys, Enum.KeyCode.X) end
+    if getgenv().UseC then table.insert(keys, Enum.KeyCode.C) end
+    if getgenv().UseV then table.insert(keys, Enum.KeyCode.V) end
+    if getgenv().UseB then table.insert(keys, Enum.KeyCode.B) end
+    if getgenv().UseG then table.insert(keys, Enum.KeyCode.G) end
+    if getgenv().UseT then table.insert(keys, Enum.KeyCode.T) end
+    return keys
 end
 
 task.spawn(function()
@@ -2267,49 +2275,81 @@ task.spawn(function()
             continue
         end
 
-        local keys = GetActiveKeys()
+        local skillBarMap = GetSkillBarMap()
+
+        -- Kiểm tra điều kiện kĩ năng Y (ưu tiên cao nhất)
+        if getgenv().UseY then
+            local yEntry = skillBarMap["Y"]
+            local targetHealthPercent = h.Health / h.MaxHealth
+
+            if targetHealthPercent < 0.7 and not getgenv().YSkillUsed then
+                -- Gián đoạn mọi thứ, gọi skill Y
+                if yEntry and yEntry.skillName and yEntry.skillName ~= "" then
+                    FireSkill(yEntry.skillName)
+                end
+                getgenv().YSkillUsed = true
+                task.wait(2)
+                continue
+            elseif targetHealthPercent >= 0.7 then
+                getgenv().YSkillUsed = false
+            end
+        end
+
+        local keys = GetActiveKeyCodes()
         if #keys == 0 then
             task.wait(0.5)
             continue
         end
 
-        local skillBarMap = GetSkillBarMap()
-
-        -- Phân loại: key sẵn sàng và key đang cooldown
-        local readyKeys = {}
-        local cooldownKeys = {}
+        -- Phân loại ready / cooldown, đồng thời lấy tên skill
+        local readySkills = {}
+        local cooldownSkills = {}
 
         for _, keyCode in ipairs(keys) do
             local keyStr = KeyCodeToString(keyCode)
-            local skillNameLabel = skillBarMap[keyStr]
+            local entry = skillBarMap[keyStr]
 
-            if skillNameLabel then
-                if IsSkillReady(skillNameLabel) then
-                    table.insert(readyKeys, keyCode)
+            if entry and entry.skillName and entry.skillName ~= "" then
+                if IsSkillReady(entry) then
+                    table.insert(readySkills, entry.skillName)
                 else
-                    table.insert(cooldownKeys, keyCode)
+                    table.insert(cooldownSkills, entry.skillName)
                 end
-            else
-                -- Không tìm thấy trong SkillBar, coi như sẵn sàng
-                table.insert(readyKeys, keyCode)
             end
         end
 
-        -- Ưu tiên gọi các key sẵn sàng, fallback sang cooldown nếu không có
-        local keysToUse = #readyKeys > 0 and readyKeys or cooldownKeys
+        local skillsToUse = #readySkills > 0 and readySkills or cooldownSkills
 
-        for _, keyCode in ipairs(keysToUse) do
+        for _, skillName in ipairs(skillsToUse) do
             if not getgenv().AutoSkill then break end
+
             local currentTarget = GetNearestMob(getgenv().SkillRange)
             if not currentTarget then break end
             local ch = currentTarget:FindFirstChildWhichIsA("Humanoid", true)
             if not ch or ch.Health <= 0 then break end
 
-            SendKey(keyCode)
-            task.wait(3)
+            -- Kiểm tra Y chen ngang trước mỗi lần gọi skill
+            if getgenv().UseY then
+                local targetHealthPercent = ch.Health / ch.MaxHealth
+                if targetHealthPercent < 0.7 and not getgenv().YSkillUsed then
+                    local freshMap = GetSkillBarMap()
+                    local yEntry = freshMap["Y"]
+                    if yEntry and yEntry.skillName and yEntry.skillName ~= "" then
+                        FireSkill(yEntry.skillName)
+                    end
+                    getgenv().YSkillUsed = true
+                    task.wait(2)
+                    break
+                elseif targetHealthPercent >= 0.7 then
+                    getgenv().YSkillUsed = false
+                end
+            end
+
+            FireSkill(skillName)
+            task.wait(2)
         end
 
-        task.wait(1)
+        task.wait(2)
     end
 end)
 
@@ -2318,9 +2358,7 @@ end)
 AutoSkill:AddToggle({
     Name = "Auto Skill",
     Default = false,
-    Callback = function(value)
-        getgenv().AutoSkill = value
-    end
+    Callback = function(value) getgenv().AutoSkill = value end
 })
 
 AutoSkill:AddTextbox({
@@ -2363,11 +2401,25 @@ AutoSkill:AddToggle({
     Callback = function(value) getgenv().UseB = value end
 })
 
-
 AutoSkill:AddToggle({
     Name = "Skill G",
     Default = false,
     Callback = function(value) getgenv().UseG = value end
+})
+
+AutoSkill:AddToggle({
+    Name = "Skill T",
+    Default = false,
+    Callback = function(value) getgenv().UseT = value end
+})
+
+AutoSkill:AddToggle({
+    Name = "Skill Y (< 70% HP)",
+    Default = false,
+    Callback = function(value)
+        getgenv().UseY = value
+        if not value then getgenv().YSkillUsed = false end
+    end
 })
 
 
