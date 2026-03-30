@@ -2282,7 +2282,7 @@ task.spawn(function()
             local yEntry = skillBarMap["Y"]
             local targetHealthPercent = h.Health / h.MaxHealth
 
-            if targetHealthPercent < 0.7 and not getgenv().YSkillUsed then
+            if targetHealthPercent < 0.8 and not getgenv().YSkillUsed then
                 -- Gián đoạn mọi thứ, gọi skill Y
                 if yEntry and yEntry.skillName and yEntry.skillName ~= "" then
                     FireSkill(yEntry.skillName)
@@ -2290,7 +2290,7 @@ task.spawn(function()
                 getgenv().YSkillUsed = true
                 task.wait(2)
                 continue
-            elseif targetHealthPercent >= 0.7 then
+            elseif targetHealthPercent >= 0.8 then
                 getgenv().YSkillUsed = false
             end
         end
@@ -2331,7 +2331,7 @@ task.spawn(function()
             -- Kiểm tra Y chen ngang trước mỗi lần gọi skill
             if getgenv().UseY then
                 local targetHealthPercent = ch.Health / ch.MaxHealth
-                if targetHealthPercent < 0.7 and not getgenv().YSkillUsed then
+                if targetHealthPercent < 0.8 and not getgenv().YSkillUsed then
                     local freshMap = GetSkillBarMap()
                     local yEntry = freshMap["Y"]
                     if yEntry and yEntry.skillName and yEntry.skillName ~= "" then
