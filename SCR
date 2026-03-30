@@ -317,7 +317,7 @@ end)
     })
 
     -- Hunt Legendary / SG Innate
-    local ClanChooseSection = MainTab:CreateSection({Name = "TròChơiNhânPhẩm", Side = "Right"})
+    local ClanChooseSection = MainTab:CreateSection({Name = "TròChơiNhânPhẩm", Side = "Left"})
 
     ClanChooseSection:AddToggle({
         Name = "Săn Rare Innate",
