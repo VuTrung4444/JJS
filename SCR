@@ -155,6 +155,7 @@ end
 	local SpeedAndJump = MiscTab:CreateSection({Name = "Speed&Jump[P]", Side = "Right"})
 	local Shop = MiscTab:CreateSection({Name = "Đổi item", Side = "Left"})
 	local Craft = MiscTab:CreateSection({Name = "Craft item", Side = "Right"})
+	local AutoSkill = MiscTab:CreateSection({Name = "AutoSkill", Side = "Right"})
 
 
 local Players = game:GetService("Players")
@@ -506,6 +507,8 @@ local function StartBlackFlashLoop()
                 and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
             local mob = GetNearestMobInRange(25)
             local calamity = workspace.Objects.Mobs:FindFirstChild("Six Eyed Calamity")
+
+            -- Kiểm tra trạng thái calamity
             local isCalamityStunned = false
             if calamity
                 and calamity:FindFirstChild("Humanoid")
@@ -514,20 +517,18 @@ local function StartBlackFlashLoop()
                 and calamity.Humanoid.CombatAgent.Statuses:FindFirstChild("Stunned") then
                 isCalamityStunned = true
             end
+
             if isCalamityStunned and cast == false then
-                local args = {
-                    "Infinity Piercing Vial"
-                }
+                local args = {"Infinity Piercing Vial"}
                 game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Data"):WaitForChild("EquipItem"):InvokeServer(unpack(args))
-                local args = {
-                    "Binding Chains"
-                }
+                local args = {"Binding Chains"}
                 game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Data"):WaitForChild("EquipItem"):InvokeServer(unpack(args))
                 CastSwitch()
                 cast = true
             elseif not isCalamityStunned then
                 cast = false
             end
+
             local destructFolder = workspace.Objects:FindFirstChild("Destructibles")
             local hasNonCrystalDestructible = false
             if destructFolder then
@@ -537,20 +538,40 @@ local function StartBlackFlashLoop()
                     end
                 end
             end
+
+            -- Kiểm tra Iframes và CantBring của mob gần nhất
+            local mobBlocked = false
+            if mob then
+                local h = mob:FindFirstChildWhichIsA("Humanoid", true)
+                local combatAgent = h and h:FindFirstChild("CombatAgent")
+                local statuses = combatAgent and combatAgent:FindFirstChild("Statuses")
+                if statuses then
+                    local iframes = statuses:FindFirstChild("Iframes")
+                    local cantBring = statuses:FindFirstChild("CantBring")
+                    if (iframes and iframes.Value) or (cantBring and cantBring.Value) then
+                        mobBlocked = true
+                    end
+                end
+            end
+
             local rs = game:GetService("ReplicatedStorage").Remotes.Server.Combat
             local args = {1.123}
+
             if isCalamityStunned then
                 rs.ApplyBlackFlashToNextHitbox:FireServer(unpack(args))
                 rs.M2:FireServer()
-            elseif mob or hasNonCrystalDestructible then
-
-                    rs.ApplyBlackFlashToNextHitbox:FireServer(unpack(args))
-                    rs.M2:FireServer()
+            elseif (mob or hasNonCrystalDestructible) and not mobBlocked then
+                rs.ApplyBlackFlashToNextHitbox:FireServer(unpack(args))
+                rs.M2:FireServer()
+                -- Chờ 2 giây trước khi cho phép HoverOnMob bay lên
+                getgenv()._blackFlashLandedTime = tick()
             end
+
             task.wait(1)
         end
     end)
 end
+
 
 local function StopBlackFlashLoop()
     getgenv().ToggleBF = false
@@ -1944,248 +1965,481 @@ MiscSection:AddButton({
 })
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
 local CurseMarket = ReplicatedStorage:WaitForChild("CurseMarket")
 local MarketExchange = ReplicatedStorage
-	:WaitForChild("Remotes")
-	:WaitForChild("Server")
-	:WaitForChild("Data")
-	:WaitForChild("MarketExchange")
-
+    :WaitForChild("Remotes")
+    :WaitForChild("Server")
+    :WaitForChild("Data")
+    :WaitForChild("MarketExchange")
 
 local selectedX = nil
 local exchangeRunning = false
-
+getgenv().ExchangeAmount = getgenv().ExchangeAmount or 1
 
 Shop:AddButton({
-	Name = "Shop",
-	Callback = function()
-		for _, child in pairs(CurseMarket:GetChildren()) do
-			if child:IsA("ValueBase") then
-				print("Name:", child.Name, "| Value:", tostring(child.Value))
-			end
-		end
-	end
+    Name = "Shop",
+    Callback = function()
+        for _, child in pairs(CurseMarket:GetChildren()) do
+            if child:IsA("ValueBase") then
+                print("Name:", child.Name, "| Value:", tostring(child.Value))
+            end
+        end
+    end
 })
 
-
 local toggleObjects = {}
-
 for i = 1, 8 do
-	toggleObjects[i] = Shop:AddToggle({
-		Name = tostring(i),
-		Default = false,
-		Callback = function(state)
-			if state then
-				selectedX = i
-				print("Đã chọn:", selectedX)
-				
-
-				for j = 1, 8 do
-					if j ~= i then
-						toggleObjects[j]:Set(false)
-					end
-				end
-			end
-		end
-	})
+    toggleObjects[i] = Shop:AddToggle({
+        Name = tostring(i),
+        Default = false,
+        Callback = function(state)
+            if state then
+                selectedX = i
+                print("Đã chọn:", selectedX)
+                for j = 1, 8 do
+                    if j ~= i then
+                        toggleObjects[j]:Set(false)
+                    end
+                end
+            end
+        end
+    })
 end
 
+Shop:AddTextbox({
+    Name = "Số lượng đổi",
+    Default = tostring(getgenv().ExchangeAmount),
+    Placeholder = "Nhập số lượng (mặc định: 1)",
+    Callback = function(value)
+        local num = tonumber(value)
+        if num then
+            getgenv().ExchangeAmount = num
+        end
+    end
+})
 
 local function startExchange()
-	if not selectedX then
-		warn("Chưa chọn 1-8!")
-		return
-	end
-	
-	exchangeRunning = true
-	
-	task.spawn(function()
-		while exchangeRunning do
-			
-			local args = {
-				CurseMarket:WaitForChild(tostring(selectedX))
-			}
-			
-			MarketExchange:InvokeServer(unpack(args))
-			
-			task.wait(1)
-		end
-	end)
+    if not selectedX then
+        warn("Chưa chọn 1-8!")
+        return
+    end
+
+    exchangeRunning = true
+
+    task.spawn(function()
+        while exchangeRunning do
+            local args = {
+                CurseMarket:WaitForChild(tostring(selectedX)),
+                getgenv().ExchangeAmount
+            }
+            MarketExchange:InvokeServer(unpack(args))
+            task.wait(3)
+        end
+    end)
 end
 
 local function stopExchange()
-	exchangeRunning = false
+    exchangeRunning = false
 end
 
-
 Shop:AddToggle({
-	Name = "Đổi",
-	Default = false,
-	Callback = function(state)
-		if state then
-			startExchange()
-		else
-			stopExchange()
-		end
-	end
+    Name = "Đổi",
+    Default = false,
+    Callback = function(state)
+        if state then
+            startExchange()
+        else
+            stopExchange()
+        end
+    end
 })
 
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
 local player = Players.LocalPlayer
 local replicatedData = player:WaitForChild("ReplicatedData")
 local inventory = replicatedData:WaitForChild("inventory")
-
 local craftRemote = ReplicatedStorage:WaitForChild("Remotes")
-	:WaitForChild("Server")
-	:WaitForChild("Data")
-	:WaitForChild("Craft")
+    :WaitForChild("Server")
+    :WaitForChild("Data")
+    :WaitForChild("Craft")
 
 local function getValue(name)
-	local item = inventory:FindFirstChild(name)
-	return item and item.Value or 0
+    local item = inventory:FindFirstChild(name)
+    return item and item.Value or 0
 end
 
-local function craft(itemName)
-
-	craftRemote:InvokeServer(itemName)
+local function craft(itemName, amount)
+    local args = { itemName, amount or 20 }
+    craftRemote:InvokeServer(unpack(args))
+    task.wait(2)
 end
 
 local autoCraft = false
 
 Craft:AddToggle({
-	Name = "Auto Craft",
-	Default = false,
-	Callback = function(state)
-		autoCraft = state
+    Name = "Auto Craft",
+    Default = false,
+    Callback = function(state)
+        autoCraft = state
+        if state then
+            task.spawn(function()
+                while autoCraft do
+                    task.wait(1)
+                    -- ===== LẤY GIÁ TRỊ =====
+                    local white = getValue("White Lotus")
+                    local sapphire = getValue("Sapphire Lotus")
+                    local jade = getValue("Jade Lotus")
+                    local withered = getValue("Withered Beckoning Cat")
+                    local wooden = getValue("Wooden Beckoning Cat")
+                    local polished = getValue("Polished Beckoning Cat")
+                    local golden = getValue("Golden Beckoning Cat")
+                    local luckVial = getValue("Luck Vial")
+                    local fortuneGourd = getValue("Fortune Gourd")
+                    local rageGourd = getValue("Rage Gourd")
+                    local didCraft = false
 
-		if state then
-			task.spawn(function()
-				while autoCraft do
-					task.wait(1)
+                    -- 🔥 1. ƯU TIÊN CAO
+                    if sapphire >= 5 and jade < 25 then
+                        craft("Jade Lotus")
+                        didCraft = true
+                    elseif polished >= 5 and golden < 25 then
+                        craft("Golden Beckoning Cat")
+                        didCraft = true
+                    -- ⬇ 2. LOTUS
+                    elseif sapphire < 25 and white >= 5 then
+                        craft("Sapphire Lotus")
+                        didCraft = true
+                    -- ⬇ 3. CAT
+                    elseif polished < 25 then
+                        if wooden >= 5 then
+                            craft("Polished Beckoning Cat")
+                            didCraft = true
+                        elseif withered >= 5 then
+                            craft("Wooden Beckoning Cat")
+                            didCraft = true
+                        end
+                    end
 
-					-- ===== LẤY GIÁ TRỊ =====
-					local white = getValue("White Lotus")
-					local sapphire = getValue("Sapphire Lotus")
-					local jade = getValue("Jade Lotus")
+                    if not didCraft then
+                        local lotusDead = white < 5 and sapphire < 5
+                        local catDead = withered < 5 and wooden < 5 and polished < 5
+                        local maxReached = jade == 25 and golden == 25
 
-					local withered = getValue("Withered Beckoning Cat")
-					local wooden = getValue("Wooden Beckoning Cat")
-					local polished = getValue("Polished Beckoning Cat")
-					local golden = getValue("Golden Beckoning Cat")
-
-					local luckVial = getValue("Luck Vial")
-					local fortuneGourd = getValue("Fortune Gourd")
-					local rageGourd = getValue("Rage Gourd")
-
-					local didCraft = false
-
-					-- 🔥 1. ƯU TIÊN CAO
-					if sapphire >= 5 and jade < 25 then
-						craft("Jade Lotus")
-						didCraft = true
-
-					elseif polished >= 5 and golden < 25 then
-						craft("Golden Beckoning Cat")
-						didCraft = true
-
-					-- ⬇ 2. LOTUS
-					elseif sapphire < 25 and white >= 5 then
-						craft("Sapphire Lotus")
-						didCraft = true
-
-					-- ⬇ 3. CAT
-					elseif polished < 25 then
-						if wooden >= 5 then
-							craft("Polished Beckoning Cat")
-							didCraft = true
-						elseif withered >= 5 then
-							craft("Wooden Beckoning Cat")
-							didCraft = true
-						end
-					end
-
-
-					if not didCraft then
-						local lotusDead = white < 5 and sapphire < 5
-						local catDead = withered < 5 and wooden < 5 and polished < 5
-						local maxReached = jade == 25 and golden == 25
-
-						if (lotusDead and catDead) or maxReached then
-							
-							if luckVial >= 25 and fortuneGourd < 15 then
-								craft("Fortune Gourd")
-								didCraft = true
-
-							elseif luckVial < 25 or fortuneGourd == 15 then
-
-								if rageGourd < 25 then
-									craft("Rage Gourd")
-									didCraft = true
-								else
-									autoCraft = false
-									break
-								end
-							end
-						end
-					end
-				end
-			end)
-		end
-	end
+                        if (lotusDead and catDead) or maxReached then
+                            if luckVial >= 25 and fortuneGourd < 15 then
+                                craft("Fortune Gourd")
+                                didCraft = true
+                            elseif luckVial < 25 or fortuneGourd == 15 then
+                                if rageGourd < 25 then
+                                    craft("Rage Gourd")
+                                    didCraft = true
+                                else
+                                    autoCraft = false
+                                    break
+                                end
+                            end
+                        end
+                    end
+                end
+            end)
+        end
+    end
 })
 
+getgenv().AutoSkill = false
+getgenv().UseZ = false
+getgenv().UseX = false
+getgenv().UseC = false
+getgenv().UseV = false
+getgenv().UseF = false
+getgenv().UseJ = false
+getgenv().UseB = false
+getgenv().UseG = false
+getgenv().SkillRange = getgenv().SkillRange or 50
+
+local VirtualInputManager = game:GetService("VirtualInputManager")
+
+local function SendKey(keyCode)
+    VirtualInputManager:SendKeyEvent(true, keyCode, false, game)
+    task.wait(0.05)
+    VirtualInputManager:SendKeyEvent(false, keyCode, false, game)
+end
+
+local function GetNearestMob(maxDistance)
+    maxDistance = maxDistance or 50
+    local hrp = game:GetService("Players").LocalPlayer.Character
+        and game:GetService("Players").LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if not hrp then return nil end
+
+    local mobsFolder = workspace:FindFirstChild("Objects") and workspace.Objects:FindFirstChild("Mobs")
+    if not mobsFolder then return nil end
+
+    local nearest, nearestDist = nil, math.huge
+
+    for _, npc in ipairs(mobsFolder:GetChildren()) do
+        local h = npc:FindFirstChildWhichIsA("Humanoid", true)
+        local primaryPart = npc.PrimaryPart or npc:FindFirstChild("HumanoidRootPart")
+        if h and h.Health > 0 and primaryPart then
+            local dist = (hrp.Position - primaryPart.Position).Magnitude
+            if dist <= maxDistance and dist < nearestDist then
+                nearestDist = dist
+                nearest = npc
+            end
+        end
+    end
+
+    return nearest
+end
+
+local function GetActiveKeys()
+    local keys = {}
+    if getgenv().UseZ then table.insert(keys, Enum.KeyCode.Z) end
+    if getgenv().UseX then table.insert(keys, Enum.KeyCode.X) end
+    if getgenv().UseC then table.insert(keys, Enum.KeyCode.C) end
+    if getgenv().UseV then table.insert(keys, Enum.KeyCode.V) end
+    if getgenv().UseF then table.insert(keys, Enum.KeyCode.F) end
+    if getgenv().UseJ then table.insert(keys, Enum.KeyCode.J) end
+    if getgenv().UseB then table.insert(keys, Enum.KeyCode.B) end
+    if getgenv().UseG then table.insert(keys, Enum.KeyCode.G) end
+    return keys
+end
+
+-- Lấy bảng ánh xạ KeyCode -> SkillBar dựa theo Keybind text
+local function GetSkillBarMap()
+    local map = {}
+    local skillBars = game:GetService("Players").LocalPlayer.PlayerGui
+        :FindFirstChild("Main")
+        and game:GetService("Players").LocalPlayer.PlayerGui.Main
+        :FindFirstChild("Frame")
+        and game:GetService("Players").LocalPlayer.PlayerGui.Main.Frame
+        :FindFirstChild("BottomRight")
+        and game:GetService("Players").LocalPlayer.PlayerGui.Main.Frame.BottomRight
+        :FindFirstChild("SkillBars")
+
+    if not skillBars then return map end
+
+    for _, bar in ipairs(skillBars:GetChildren()) do
+        local keybindLabel = bar:FindFirstChild("Keybind")
+        local skillNameLabel = bar:FindFirstChild("SkillName")
+        if keybindLabel and skillNameLabel then
+            local key = keybindLabel.Text:upper():match("^%s*(.-)%s*$")
+            map[key] = skillNameLabel
+        end
+    end
+
+    return map
+end
+
+-- Kiểm tra skill có đang cooldown không dựa theo SkillName label
+local function IsSkillReady(skillNameLabel)
+    if not skillNameLabel then return true end
+    -- Nếu text có dạng "Tên (7.8)" thì đang cooldown
+    return not skillNameLabel.Text:match("%(.-%)$")
+end
+
+-- Chuyển KeyCode sang chuỗi để so khớp với Keybind text
+local function KeyCodeToString(keyCode)
+    local name = keyCode.Name
+    -- Enum.KeyCode.Z -> "Z", Enum.KeyCode.One -> "1", v.v.
+    local numMap = {
+        One = "1", Two = "2", Three = "3", Four = "4",
+        Five = "5", Six = "6", Seven = "7", Eight = "8",
+        Nine = "9", Zero = "0"
+    }
+    return numMap[name] or name
+end
+
+task.spawn(function()
+    while true do
+        task.wait(0.1)
+        if not getgenv().AutoSkill then
+            task.wait(0.5)
+            continue
+        end
+
+        local target = GetNearestMob(getgenv().SkillRange)
+        if not target then
+            task.wait(0.5)
+            continue
+        end
+
+        local h = target:FindFirstChildWhichIsA("Humanoid", true)
+        if not h or h.Health <= 0 or not target.Parent then
+            task.wait(0.5)
+            continue
+        end
+
+        local keys = GetActiveKeys()
+        if #keys == 0 then
+            task.wait(0.5)
+            continue
+        end
+
+        local skillBarMap = GetSkillBarMap()
+
+        -- Phân loại: key sẵn sàng và key đang cooldown
+        local readyKeys = {}
+        local cooldownKeys = {}
+
+        for _, keyCode in ipairs(keys) do
+            local keyStr = KeyCodeToString(keyCode)
+            local skillNameLabel = skillBarMap[keyStr]
+
+            if skillNameLabel then
+                if IsSkillReady(skillNameLabel) then
+                    table.insert(readyKeys, keyCode)
+                else
+                    table.insert(cooldownKeys, keyCode)
+                end
+            else
+                -- Không tìm thấy trong SkillBar, coi như sẵn sàng
+                table.insert(readyKeys, keyCode)
+            end
+        end
+
+        -- Ưu tiên gọi các key sẵn sàng, fallback sang cooldown nếu không có
+        local keysToUse = #readyKeys > 0 and readyKeys or cooldownKeys
+
+        for _, keyCode in ipairs(keysToUse) do
+            if not getgenv().AutoSkill then break end
+            local currentTarget = GetNearestMob(getgenv().SkillRange)
+            if not currentTarget then break end
+            local ch = currentTarget:FindFirstChildWhichIsA("Humanoid", true)
+            if not ch or ch.Health <= 0 then break end
+
+            SendKey(keyCode)
+            task.wait(3)
+        end
+
+        task.wait(1)
+    end
+end)
+
+-- ===================== UI =====================
+
+AutoSkill:AddToggle({
+    Name = "Auto Skill",
+    Default = false,
+    Callback = function(value)
+        getgenv().AutoSkill = value
+    end
+})
+
+AutoSkill:AddTextbox({
+    Name = "Giới hạn khoảng cách skill",
+    Default = tostring(getgenv().SkillRange),
+    Placeholder = "Nhập khoảng cách (mặc định: 50)",
+    Callback = function(value)
+        local num = tonumber(value)
+        if num then getgenv().SkillRange = num end
+    end
+})
+
+AutoSkill:AddToggle({
+    Name = "Skill Z",
+    Default = false,
+    Callback = function(value) getgenv().UseZ = value end
+})
+
+AutoSkill:AddToggle({
+    Name = "Skill X",
+    Default = false,
+    Callback = function(value) getgenv().UseX = value end
+})
+
+AutoSkill:AddToggle({
+    Name = "Skill C",
+    Default = false,
+    Callback = function(value) getgenv().UseC = value end
+})
+
+AutoSkill:AddToggle({
+    Name = "Skill V",
+    Default = false,
+    Callback = function(value) getgenv().UseV = value end
+})
+
+AutoSkill:AddToggle({
+    Name = "Skill F",
+    Default = false,
+    Callback = function(value) getgenv().UseF = value end
+})
+
+AutoSkill:AddToggle({
+    Name = "Skill J",
+    Default = false,
+    Callback = function(value) getgenv().UseJ = value end
+})
+
+AutoSkill:AddToggle({
+    Name = "Skill B",
+    Default = false,
+    Callback = function(value) getgenv().UseB = value end
+})
+
+AutoSkill:AddToggle({
+    Name = "Skill G",
+    Default = false,
+    Callback = function(value) getgenv().UseG = value end
+})
+
+
+getgenv().InstantKillThreshold = getgenv().InstantKillThreshold or 10000
 
 AutoMission:AddToggle({
     Name = "InstantKill",
     Default = false,
     Callback = function(state)
         getgenv().InsBoss = state
-
         if state then
             spawn(function()
                 while getgenv().InsBoss do
                     local player = game:GetService("Players").LocalPlayer
                     local char = player.Character
                     local hrp = char and char:FindFirstChild("HumanoidRootPart")
-
                     local mobsFolder = workspace:WaitForChild("Objects"):WaitForChild("Mobs")
-
                     for _, mob in ipairs(mobsFolder:GetChildren()) do
                         local humanoid = mob:FindFirstChild("Humanoid")
                         local mobRoot = mob:FindFirstChild("HumanoidRootPart") or mob.PrimaryPart
-
                         if humanoid and humanoid.Health > 0 and mobRoot then
-
-                            if getgenv().AutoBoss and humanoid.Health <= 10000 then
+                            if getgenv().AutoBoss and humanoid.Health <= getgenv().InstantKillThreshold then
                                 humanoid.Health = 0
                                 task.wait(0.1)
                             end
-
                             if placeId == mainMenuPlaceID then
                                 local dist = (mobRoot.Position - hrp.Position).Magnitude
                                 if dist <= 700 then
                                     humanoid.Health = 0
                                     task.wait(0.1)
                                 end
-							else
-								if not getgenv().AutoBoss then
-								local dist = (mobRoot.Position - hrp.Position).Magnitude
-                                if dist <= 700 then
-										humanoid.Health = 0
-										task.wait(0.1)
-								 end
-								end
+                            else
+                                if not getgenv().AutoBoss then
+                                    local dist = (mobRoot.Position - hrp.Position).Magnitude
+                                    if dist <= 700 then
+                                        humanoid.Health = 0
+                                        task.wait(0.1)
+                                    end
+                                end
                             end
                         end
                     end
-
                     task.wait(0.5)
                 end
             end)
+        end
+    end
+})
+
+AutoMission:AddTextbox({
+    Name = "InstantKill HP",
+    Default = tostring(getgenv().InstantKillThreshold),
+    Placeholder = "Nhập ngưỡng HP (mặc định: 10000)",
+    Callback = function(value)
+        local num = tonumber(value)
+        if num then
+            getgenv().InstantKillThreshold = num
         end
     end
 })
@@ -2459,9 +2713,9 @@ local function MoveToBoss()
             CastSwitch()
             local VirtualInputManager = game:GetService("VirtualInputManager")
 
-            VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Three, false, game)
+            VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Two, false, game)
             task.wait(0.05)
-            VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Three, false, game)
+            VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Two, false, game)
 
             local targetPos = pivot.Position + Vector3.new(0, OffsetY, 0)
 
@@ -2470,6 +2724,17 @@ local function MoveToBoss()
             hrp.AssemblyLinearVelocity = Vector3.zero
         end
     end
+end
+
+local function GetLocalPlayerFocus()
+    local char = game:GetService("Players").LocalPlayer.Character
+    if not char then return nil end
+    local humanoid = char:FindFirstChildWhichIsA("Humanoid", true)
+    if not humanoid then return nil end
+    local combatAgent = humanoid:FindFirstChild("CombatAgent")
+    local clientInfo = combatAgent and combatAgent:FindFirstChild("ClientInfo")
+    local focus = clientInfo and clientInfo:FindFirstChild("Focus")
+    return focus and focus.Value or nil
 end
 
 local function HoverOnMob()
@@ -2506,22 +2771,34 @@ local function HoverOnMob()
     while humanoid and humanoid.Health > 0 and target.PrimaryPart and getgenv().AutoBoss do
 
         local combatAgent = humanoid:FindFirstChild("CombatAgent")
-		local iframes = combatAgent and combatAgent:FindFirstChild("Statuses") and combatAgent.Statuses:FindFirstChild("Iframes")
-		local comboing = combatAgent and combatAgent:FindFirstChild("Statuses") and combatAgent.Statuses:FindFirstChild("Comboing")
-		local cantbring = combatAgent and combatAgent:FindFirstChild("Statuses") and combatAgent.Statuses:FindFirstChild("CantBring")
-		local shouldLift = (iframes and iframes.Value) or (comboing and comboing.Value) or (cantbring and cantbring.Value)
+        local statuses = combatAgent and combatAgent:FindFirstChild("Statuses")
+
+        local iframes   = statuses and statuses:FindFirstChild("Iframes")
+        local comboing  = statuses and statuses:FindFirstChild("Comboing")
+
+        local shouldLift = (iframes and iframes.Value)
+            or (comboing and comboing.Value)
 
         if shouldLift and not getgenv()._wasLifted then
             getgenv()._wasLifted = true
             getgenv()._liftEndTime = nil
         elseif not shouldLift and getgenv()._wasLifted then
             getgenv()._wasLifted = false
-            getgenv()._liftEndTime = tick() + 0.1
+            getgenv()._liftEndTime = tick()
         end
 
-        local isCoolingDown = getgenv()._liftEndTime and tick() < getgenv()._liftEndTime
+        local isCoolingDown = getgenv()._liftEndTime
+            and tick() < getgenv()._liftEndTime
 
-        if shouldLift or isCoolingDown then
+        -- Chỉ khoá bay sau blackflash nếu Focus trong khoảng (0.8, 1.5)
+        local focusValue = GetLocalPlayerFocus()
+        local focusInRange = focusValue and focusValue > 0.9 and focusValue < 1.5
+
+        local isPostBlackFlash = focusInRange
+            and getgenv()._blackFlashLandedTime
+            and tick() < getgenv()._blackFlashLandedTime + 2
+
+        if (shouldLift or isCoolingDown) and not isPostBlackFlash then
             orbitAngle = orbitAngle + 3 * 0.01
             orbitRadius = orbitRadius + 0.5
 
@@ -2550,7 +2827,6 @@ local function HoverOnMob()
 
     clip()
     DisableHover(hrp)
-
 end
 
 AutoMission:AddToggle({
@@ -2617,9 +2893,9 @@ KA:AddToggle({
             end
             
 			local VirtualInputManager = game:GetService("VirtualInputManager")
-            VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Three, false, game)
+            VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Two, false, game)
             task.wait(0.05)
-            VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Three, false, game)
+            VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Two, false, game)
 
             EnableHover(hrp)
             local bp = hrp:FindFirstChild("BodyPosition")
