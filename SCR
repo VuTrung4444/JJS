@@ -3163,7 +3163,7 @@ AutoMission:AddToggle({
 
             while not isNearTargetPosition(targetPosition, 1000) and getgenv().AutoRerollQuest do
                 pressJ()
-                task.wait(1)
+                task.wait(3)
                 if not getgenv().AutoRerollQuest then return false end
             end
 
