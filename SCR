@@ -428,6 +428,39 @@ UIS.InputBegan:Connect(function(input, gameProcessed)
     end
 end)
 
+local function QuickSkillZ()
+
+local args = {
+	"Volcano: Eruption"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("Skill"):FireServer(unpack(args))
+end
+
+
+UIS.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.M then
+        QuickSkillZ()
+    end
+end)
+
+local function QuickSkillC()
+
+local args = {
+	"Gambler Fever: Slot Slam"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("Skill"):FireServer(unpack(args))
+end
+
+
+UIS.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.N then
+        QuickSkillC()
+    end
+end)
+
+--[[
 local function BlackFlashQuickSkillZ()
 	local args = {
 	2,
@@ -472,7 +505,7 @@ end)
 
 -------------FUGA-----------------
 
---[[
+
 	
 	local function BlackFlashQuickSkillV()
 	local args = {
