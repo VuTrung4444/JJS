@@ -813,7 +813,7 @@ local function StartBlackFlashLoop()
         while getgenv().ToggleBF do
             local hrp = game.Players.LocalPlayer.Character 
                 and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-            local mob = GetNearestMobInRange(25)
+            local mob = GetNearestMobInRange(18)
             local calamity = workspace.Objects.Mobs:FindFirstChild("Six Eyed Calamity")
 			local isCalamityStunned = false
 			if calamity
@@ -885,7 +885,7 @@ local function StartBlackFlashLoop()
             elseif (mob or hasNonCrystalDestructible) and not mobBlocked then
                 rs.ApplyBlackFlashToNextHitbox:FireServer(unpack(args))
                 rs.M2:FireServer()
-                -- Chờ 2 giây trước khi cho phép HoverOnMob bay lên
+                -- Chờ 1 giây trước khi cho phép HoverOnMob bay lên
                 getgenv()._blackFlashLandedTime = tick()
             end
 
