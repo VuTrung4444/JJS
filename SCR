@@ -599,7 +599,7 @@ AutoSkill:AddToggle({
 AutoSkill:AddTextbox({
     Name = "Giới hạn khoảng cách skill",
     Default = tostring(getgenv().SkillRange),
-    Placeholder = "Nhập khoảng cách (mặc định: 50)",
+    Placeholder = "Nhập khoảng cách (mặc định: 200)",
     Callback = function(value)
         local num = tonumber(value)
         if num then getgenv().SkillRange = num end
@@ -845,7 +845,7 @@ local function StartBlackFlashLoop()
 				getgenv().UseG = true
 				getgenv().UseT = true
 
-			elseif not isCalamityStunned then
+			elseif calamity and not isCalamityStunned then
 				cast = false
 				-- Tắt auto skill + reset tất cả toggle key
 				getgenv().AutoSkill = false
