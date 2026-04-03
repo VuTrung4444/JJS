@@ -431,7 +431,7 @@ end)
 local function QuickSkillZ()
 
 local args = {
-	"Volcano: Eruption"
+	"Gambler Fever: Cargo Haul"
 }
 game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Combat"):WaitForChild("Skill"):FireServer(unpack(args))
 end
@@ -2190,7 +2190,7 @@ getgenv().UseB = false
 getgenv().UseG = false
 getgenv().UseT = false
 getgenv().UseY = false
-getgenv().SkillRange = getgenv().SkillRange or 50
+getgenv().SkillRange = getgenv().SkillRange or 200
 getgenv().YSkillUsed = false
 
 local SkillRemote = game:GetService("ReplicatedStorage")
@@ -2382,7 +2382,7 @@ task.spawn(function()
             task.wait(2)
         end
 
-        task.wait(2)
+        task.wait(1)
     end
 end)
 
