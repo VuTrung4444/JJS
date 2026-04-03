@@ -835,7 +835,15 @@ local function StartBlackFlashLoop()
 					CastSwitch()
 					cast = true
 				end
+				
 				-- Bật auto skill + tất cả toggle key
+				local backpack = game:GetService("Players").LocalPlayer:WaitForChild("Backpack")
+				if backpack:FindFirstChild("Innates") then
+					local VirtualInputManager = game:GetService("VirtualInputManager")
+					VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Two, false, game)
+					task.wait(0.5)
+					VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Two, false, game)
+				end
 				getgenv().AutoSkill = true
 				getgenv().UseZ = true
 				getgenv().UseX = true
@@ -2796,11 +2804,13 @@ local function MoveToBoss()
         local pivot = bossSpawn:GetPivot()
         if pivot then
             CastSwitch()
-            local VirtualInputManager = game:GetService("VirtualInputManager")
-
-            VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Two, false, game)
-            task.wait(0.5)
-            VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Two, false, game)
+			local backpack = game:GetService("Players").LocalPlayer:WaitForChild("Backpack")
+			if backpack:FindFirstChild("Innates") then
+				local VirtualInputManager = game:GetService("VirtualInputManager")
+				VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Two, false, game)
+				task.wait(0.5)
+				VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Two, false, game)
+			end
 
             local targetPos = pivot.Position + Vector3.new(0, OffsetY, 0)
 
@@ -2977,10 +2987,13 @@ KA:AddToggle({
                 return
             end
             
-			local VirtualInputManager = game:GetService("VirtualInputManager")
-            VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Two, false, game)
-            task.wait(0.05)
-            VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Two, false, game)
+			local backpack = game:GetService("Players").LocalPlayer:WaitForChild("Backpack")
+			if backpack:FindFirstChild("Innates") then
+				local VirtualInputManager = game:GetService("VirtualInputManager")
+				VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Two, false, game)
+				task.wait(0.5)
+				VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Two, false, game)
+			end
 
             EnableHover(hrp)
             local bp = hrp:FindFirstChild("BodyPosition")
