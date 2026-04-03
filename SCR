@@ -813,7 +813,7 @@ local function StartBlackFlashLoop()
         while getgenv().ToggleBF do
             local hrp = game.Players.LocalPlayer.Character 
                 and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-            local mob = GetNearestMobInRange(18)
+            local mob = GetNearestMobInRange(25)
             local calamity = workspace.Objects.Mobs:FindFirstChild("Six Eyed Calamity")
 			local isCalamityStunned = false
 			if calamity
@@ -834,17 +834,8 @@ local function StartBlackFlashLoop()
 					game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Data"):WaitForChild("EquipItem"):InvokeServer(unpack(args))
 					CastSwitch()
 					cast = true
-					
 				end
 				-- Bật auto skill + tất cả toggle key
-				local backpack = game:GetService("Players").LocalPlayer:WaitForChild("Backpack")
-				if backpack:FindFirstChild("Innates") then
-					local VirtualInputManager = game:GetService("VirtualInputManager")
-					VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Two, false, game)
-					task.wait(0.5)
-					VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Two, false, game)
-				end
-
 				getgenv().AutoSkill = true
 				getgenv().UseZ = true
 				getgenv().UseX = true
@@ -2805,13 +2796,11 @@ local function MoveToBoss()
         local pivot = bossSpawn:GetPivot()
         if pivot then
             CastSwitch()
-		local backpack = game:GetService("Players").LocalPlayer:WaitForChild("Backpack")
-		if backpack:FindFirstChild("Innates") then
-			local VirtualInputManager = game:GetService("VirtualInputManager")
-			VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Two, false, game)
-			task.wait(0.5)
-			VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Two, false, game)
-		end
+            local VirtualInputManager = game:GetService("VirtualInputManager")
+
+            VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Two, false, game)
+            task.wait(0.5)
+            VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Two, false, game)
 
             local targetPos = pivot.Position + Vector3.new(0, OffsetY, 0)
 
