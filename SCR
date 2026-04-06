@@ -2648,6 +2648,14 @@ AutoMission:AddToggle({
 
                  if currentTask ~= "Collect all objects" and currentTask ~= "Rescue civilians to the gate" then
                     local targetMob, targetPart = FindMobWithQuestMarker()
+					local backpack = game:GetService("Players").LocalPlayer:WaitForChild("Backpack")
+
+					if backpack:FindFirstChild("Innates") then
+						local VirtualInputManager = game:GetService("VirtualInputManager")
+						VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Two, false, game)
+						task.wait(0.5)
+						VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Two, false, game)
+					end
                     
                     if targetMob and targetPart then
                         local char = player.Character
@@ -3002,6 +3010,15 @@ KA:AddToggle({
                 local distance = (hrp.Position - target.PrimaryPart.Position).Magnitude
                 if distance > 100 then break end
                 
+				local backpack = game:GetService("Players").LocalPlayer:WaitForChild("Backpack")
+				
+				if backpack:FindFirstChild("Innates") then
+					local VirtualInputManager = game:GetService("VirtualInputManager")
+					VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Two, false, game)
+					task.wait(0.5)
+					VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Two, false, game)
+				end
+
                 local desiredPos = target.PrimaryPart.Position + Vector3.new(0, HoverHeight, 0)
                 
                 if bp then 
