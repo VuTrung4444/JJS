@@ -2574,7 +2574,6 @@ AutoMission:AddToggle({
             end
 
             if enable then
-                -- Không tạo BodyGyro nữa, chỉ dùng BodyPosition
                 local bp = Instance.new("BodyPosition")
                 bp.P = 5e4
                 bp.D = 1000
@@ -2653,8 +2652,9 @@ AutoMission:AddToggle({
 					if backpack:FindFirstChild("Innates") then
 						local VirtualInputManager = game:GetService("VirtualInputManager")
 						VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Two, false, game)
-						task.wait(0.5)
+						task.wait(0.2)
 						VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Two, false, game)
+						task.wait(1)
 					end
                     
                     if targetMob and targetPart then
