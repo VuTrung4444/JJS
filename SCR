@@ -2621,6 +2621,15 @@ AutoMission:AddToggle({
             return nil, nil
         end
 
+		local backpack = game:GetService("Players").LocalPlayer:WaitForChild("Backpack")
+		if backpack:FindFirstChild("Innates") then
+			local VirtualInputManager = game:GetService("VirtualInputManager")
+			VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Two, false, game)
+			task.wait(0.2)
+			VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Two, false, game)
+			task.wait(1)
+		end
+
         task.spawn(function()
             while task.wait(0.01) do
 
@@ -2647,16 +2656,7 @@ AutoMission:AddToggle({
 
                  if currentTask ~= "Collect all objects" and currentTask ~= "Rescue civilians to the gate" then
                     local targetMob, targetPart = FindMobWithQuestMarker()
-					local backpack = game:GetService("Players").LocalPlayer:WaitForChild("Backpack")
 
-					if backpack:FindFirstChild("Innates") then
-						local VirtualInputManager = game:GetService("VirtualInputManager")
-						VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Two, false, game)
-						task.wait(0.2)
-						VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Two, false, game)
-						task.wait(1)
-					end
-                    
                     if targetMob and targetPart then
                         local char = player.Character
                         local hrp = char and char:FindFirstChild("HumanoidRootPart")
