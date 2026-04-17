@@ -393,7 +393,6 @@ getgenv().UseG = false
 getgenv().UseT = false
 getgenv().UseY = false
 getgenv().SkillRange = getgenv().SkillRange or 200
-getgenv().YSkillUsed = false
 
 local SkillRemote = game:GetService("ReplicatedStorage")
     :WaitForChild("Remotes")
@@ -487,6 +486,7 @@ local function GetActiveKeyCodes()
     if getgenv().UseB then table.insert(keys, Enum.KeyCode.B) end
     if getgenv().UseG then table.insert(keys, Enum.KeyCode.G) end
     if getgenv().UseT then table.insert(keys, Enum.KeyCode.T) end
+	if getgenv().UseY then table.insert(keys, Enum.KeyCode.Y) end
     return keys
 end
 
@@ -512,23 +512,6 @@ task.spawn(function()
 
         local skillBarMap = GetSkillBarMap()
 
-        -- Kiểm tra điều kiện kĩ năng Y (ưu tiên cao nhất)
-        if getgenv().UseY then
-            local yEntry = skillBarMap["Y"]
-            local targetHealthPercent = h.Health / h.MaxHealth
-
-            if targetHealthPercent < 0.8 and not getgenv().YSkillUsed then
-                -- Gián đoạn mọi thứ, gọi skill Y
-                if yEntry and yEntry.skillName and yEntry.skillName ~= "" then
-                    FireSkill(yEntry.skillName)
-                end
-                getgenv().YSkillUsed = true
-                task.wait(2)
-                continue
-            elseif targetHealthPercent >= 0.8 then
-                getgenv().YSkillUsed = false
-            end
-        end
 
         local keys = GetActiveKeyCodes()
         if #keys == 0 then
@@ -562,23 +545,6 @@ task.spawn(function()
             if not currentTarget then break end
             local ch = currentTarget:FindFirstChildWhichIsA("Humanoid", true)
             if not ch or ch.Health <= 0 then break end
-
-            -- Kiểm tra Y chen ngang trước mỗi lần gọi skill
-            if getgenv().UseY then
-                local targetHealthPercent = ch.Health / ch.MaxHealth
-                if targetHealthPercent < 0.8 and not getgenv().YSkillUsed then
-                    local freshMap = GetSkillBarMap()
-                    local yEntry = freshMap["Y"]
-                    if yEntry and yEntry.skillName and yEntry.skillName ~= "" then
-                        FireSkill(yEntry.skillName)
-                    end
-                    getgenv().YSkillUsed = true
-                    task.wait(2)
-                    break
-                elseif targetHealthPercent >= 0.8 then
-                    getgenv().YSkillUsed = false
-                end
-            end
 
             FireSkill(skillName)
             task.wait(2)
@@ -649,12 +615,9 @@ AutoSkill:AddToggle({
 })
 
 AutoSkill:AddToggle({
-    Name = "Skill Y (< 80% HP)",
+    Name = "Skill Y",
     Default = false,
-    Callback = function(value)
-        getgenv().UseY = value
-        if not value then getgenv().YSkillUsed = false end
-    end
+    Callback = function(value) getgenv().UseY = value end
 })
 
 
