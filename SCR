@@ -2304,7 +2304,7 @@ local MarketExchange = ReplicatedStorage
 
 local selectedX = nil
 local exchangeRunning = false
-getgenv().ExchangeAmount = getgenv().ExchangeAmount or 1
+getgenv().ExchangeAmount = getgenv().ExchangeAmount or 20
 
 Shop:AddButton({
     Name = "Shop",
@@ -2339,7 +2339,7 @@ end
 Shop:AddTextbox({
     Name = "Số lượng đổi",
     Default = tostring(getgenv().ExchangeAmount),
-    Placeholder = "Nhập số lượng (mặc định: 1)",
+    Placeholder = "Nhập số lượng (mặc định: 20)",
     Callback = function(value)
         local num = tonumber(value)
         if num then
