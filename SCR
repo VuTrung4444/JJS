@@ -392,7 +392,7 @@ getgenv().UseB = false
 getgenv().UseG = false
 getgenv().UseT = false
 getgenv().UseY = false
-getgenv().SkillRange = getgenv().SkillRange or 200
+getgenv().SkillRange = getgenv().SkillRange or 50
 
 local SkillRemote = game:GetService("ReplicatedStorage")
     :WaitForChild("Remotes")
@@ -547,7 +547,7 @@ task.spawn(function()
             if not ch or ch.Health <= 0 then break end
 
             FireSkill(skillName)
-            task.wait(2)
+            task.wait(1)
         end
 
         task.wait(1)
@@ -565,7 +565,7 @@ AutoSkill:AddToggle({
 AutoSkill:AddTextbox({
     Name = "Giới hạn khoảng cách skill",
     Default = tostring(getgenv().SkillRange),
-    Placeholder = "Nhập khoảng cách (mặc định: 200)",
+    Placeholder = "Nhập khoảng cách (mặc định: 50)",
     Callback = function(value)
         local num = tonumber(value)
         if num then getgenv().SkillRange = num end
@@ -2803,6 +2803,7 @@ local function GetLocalPlayerFocus()
     return focus and focus.Value or nil
 end
 
+
 local function HoverOnMob()
     if not hrp then return end
     local mobsFolder = workspace:WaitForChild("Objects"):WaitForChild("Mobs")
@@ -2833,14 +2834,35 @@ local function HoverOnMob()
 
     getgenv()._wasLifted = false
     getgenv()._liftEndTime = nil
+    getgenv()._liftDomain = false
+    local domainDisableTime = nil
 
     while humanoid and humanoid.Health > 0 and target.PrimaryPart and getgenv().AutoBoss do
+         local healthPercent = (humanoid.Health / humanoid.MaxHealth) * 100
 
         local combatAgent = humanoid:FindFirstChild("CombatAgent")
         local statuses = combatAgent and combatAgent:FindFirstChild("Statuses")
 
         local iframes   = statuses and statuses:FindFirstChild("Iframes")
         local comboing  = statuses and statuses:FindFirstChild("Comboing")
+
+        local domain = statuses and statuses:FindFirstChild("InCutscene")
+        local domainActive = domain and domain.Value and healthPercent < 80
+
+        if domainActive then
+            if not getgenv()._liftDomain then
+                DisableHover(hrp)
+                bp = nil
+                getgenv()._liftDomain = true
+                print("disable")
+            end
+
+        elseif not domainActive and getgenv()._liftDomain then
+                getgenv()._liftDomain = false
+                EnableHover(hrp)
+                bp = hrp:FindFirstChild("BodyPosition")
+                print("enable")
+        end
 
         local shouldLift = (iframes and iframes.Value)
             or (comboing and comboing.Value)
