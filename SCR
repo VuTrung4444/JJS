@@ -2835,7 +2835,6 @@ local function HoverOnMob()
     getgenv()._wasLifted = false
     getgenv()._liftEndTime = nil
     getgenv()._liftDomain = false
-    local domainDisableTime = nil
     local DOMAIN_MIN_DISABLE_TIME = 1
     local domainDisableTime = nil
 
@@ -2852,19 +2851,22 @@ local function HoverOnMob()
         local domainActive = domain and domain.Value and healthPercent < 80
 
         if domainActive then
-            if not getgenv()._liftDomain then
+            if not domainDisableTime then
                 domainDisableTime = tick()
-                if domainDisableTime and (tick() - domainDisableTime >= DOMAIN_MIN_DISABLE_TIME) then
+            end
+                if not getgenv()._liftDomain and (tick() - domainDisableTime >= DOMAIN_MIN_DISABLE_TIME) then
                     DisableHover(hrp)
                     bp = nil
                     getgenv()._liftDomain = true
+
                 end
-            end
 
         elseif not domainActive and getgenv()._liftDomain then
                 getgenv()._liftDomain = false
                 EnableHover(hrp)
                 bp = hrp:FindFirstChild("BodyPosition")
+                domainDisableTime = nil
+
         end
 
         local shouldLift = (iframes and iframes.Value)
