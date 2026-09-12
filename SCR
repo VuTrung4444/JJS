@@ -2835,7 +2835,7 @@ local function HoverOnMob()
     getgenv()._wasLifted = false
     getgenv()._liftEndTime = nil
     getgenv()._liftDomain = false
-    local DOMAIN_MIN_DISABLE_TIME = 1
+    local DOMAIN_MIN_DISABLE_TIME = 2
     local domainDisableTime = nil
 
     while humanoid and humanoid.Health > 0 and target.PrimaryPart and getgenv().AutoBoss do
