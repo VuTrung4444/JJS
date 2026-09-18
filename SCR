@@ -547,7 +547,7 @@ task.spawn(function()
             if not ch or ch.Health <= 0 then break end
 
             FireSkill(skillName)
-            task.wait(1)
+            task.wait(2)
         end
 
         task.wait(1)
