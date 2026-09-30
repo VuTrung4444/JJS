@@ -3313,6 +3313,8 @@ end
 
 function StartAutoReplay()
     task.spawn(function()
+        local dropTimerStart = nil
+
         while getgenv().AutoReplay do
             local replicatedStorage = game:GetService("ReplicatedStorage")
             local playerGui = player:WaitForChild("PlayerGui")
@@ -3327,7 +3329,6 @@ function StartAutoReplay()
             local dropsExist = HasDrops()
             local health = GetHealth()
 
-
             local remote = replicatedStorage
                 :WaitForChild("Remotes")
                 :WaitForChild("Server")
@@ -3338,14 +3339,30 @@ function StartAutoReplay()
                 task.wait(4)
                 local dropsExistAfterDelay = HasDrops()
 
-
                 if not dropsExistAfterDelay then
+
+                    dropTimerStart = nil
                     remote:FireServer()
+                else
+
+                    if not dropTimerStart then
+                        dropTimerStart = tick()
+                    end
+
+
+                    if tick() - dropTimerStart >= 20 then
+                        remote:FireServer()
+                        dropTimerStart = nil
+                    end
                 end
+            else
+
+                dropTimerStart = nil
             end
 
             if dropsExist and health <= 0 then
                 remote:FireServer()
+                dropTimerStart = nil
             end
 
             task.wait(1)
@@ -3559,5 +3576,4 @@ SpeedAndJump:AddSlider({
         end
     end
 })
-
 
