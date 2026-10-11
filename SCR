@@ -893,7 +893,7 @@ local plr = Players.LocalPlayer
 
 
 local MAX_DISTANCE = 100
-local ATTACK_COUNT = 4
+local ATTACK_COUNT = 6
 local WAIT_AFTER_ATTACK = 1
 
 local function getClosestMob()
@@ -919,7 +919,7 @@ local function getClosestMob()
 end
 
 
-local function attack(target)
+local function attack(target, comboIndex)
     if not target then return end
     local humanoid = target:FindFirstChild("Humanoid")
     local rootPart = target:FindFirstChild("HumanoidRootPart")
@@ -931,7 +931,7 @@ local function attack(target)
     local distance = (rootPart.Position - playerRoot.Position).Magnitude
     if distance > MAX_DISTANCE then return end
 
-    local args = {1, {humanoid}}
+    local args = {comboIndex, {humanoid}}
     ReplicatedStorage
         :WaitForChild("Remotes")
         :WaitForChild("Server")
@@ -959,17 +959,16 @@ task.spawn(function()
             end
 
             if currentTarget then
+			attackCounter = attackCounter + 1
+			attack(currentTarget, attackCounter)
 
-                attack(currentTarget)
-                attackCounter = attackCounter + 1
-
-                if attackCounter >= ATTACK_COUNT then
-                    attackCounter = 0
-                    task.wait(WAIT_AFTER_ATTACK)
-                else
-                    task.wait(0.1)
-                end
-            end
+			if attackCounter >= ATTACK_COUNT then
+				attackCounter = 0
+				task.wait(WAIT_AFTER_ATTACK)
+			else
+				task.wait(0.1)
+			end
+		end
         else
             attackCounter = 0
             currentTarget = nil
@@ -3576,4 +3575,3 @@ SpeedAndJump:AddSlider({
         end
     end
 })
-
